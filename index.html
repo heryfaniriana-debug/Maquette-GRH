@@ -22062,7 +22062,7 @@ var Temps = (function(){
   function rotNew(){ V.rot.id = null; V.rot.draft = { id:'', nom:'', cycle:[null, null, null, null, null, null, null], note:'', emps:[], start:'' }; render('tp-horaires'); }
   function rotOpen(id){ var r = JSON.parse(JSON.stringify(byId(ROT, id))); var emps = people().filter(function(p){ return aff(p.id).rot === id; }); r.emps = emps.map(function(p){ return p.id; }); r.start = emps.length ? aff(emps[0].id).rotStart : ''; V.rot.id = id; V.rot.draft = r; render('tp-horaires'); }
   function rotBack(){ V.rot.draft = null; render('tp-horaires'); }
-  function rotSync(){ var d = V.rot.draft; if(!d || !$('tp-ro-nom')) return; d.nom = $('tp-ro-nom').value; d.note = ($('tp-ro-note') || {}).value || ''; d.start = ($('tp-ro-start') || {}).value || d.start; d.emps = [].slice.call(document.querySelectorAll('.tp-ro-emp:checked')).map(function(e){ return e.value; }); }
+  function rotSync(){ var d = V.rot.draft; if(!d || !$('tp-ro-nom')) return; d.nom = $('tp-ro-nom').value; d.note = ($('tp-ro-note') || {}).value || ''; }
   function rotLen(n){ rotSync(); var d = V.rot.draft, L = parseInt(n, 10) || 7; while(d.cycle.length < L) d.cycle.push(null); d.cycle.length = L; render('tp-horaires'); }
   function rotDay(i, v){ rotSync(); V.rot.draft.cycle[i] = v || null; render('tp-horaires'); }
   function renderRotEdit(h){
@@ -22071,7 +22071,7 @@ var Temps = (function(){
     h.innerHTML = back('Temps.rotBack()', 'Rotations') + '<div class="flex items-center justify-between mb-4"><h1 class="text-[18px] font-semibold text-slate-800">' + (V.rot.id ? esc(d.nom) : 'Nouvelle rotation') + '</h1><div class="flex gap-2">' + (V.rot.id ? '<button onclick="Temps.rotDel()" class="' + B4 + '">Supprimer</button>' : '') + '<button onclick="Temps.rotBack()" class="' + B2 + '">Annuler</button><button onclick="Temps.rotSave()" class="' + B1 + '">Enregistrer</button></div></div>' +
       card('<div class="grid grid-cols-2 gap-5 mb-5"><div>' + lab('Nom') + '<input id="tp-ro-nom" value="' + esc(d.nom) + '" class="' + INP + '"></div><div>' + lab('Durée du cycle') + sel('tp-ro-len', [[7, '7 jours'], [14, '14 jours'], [21, '21 jours'], [28, '28 jours']], d.cycle.length, ' onchange="Temps.rotLen(this.value)"') + '</div></div><div class="mb-5">' + lab('Note (facultatif)') + '<input id="tp-ro-note" value="' + esc(d.note || '') + '" class="' + INP + '"></div>' +
       '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-2">Cycle</div><div class="grid grid-cols-7 gap-2 mb-6">' + days + '</div>' +
-      '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-2">Salariés concernés</div><div class="grid grid-cols-2 gap-x-4 gap-y-1 mb-4">' + people().map(function(p){ return '<label class="flex items-center gap-2 text-[13px] text-slate-700"><input type="checkbox" class="tp-ro-emp" value="' + p.id + '"' + (d.emps.indexOf(p.id) > -1 ? ' checked' : '') + '>' + esc(p.nomComplet) + '</label>'; }).join('') + '</div><div style="max-width:260px">' + lab('Jour 1 du cycle (date de début)') + '<input id="tp-ro-start" type="date" value="' + (d.start || t) + '" class="' + INP + '"></div><div id="tp-ro-err" class="text-[12px] text-red-600 mt-3"></div>', 900);
+      '<div id="tp-ro-err" class="text-[12px] text-red-600 mt-3"></div>', 900);
   }
   function rotSave(){
     rotSync(); var d = V.rot.draft, err = $('tp-ro-err');
@@ -22079,7 +22079,6 @@ var Temps = (function(){
     if(!d.cycle.some(function(x){ return x; })){ err.textContent = 'Le cycle doit contenir au moins un jour travaillé.'; return; }
     var r = { id:V.rot.id || 'ro' + (++seq), nom:d.nom, cycle:d.cycle, note:d.note };
     if(V.rot.id) ROT[ROT.indexOf(byId(ROT, V.rot.id))] = r; else ROT.push(r);
-    people().forEach(function(p){ var a = aff(p.id); if(d.emps.indexOf(p.id) > -1){ a.rot = r.id; a.rotStart = d.start; } else if(a.rot === r.id){ a.rot = null; a.rotStart = null; } });
     V.rot.draft = null; render('tp-horaires'); toast('Rotation enregistrée.'); try { TempsRH.refresh(); } catch(e){}
   }
   function rotDel(){ people().forEach(function(p){ var a = aff(p.id); if(a.rot === V.rot.id){ a.rot = null; a.rotStart = null; } }); ROT.splice(ROT.indexOf(byId(ROT, V.rot.id)), 1); V.rot.draft = null; render('tp-horaires'); toast('Rotation supprimée.'); }
