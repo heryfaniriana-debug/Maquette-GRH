@@ -2966,7 +2966,9 @@ renderAppLauncher();
         <button class="nav-item w-full flex items-center gap-2.5 px-4 py-2 text-[13px] hover:bg-white/5" data-panel="tp-traiter"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M4 13l2-8h12l2 8v6H4z"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 13h5l1 2h4l1-2h5"/></svg>Validations</button>
         <button class="submenu-toggle w-full flex items-center justify-between gap-2.5 px-4 py-2 text-[13px] hover:bg-white/5" data-target="sub-tp-temps"><span class="flex items-center gap-2 whitespace-nowrap text-left"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3.5 2"/></svg> Temps de travail</span><svg class="w-3.5 h-3.5 chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg></button>
         <div class="submenu pl-11 pr-2" id="sub-tp-temps">
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-planning">Planning</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-pointages">Pointages</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-sync">Synchronisations</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-presences">Présences</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-heures">Heures</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-ind-etat">Indemnités</button>
@@ -2989,11 +2991,17 @@ renderAppLauncher();
         <button class="submenu-toggle w-full flex items-center justify-between gap-2.5 px-4 py-2 text-[13px] hover:bg-white/5" data-target="sub-tp-param"><span class="flex items-center gap-2 whitespace-nowrap text-left"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1Z"/></svg> Paramétrage</span><svg class="w-3.5 h-3.5 chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg></button>
         <div class="submenu pl-11 pr-2" id="sub-tp-param">
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-collaborateurs">Salariés</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-horaires">Horaires et plannings</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-regles">Règles</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-horaires">Horaires</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-rotations">Rotations</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-regles">Règles de calcul</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-san-regles">Règles de sanction</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-ind-regles">Indemnités</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-ind-groupes">Groupes</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-pointeuses">Pointeuses</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-int-types">Activités</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-circuits">Validations</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-int-types">Types d’intervention</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-taches">Catégories</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-circuits">Circuits de validation</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-circ-regles">Règles automatiques</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="u-temps">Profils d’accès</button>
         </div>
       </nav>
@@ -8788,26 +8796,15 @@ Fait à Antananarivo, le ${dateDuJour}.</textarea>
     'e-bases-sage':['Paramétrages','Bases de données Sage Paie'], 'e-correspondances-sage':['Paramétrages','Correspondances Sage'],
   };
 
-  const TP_GROUPS=[[['tp-regles','Calcul'],['tp-san-regles','Sanctions'],['tp-ind-regles','Indemnités'],['tp-ind-groupes','Groupes']],[['tp-pointeuses','Pointeuses'],['tp-sync','Synchronisations']],[['tp-int-types','Types d’intervention'],['tp-taches','Catégories']]];
-  const TP_LEAD={}; TP_GROUPS.forEach(g=>g.forEach(t=>TP_LEAD[t[0]]=g[0][0]));
-  function tpTabs(id){
-    document.querySelectorAll('.tp-tabs').forEach(e=>e.remove());
-    const g=TP_GROUPS.filter(x=>x.some(t=>t[0]===id))[0], sec=document.getElementById(id);
-    if(!g||!sec) return;
-    const bar=document.createElement('div'); bar.className='tp-tabs flex w-full border-b border-gray-200 mb-4';
-    bar.innerHTML=g.map(t=>'<button onclick="showPanel(\''+t[0]+'\')" class="flex-1 py-2 text-[13px] border-b-2 '+(t[0]===id?'border-blue-600 text-blue-700 font-semibold':'border-transparent text-gray-500 hover:text-slate-700')+'">'+t[1]+'</button>').join('');
-    sec.insertBefore(bar,sec.firstChild);
-  }
   function showPanel(id){
     document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id===id));
     document.querySelectorAll('.nav-item[data-panel]').forEach(b=>{
-      const isActive = b.dataset.panel===(TP_LEAD[id]||id);
+      const isActive = b.dataset.panel===id;
       b.classList.toggle('bg-navy-800', isActive);
       b.classList.toggle('text-white', isActive);
       b.classList.toggle('border-blue-500', isActive);
       b.classList.toggle('border-transparent', !isActive);
     });
-    tpTabs(id);
     const bc = breadcrumbLabels[id];
     if(bc){
       document.getElementById('crumb-module').textContent = bc[0];
@@ -22052,13 +22049,13 @@ var Temps = (function(){
   function pausesTxt(x){ if(!(x.pauses && x.pauses.length)) return x.pause ? x.pause + ' min' : '—'; return x.pauses.map(function(p){ return p.debut + '–' + p.fin; }).join(' · '); }
   var ROT = [{ id:'ro1', nom:'Alternance matin / standard', cycle:['h2', 'h2', 'h2', 'h2', 'h2', 'h2', null, 'h1', 'h1', 'h1', 'h1', 'h1', null, null], note:'Une semaine en équipe du matin, puis une semaine en horaire standard.' }];
   function hcode(h){ var w = String(h.nom).replace(/\(.*?\)/g, '').split(/\s+/).filter(function(x){ return x.length > 2 || /^[A-ZÉ]/.test(x); }); return (w.slice(0, 2).map(function(x){ return x.charAt(0); }).join('') || String(h.nom).slice(0, 2)).toUpperCase(); }
-  function horTabs(){ var t = V.hor.tab; return '<div class="mb-4"><div class="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 text-[12.5px]">' + [['horaires', 'Horaires'], ['rotations', 'Rotations'], ['planning', 'Planning mensuel']].map(function(x){ return '<button onclick="Temps.horTab(\'' + x[0] + '\')" class="px-3 py-1 rounded-md ' + (t === x[0] ? 'bg-slate-800 text-white' : 'text-gray-600') + '">' + x[1] + '</button>'; }).join('') + '</div></div>'; }
+  function horTabs(){ return ''; }
   function horTab(k){ V.hor.tab = k; V.rot.draft = null; render('tp-horaires'); }
   function chips(c){ return c.map(function(x){ var h = x ? byId(HOR, x) : null; return '<span class="inline-block w-6 h-6 rounded text-[10.5px] text-center leading-6 mr-0.5 ' + (h ? 'bg-slate-800 text-white' : 'bg-gray-100 text-gray-400') + '" title="' + (h ? esc(h.nom) : 'Repos') + '">' + (h ? hcode(h) : 'R') + '</span>'; }).join(''); }
   function renderRot(h){
     if(V.rot.draft) return renderRotEdit(h);
     var rows = ROT.map(function(r){ var n = people().filter(function(p){ return aff(p.id).rot === r.id; }).length; return '<tr class="border-t border-gray-100 cursor-pointer hover:bg-blue-50/30" onclick="Temps.rotOpen(\'' + r.id + '\')"><td class="px-4 py-3 text-[13px] text-slate-800 font-medium">' + esc(r.nom) + '<div class="text-[11.5px] text-gray-400 font-normal">' + esc(r.note || '') + '</div></td><td class="px-3 py-3 text-[12.5px] text-gray-600">' + r.cycle.length + ' jours</td><td class="px-3 py-3">' + chips(r.cycle) + '</td><td class="px-3 py-3 text-[12.5px]">' + (n || '<span class="text-gray-300">—</span>') + '</td><td class="px-4 py-3 text-right text-gray-300">›</td></tr>'; }).join('');
-    h.innerHTML = head('Horaires et plannings', '<button onclick="Temps.rotNew()" class="' + B1 + '">+ Rotation</button>') + horTabs() +
+    h.innerHTML = head('Rotations', '<button onclick="Temps.rotNew()" class="' + B1 + '">+ Rotation</button>') + horTabs() +
       '' +
       '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Rotation</th><th class="px-3 py-2.5 font-medium">Cycle</th><th class="px-3 py-2.5 font-medium">Aperçu</th><th class="px-3 py-2.5 font-medium">Salariés</th><th></th></tr></thead><tbody>' + (rows || '<tr><td colspan="5" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucune rotation.</td></tr>') + '</tbody></table></div>';
   }
@@ -22092,7 +22089,7 @@ var Temps = (function(){
     var ds = []; for(var i = 1; i <= nd; i++) ds.push(m + '-' + pad(i));
     var pal = ['bg-slate-800 text-white', 'bg-blue-600 text-white', 'bg-amber-500 text-white', 'bg-emerald-600 text-white', 'bg-purple-600 text-white'];
     var rows = TempsRH.assigned().map(function(p){ return '<tr class="border-t border-gray-100"><td class="px-3 py-1.5 text-[12.5px] text-slate-800 whitespace-nowrap sticky left-0 bg-white">' + esc(p.nomComplet) + '</td>' + ds.map(function(d){ var pl = TempsRH.planFor(p.id, d), ex = !!TempsRH.data().EXC[p.id + '|' + d], wk = U.dow(d) >= 6; var idx = pl ? HOR.indexOf(pl) : -1; return '<td class="p-0.5 text-center ' + (wk ? 'bg-gray-50' : '') + '"><button onclick="TempsRH.plAsk(\'' + p.id + '\',\'' + d + '\')" title="' + (pl ? esc(pl.nom) + ' ' + pl.debut + '–' + pl.fin : 'Repos') + (ex ? ' (modifié)' : '') + '" class="w-7 h-6 rounded text-[10.5px] ' + (pl ? pal[idx % pal.length] : 'text-gray-300') + (ex ? ' ring-2 ring-amber-300' : '') + '">' + (pl ? hcode(pl) : '·') + '</button></td>'; }).join('') + '</tr>'; }).join('');
-    h.innerHTML = head('Horaires et plannings', '<button onclick="ImportKit.planningModele()" class="' + B2 + '">Modèle Excel</button><button onclick="ImportKit.planning()" class="' + B1 + '">Importer le planning</button>') + horTabs() +
+    h.innerHTML = head('Planning', '<button onclick="ImportKit.planningModele()" class="' + B2 + '">Modèle Excel</button><button onclick="ImportKit.planning()" class="' + B1 + '">Importer le planning</button>') + horTabs() +
       '<div class="flex items-center gap-3 mb-3"><button onclick="Temps.planNav(-1)" class="px-2.5 py-1.5 rounded-md border border-gray-200 bg-white">‹</button><div class="text-[13px] font-medium text-slate-800" style="min-width:120px;text-align:center">' + MS[mo - 1] + ' ' + y + '</div><button onclick="Temps.planNav(1)" class="px-2.5 py-1.5 rounded-md border border-gray-200 bg-white">›</button><div class="ml-auto text-[11.5px] text-gray-500 flex items-center gap-3">' + HOR.map(function(o, i){ return '<span><span class="inline-block w-5 h-4 rounded align-middle mr-1 ' + pal[i % pal.length] + '"></span>' + esc(hcode(o)) + ' = ' + esc(o.nom) + '</span>'; }).join('') + '<span><span class="inline-block w-4 h-4 rounded align-middle mr-1 ring-2 ring-amber-300"></span>modifié</span></div></div>' +
       '<div class="border border-gray-200 rounded-xl bg-white" style="overflow-x:auto"><table data-nokit class="text-left" style="min-width:100%"><thead><tr class="' + TH + '"><th class="px-3 py-2 font-medium sticky left-0" style="background:inherit">Salarié</th>' + ds.map(function(d){ var w = U.dow(d); return '<th class="px-0.5 py-2 text-center font-medium" style="min-width:30px">' + pad(+d.slice(8)) + '<div class="text-[9px] font-normal opacity-70">' + ['L', 'M', 'M', 'J', 'V', 'S', 'D'][w - 1] + '</div></th>'; }).join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
@@ -22220,14 +22217,12 @@ if(d.hsActive !== false && d.trOn !== false){ var T = d.tranches || [], pa = 0, 
     var v = V.dev;
     if(v.draft) return renderDevEdit(h);
     var rows = DEV.map(function(x){
-      var st = !x.actif ? ST.desactive : ST[x.statut], canSync = x.actif && x.methode !== 'temps_reel';
-      return '<tr class="border-t border-gray-100 cursor-pointer hover:bg-blue-50/30" onclick="Temps.devOpen(\'' + x.id + '\')"><td class="px-4 py-3"><div class="text-[13px] text-slate-800 font-medium">' + esc(x.nom) + '</div><div class="text-[11px] text-gray-400">' + esc(x.type) + ' · ' + esc(x.site) + '</div></td><td class="px-3 py-3 text-[12.5px] text-gray-600">' + METH[x.methode] + '<div class="text-[11px] text-gray-400">' + esc(x.freq) + '</div></td><td class="px-3 py-3 text-[12.5px] text-gray-600" onclick="event.stopPropagation()">' + dtfr(x.last) + (canSync ? '<div><button onclick="Temps.devSync(\'' + x.id + '\')" class="text-blue-600 text-[11px]">Synchroniser</button></div>' : '') + '</td><td class="px-3 py-3">' + pill(st[0], st[1]) + '</td></tr>';
+      var st = !x.actif ? ST.desactive : ST[x.statut];
+      return '<tr class="border-t border-gray-100 cursor-pointer hover:bg-blue-50/30" onclick="Temps.devOpen(\'' + x.id + '\')"><td class="px-4 py-3"><div class="text-[13px] text-slate-800 font-medium">' + esc(x.nom) + '</div><div class="text-[11px] text-gray-400">' + esc(x.type) + ' · ' + esc(x.site) + '</div></td><td class="px-3 py-3 text-[12.5px] text-gray-600">' + METH[x.methode] + '<div class="text-[11px] text-gray-400">' + esc(x.freq) + '</div></td><td class="px-3 py-3">' + (x.actif ? pill('Actif', 'bg-emerald-100 text-emerald-700') : pill('Désactivé', 'bg-gray-100 text-gray-500')) + '</td></tr>';
     }).join('');
-    var log = LOG.slice(0, 6).map(function(l){ return '<div class="flex items-center justify-between py-2 border-t border-gray-100 first:border-t-0 text-[12.5px]"><div><span class="text-gray-400 mr-3">' + dtfr(l.t) + '</span><span class="text-slate-700">' + esc(l.d) + '</span></div><span class="' + (l.ok ? 'text-emerald-600' : 'text-red-600') + '">' + (l.ok ? '✓ ' : '✕ ') + esc(l.msg) + '</span></div>'; }).join('');
-    h.innerHTML = head('Pointeuses', '<button onclick="Temps.devSyncAll()" class="' + B2 + '">Synchroniser tout</button><button onclick="Temps.devNew()" class="' + B1 + '">+ Dispositif</button>') +
-      '<div class="text-[14px] font-medium mb-4 ' + (DEV.some(function(d){ return d.actif && d.statut === 'hors_ligne'; }) ? 'text-red-600' : 'text-green-600') + '">' + DEV.filter(function(d){ return d.actif && d.statut === 'en_ligne'; }).length + ' pointeuses en ligne sur ' + DEV.length + '</div>' +
-      '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden mb-4"><table class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Dispositif</th><th class="px-3 py-2.5 font-medium">Synchronisation</th><th class="px-3 py-2.5 font-medium">Dernière</th><th class="px-3 py-2.5 font-medium">État</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<div class="bg-white border border-gray-200 rounded-xl px-5 py-3"><div class="text-[13px] font-semibold text-slate-800 mb-1">Journal des synchronisations</div>' + log + '</div>';
+    h.innerHTML = head('Pointeuses', '<button onclick="Temps.devNew()" class="' + B1 + '">+ Dispositif</button>') +
+      '<div class="text-[14px] font-medium mb-4 text-slate-800">' + DEV.filter(function(d){ return d.actif; }).length + ' pointeuses actives sur ' + DEV.length + '</div>' +
+      '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden mb-4"><table class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Dispositif</th><th class="px-3 py-2.5 font-medium">Connexion</th><th class="px-3 py-2.5 font-medium">État</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
   function devNew(){ V.dev.id = null; V.dev.draft = { id:'', nom:'', type:'Pointeuse biométrique', site:SITES[0], adresse:'', methode:'api', freq:'15 min', actif:true, statut:'en_ligne', last:'', fmt:'CSV' }; render('tp-pointeuses'); }
   function devOpen(id){ V.dev.id = id; V.dev.draft = JSON.parse(JSON.stringify(byId(DEV, id))); render('tp-pointeuses'); }
@@ -22271,7 +22266,7 @@ if(d.hsActive !== false && d.trOn !== false){ var T = d.tranches || [], pa = 0, 
       '<div class="text-[14px] font-medium mb-4 text-slate-800">' + CIR.filter(function(c){ return c.actif; }).length + ' circuits actifs sur ' + CIR.length + '</div>' +
       '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Circuit</th><th class="px-3 py-2.5 font-medium">Étapes</th><th class="px-3 py-2.5 font-medium">Relance · escalade</th><th class="px-3 py-2.5 font-medium">État</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
-  function cirTabs(){ var t = V.cir.tab || 'circuits'; return '<div class="mb-4"><div class="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 text-[12.5px]"><button onclick="Temps.cirTab(\'circuits\')" class="px-3 py-1 rounded-md ' + (t === 'circuits' ? 'bg-slate-800 text-white' : 'text-gray-600') + '">Circuits de validation</button><button onclick="Temps.cirTab(\'regles\')" class="px-3 py-1 rounded-md ' + (t === 'regles' ? 'bg-slate-800 text-white' : 'text-gray-600') + '">Règles automatiques</button></div></div>'; }
+  function cirTabs(){ return ''; }
   function cirTab(k){ V.cir.tab = k; render('tp-circuits'); }
   function cirNew(){ V.cir.id = null; V.cir.draft = { id:'', nom:'', famille:'correction', etapes:[{ k:'nplus', v:1 }], relance:2, escalade:5, vacance:true, deleg:true, actif:true }; render('tp-circuits'); }
   function cirOpen(id){ V.cir.id = id; V.cir.draft = JSON.parse(JSON.stringify(byId(CIR, id))); render('tp-circuits'); }
@@ -24167,7 +24162,7 @@ var TempsRules = (function(){
   function setParam(id, v){ var r = by(id); r.param = Math.max(1, parseFloat(v) || 1); }
   function runNow(){ var n = run(); Temps.render('tp-circuits'); refreshInbox(); A.toast(n ? n + ' élément' + (n > 1 ? 's traités' : ' traité') + ' automatiquement.' : 'Rien à traiter automatiquement.'); }
   function refreshInbox(){ try { RH.refresh(); } catch(e){} try { VAL.badges(); } catch(e){} }
-  function openRules(){ Temps.cirTab('regles'); showPanel('tp-circuits'); }
+  function openRules(){ showPanel('tp-circ-regles'); }
   run();
   return { run:run, render:render, tog:tog, setParam:setParam, runNow:runNow, autoCount:autoCount, openRules:openRules, rules:function(){ return R; } };
 })();
@@ -25402,6 +25397,27 @@ var TableKit = (function(){
     /* largeurs de modale : 384 / 512 / 672 / 896 px (charte §6.3) */
     document.querySelectorAll('.modal-backdrop > div').forEach(function(d){ var m=/\bw-\[(\d+)px\]/.exec(d.className); if(m){ var w=+m[1]; d.style.width=(w<=420?384:w<=540?512:w<=700?672:896)+'px'; } });
   });
+})();
+/* ===== SoftTime Paramétrage : une entrée de menu par vue (plus d'onglets) ===== */
+(function(){
+  var sp = window.showPanel; if(typeof sp !== 'function') return;
+  var AL = {
+    'tp-horaires':['tp-horaires', function(){ Temps.horTab('horaires'); }],
+    'tp-rotations':['tp-horaires', function(){ Temps.horTab('rotations'); }],
+    'tp-planning':['tp-horaires', function(){ Temps.horTab('planning'); }],
+    'tp-circuits':['tp-circuits', function(){ Temps.cirTab('circuits'); }],
+    'tp-circ-regles':['tp-circuits', function(){ Temps.cirTab('regles'); }]
+  };
+  window.showPanel = function(id){
+    var a = AL[id]; if(!a) return sp.apply(this, arguments);
+    var r = sp.call(this, a[0]); a[1]();
+    document.querySelectorAll('.nav-item[data-panel]').forEach(function(b){
+      var on = b.dataset.panel === id;
+      b.classList.toggle('bg-navy-800', on); b.classList.toggle('text-white', on);
+      b.classList.toggle('border-blue-500', on); b.classList.toggle('border-transparent', !on);
+    });
+    return r;
+  };
 })();
 </script></body>
 </html>
