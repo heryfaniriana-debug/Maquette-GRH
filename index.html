@@ -2990,15 +2990,10 @@ renderAppLauncher();
         <div class="submenu pl-11 pr-2" id="sub-tp-param">
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-collaborateurs">Salariés</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-horaires">Horaires et plannings</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-regles">Règles de calcul</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-san-regles">Règles de sanction</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-ind-regles">Indemnités</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-ind-groupes">Groupes</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-regles">Règles</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-pointeuses">Pointeuses</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-sync">Synchronisations</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-int-types">Types d’intervention</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-taches">Catégories</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-circuits">Circuits de validation</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-int-types">Activités</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-circuits">Validations</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="u-temps">Profils d’accès</button>
         </div>
       </nav>
@@ -8793,15 +8788,26 @@ Fait à Antananarivo, le ${dateDuJour}.</textarea>
     'e-bases-sage':['Paramétrages','Bases de données Sage Paie'], 'e-correspondances-sage':['Paramétrages','Correspondances Sage'],
   };
 
+  const TP_GROUPS=[[['tp-regles','Calcul'],['tp-san-regles','Sanctions'],['tp-ind-regles','Indemnités'],['tp-ind-groupes','Groupes']],[['tp-pointeuses','Pointeuses'],['tp-sync','Synchronisations']],[['tp-int-types','Types d’intervention'],['tp-taches','Catégories']]];
+  const TP_LEAD={}; TP_GROUPS.forEach(g=>g.forEach(t=>TP_LEAD[t[0]]=g[0][0]));
+  function tpTabs(id){
+    document.querySelectorAll('.tp-tabs').forEach(e=>e.remove());
+    const g=TP_GROUPS.filter(x=>x.some(t=>t[0]===id))[0], sec=document.getElementById(id);
+    if(!g||!sec) return;
+    const bar=document.createElement('div'); bar.className='tp-tabs flex w-full border-b border-gray-200 mb-4';
+    bar.innerHTML=g.map(t=>'<button onclick="showPanel(\''+t[0]+'\')" class="flex-1 py-2 text-[13px] border-b-2 '+(t[0]===id?'border-blue-600 text-blue-700 font-semibold':'border-transparent text-gray-500 hover:text-slate-700')+'">'+t[1]+'</button>').join('');
+    sec.insertBefore(bar,sec.firstChild);
+  }
   function showPanel(id){
     document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id===id));
     document.querySelectorAll('.nav-item[data-panel]').forEach(b=>{
-      const isActive = b.dataset.panel===id;
+      const isActive = b.dataset.panel===(TP_LEAD[id]||id);
       b.classList.toggle('bg-navy-800', isActive);
       b.classList.toggle('text-white', isActive);
       b.classList.toggle('border-blue-500', isActive);
       b.classList.toggle('border-transparent', !isActive);
     });
+    tpTabs(id);
     const bc = breadcrumbLabels[id];
     if(bc){
       document.getElementById('crumb-module').textContent = bc[0];
