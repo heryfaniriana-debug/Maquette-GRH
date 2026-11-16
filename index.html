@@ -21922,7 +21922,7 @@ var Temps = (function(){
   function pill(t, cls){ return '<span class="px-2 py-0.5 rounded text-[11px] ' + cls + '">' + t + '</span>'; }
   function head(title, right){ return '<div class="flex items-center justify-between mb-4"><h1 class="text-[18px] font-semibold text-slate-800">' + title + '</h1><div class="flex gap-2">' + (right || '') + '</div></div>'; }
   function back(fn, txt){ return '<button onclick="' + fn + '" class="text-blue-600 text-[12.5px] mb-3">‹ ' + txt + '</button>'; }
-  function card(inner, w){ return '<div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6"' + (w ? ' style="max-width:' + w + 'px"' : '') + '>' + inner + '</div>'; }
+  function card(inner){ return '<div class="bg-white border border-gray-200 rounded-xl shadow-sm p-6">' + inner + '</div>'; }
   var JOURS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'], JNOM = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
   /* ---------- données de démonstration ---------- */
