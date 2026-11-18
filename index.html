@@ -22202,7 +22202,7 @@ var bad = (d.pauses || []).filter(function(p){ return !p.debut || !p.fin || p.fi
       '<div style="display:' + (tr ? 'none' : 'block') + '" class="mt-3">' + g2(field('Majoration unique (%)', num('tp-r-t1', d.taux1))) + '</div>' +
       '<div class="mt-3"><div id="tp-r-hv">' + row('Validation obligatoire des heures supplémentaires', sw(d.hsValid, 'Temps.regTog(\'hsValid\')')) + '</div></div>';
     var body = blk('Retards et départs anticipés', 'tolOn', true, g2(field('Tolérance de retard (min)', num('tp-r-tr', d.tolRetard)) + field('Tolérance de départ anticipé (min)', num('tp-r-td', d.tolDepart)))) +
-      blk('Arrondi des pointages', 'arrOn', true, g2(field('Arrondi', sel('tp-r-arr', [['0', 'Aucun'], ['5', '5 min'], ['10', '10 min'], ['15', '15 min']], d.arrondi)))) +
+      blk('Arrondi des pointages', 'arrOn', true, g2(field('Pas de l’arrondi', sel('tp-r-arr', [['0', 'Aucun'], ['5', '5 min'], ['10', '10 min'], ['15', '15 min']], d.arrondi)) + field('Sens de l’arrondi', sel('tp-r-as', [['proche', 'Au plus proche'], ['entreprise', 'Au profit de l’entreprise'], ['salarie', 'Au profit du salarié']], d.arrSens || 'proche')))) +
       blk('Heures hors plage de l’horaire', 'horsOn', false, g2(field('Arrivée avant l’heure d’entrée', sel('tp-r-av', [['compte', 'Comptée comme du temps travaillé'], ['ignore', 'Non comptée']], d.avantMode || 'compte')) + field('Franchise après la sortie (min)', num('tp-r-fr', d.franchiseApres || 0)))) +
       blk('Pauses', 'pauOn', true, g2('<div>' + lab('Si l’horaire ne définit aucune pause') + row('Déduire automatiquement', sw(d.pauseAuto, 'Temps.regTog(\'pauseAuto\')')) + '</div>' + field('Durée déduite (min)', num('tp-r-pm', d.pauseMin)))) +
       blk('Heures supplémentaires', 'hsActive', true, hsBody) +
@@ -22213,7 +22213,7 @@ var bad = (d.pauses || []).filter(function(p){ return !p.debut || !p.fin || p.fi
   }
   function regSync(){
     var d = V.reg.draft; if(!$('tp-r-nom')) return; var g = function(i, def){ return $(i) ? (parseFloat($(i).value) || 0) : def; };
-    d.nom = $('tp-r-nom').value; d.tolRetard = g('tp-r-tr', d.tolRetard); d.tolDepart = g('tp-r-td', d.tolDepart); if($('tp-r-arr')) d.arrondi = parseInt($('tp-r-arr').value, 10);
+    d.nom = $('tp-r-nom').value; d.tolRetard = g('tp-r-tr', d.tolRetard); d.tolDepart = g('tp-r-td', d.tolDepart); if($('tp-r-arr')) d.arrondi = parseInt($('tp-r-arr').value, 10); if($('tp-r-as')) d.arrSens = $('tp-r-as').value;
     if($('tp-r-av')){ d.avantMode = $('tp-r-av').value; d.franchiseApres = g('tp-r-fr', 0); }
     d.pauseMin = g('tp-r-pm', d.pauseMin); d.hsJour = g('tp-r-hj', d.hsJour); d.hsSem = g('tp-r-hs', d.hsSem); d.plafond = g('tp-r-pl', d.plafond); if($('tp-r-t1')) d.taux1 = g('tp-r-t1', d.taux1); if($('tp-r-tb')) d.trBase = $('tp-r-tb').value;
     d.nuitDeb = $('tp-r-nd') ? $('tp-r-nd').value : d.nuitDeb; d.nuitFin = $('tp-r-nf') ? $('tp-r-nf').value : d.nuitFin; d.nuitTaux = g('tp-r-nt', d.nuitTaux); d.dimTaux = g('tp-r-dt', d.dimTaux); d.ferieTaux = g('tp-r-ft', d.ferieTaux); if($('tp-r-al')) d.alerteSem = g('tp-r-al', 0);
@@ -22434,7 +22434,7 @@ function swapShift(a, b, date){ note(a, date, 'Échange de shift'); note(b, date
     }
     return re.pauseAuto ? (pl ? pl.pause || 0 : re.pauseMin) : 0;
   }
-  function rdv(re, m){ return re.arrondi ? Math.round(m / re.arrondi) * re.arrondi : m; }
+  function rdv(re, m, k){ var p = re.arrondi; if(!p) return m; var sens = re.arrSens || 'proche'; if(sens === 'proche') return Math.round(m / p) * p; var haut = sens === 'entreprise' ? k === 'in' : k === 'out'; return (haut ? Math.ceil(m / p) : Math.floor(m / p)) * p; }
   function overlap(a1, a2, b1, b2){ return Math.max(0, Math.min(a2, b2) - Math.max(a1, b1)); }
   function day(id, date){
     var re = regle(id), pl = planFor(id, date), fer = FER.indexOf(date.slice(5)) > -1, ab = absOf(id, date), t = today(), now = nowMin();
@@ -22448,17 +22448,17 @@ function swapShift(a, b, date){ note(a, date, 'Échange de shift'); note(b, date
     if(fi != null && lo != null && lo > fi){
       var efi = fi, elo = lo;
 if(pl && re.horsOn){ if(re.avantMode === 'ignore') efi = Math.max(fi, tm(pl.debut)); var fr = re.franchiseApres || 0; if(fr > 0 && lo > tm(pl.fin) && lo <= tm(pl.fin) + fr) elo = tm(pl.fin); }
-var span = rdv(re, elo) - rdv(re, efi), pause = pauseFor(re, pl, efi, elo, ps);
+var span = rdv(re, elo, 'out') - rdv(re, efi, 'in'), pause = pauseFor(re, pl, efi, elo, ps);
 r.worked = Math.max(0, span - pause);
       if(pl && fi > tm(pl.debut) + re.tolRetard) r.retard = fi - tm(pl.debut);
       if(pl && lo < tm(pl.fin) - re.tolDepart) r.depAnt = tm(pl.fin) - lo;
       if(pl) r.hs = re.hsActive === false ? 0 : Math.max(0, r.worked - Math.round(re.hsJour * 60)); else if((fer || dow(date) === 7) && re.majOn !== false) r.majJour = r.worked;
       var nd = tm(re.nuitDeb), nf = tm(re.nuitFin);
-      r.nuit = re.majOn === false ? 0 : overlap(rdv(re, fi), rdv(re, lo), nd, 1440) + overlap(rdv(re, fi), rdv(re, lo), 0, nf);
+      r.nuit = re.majOn === false ? 0 : overlap(rdv(re, fi, 'in'), rdv(re, lo, 'out'), nd, 1440) + overlap(rdv(re, fi, 'in'), rdv(re, lo, 'out'), 0, nf);
     }
     var ints = INTP ? INTP(id, date) : [], ic = ints.filter(function(z){ return z.counts; }); r.ints = ints;
     if(ic.length){
-      var sg = []; if(fi != null && lo != null && lo > fi) sg.push([rdv(re, fi), rdv(re, lo)]); ic.forEach(function(z){ sg.push([tm(z.debut), tm(z.fin)]); });
+      var sg = []; if(fi != null && lo != null && lo > fi) sg.push([rdv(re, fi, 'in'), rdv(re, lo, 'out')]); ic.forEach(function(z){ sg.push([tm(z.debut), tm(z.fin)]); });
       sg.sort(function(a, b){ return a[0] - b[0]; }); var mg = []; sg.forEach(function(z){ var l = mg[mg.length - 1]; if(l && z[0] <= l[1]) l[1] = Math.max(l[1], z[1]); else mg.push([z[0], z[1]]); });
       var tot = mg.reduce(function(a, z){ return a + z[1] - z[0]; }, 0), pz = (fi != null && lo != null && lo > fi) ? pauseFor(re, pl, fi, lo, ps) : 0;
       r.worked = Math.max(0, tot - pz); r.viaInt = true; r.aConfirmer = ic.some(function(z){ return z.aConfirmer; });
