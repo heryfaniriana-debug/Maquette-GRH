@@ -24552,7 +24552,7 @@ var TempsLien = (function(){
 var TempsPlan = (function(){
   var A = Temps.api(), RH = TempsRH, ACT = TempsAct, U = RH.util, esc = A.esc, INP = A.INP;
   var $ = function(id){ return document.getElementById(id); };
-  var TASKS = [], seq = 1, MEMO = {}, SEEDED = {}, RUN = null, TIMER = null, WKP = null, WKT = null, ADD = null;
+  var TASKS = [], DAYV = {}, seq = 1, MEMO = {}, SEEDED = {}, RUN = null, TIMER = null, WKP = null, WKT = null, ADD = null;
   var JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'], JLONG = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'];
   var MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
   function pad(n){ return (n < 10 ? '0' : '') + n; }
@@ -24674,7 +24674,14 @@ var TempsPlan = (function(){
     if(rec.length) h += '<div class="pl-sect" style="margin-top:20px"><div><h2>Reçues de vos managers</h2><span>' + rec.length + ' aujourd’hui</span></div></div><div class="pl-list">' + rec.map(function(x){ return taskRow(x, emp); }).join('') + '</div>';
     h += '<div class="pl-sect" style="margin-top:20px"><div><h2>Mes tâches</h2><span>' + own.length + ' aujourd’hui</span></div></div><div class="pl-list">' + (own.map(function(x){ return taskRow(x, emp); }).join('') || '<div class="pl-empty"><b>Aucune tâche personnelle aujourd’hui</b></div>') + '</div>';
     if(soon.length) h += '<div class="pl-sect" style="margin-top:28px"><div><h2>À venir de vos managers</h2><span>' + soon.length + ' cette semaine</span></div></div><div class="pl-list">' + soon.map(function(x){ var c = catOf(x.cat); return '<div class="pl-task"><div class="pl-task-h"><div class="pl-task-t"><b>' + esc(x.titre) + '</b><span><span class="pl-dot pl-' + c.coul + '"></span>' + esc(c.nom) + ' · ' + longDay(x.date) + ' · ' + fmin(planned(x)) + '</span></div><div class="pl-task-a"><span class="badge b-in">De ' + esc(nom(x.by)) + '</span></div></div></div>'; }).join('') + '</div>';
+    var dv = DAYV[emp + '|' + t], real = L.reduce(function(a, x){ return a + (x.st === 'done' ? x.real : 0); }, 0);
+    h += '<div class="mj-foot" style="margin-top:28px"><div class="text-[13px] text-gray-500">' + (dv ? 'Journée validée à ' + hm(dv) + ' · ' + fmin(real) + ' réalisées' : L.length ? fmin(real) + ' réalisées sur ' + fmin(tot) + ' prévues' : 'Aucune tâche aujourd’hui') + '</div>' + (dv ? '<span class="badge b-ok">Validée</span>' : '<button class="pe-btn" ' + (!L.length || rest ? 'disabled' : '') + ' onclick="TempsPlan.validateDay()">Valider ma journée</button>') + '</div>';
     return h;
+  }
+  function validateDay(){
+    var emp = me(), t = U.today(), L = mine(emp, t, t), rest = L.filter(function(x){ return x.st !== 'done'; }).length;
+    if(!L.length || rest){ A.toast('Terminez vos tâches du jour avant de valider.'); return; }
+    DAYV[emp + '|' + t] = Date.now(); refresh(); A.toast('Journée validée : ' + fmin(L.reduce(function(a, x){ return a + x.real; }, 0)) + ' réalisées, visibles dans Mon temps réalisé.');
   }
   function weekHtml(emp){
     var t = U.today(), m = mon(WKP), cur = U.monday(t);
@@ -24753,7 +24760,7 @@ var TempsPlan = (function(){
   function refresh(){ try { TempsPortal.renderAll(); } catch(e){} renderTeam(); drawPill(); }
   [].slice.call(document.querySelectorAll('.erh-portal-tab[data-erh-portal="erhp-taches"]')).forEach(function(b){ b.addEventListener('click', renderTeam); });
   var sh = $('portal-employes-shell'); if(sh && window.MutationObserver) new MutationObserver(drawPill).observe(sh, { attributes:true, attributeFilter:['class', 'style'] });
-  return { myHtml:myHtml, weekHtml:weekHtml, nToday:nToday, isMgr:isMgr, team:team, begin:begin, pause:pause, finishAsk:finishAsk, finish:finish, more:more, simulate:simulate, nav:nav, navT:navT, del:del, delT:delT, addAsk:addAsk, addGo:addGo, togDay:togDay, assignAsk:assignAsk, assignGo:assignGo, togAll:togAll, syncAll:syncAll, renderTeam:renderTeam, refresh:refresh, tasks:function(){ return TASKS; } };
+  return { myHtml:myHtml, validateDay:validateDay, weekHtml:weekHtml, nToday:nToday, isMgr:isMgr, team:team, begin:begin, pause:pause, finishAsk:finishAsk, finish:finish, more:more, simulate:simulate, nav:nav, navT:navT, del:del, delT:delT, addAsk:addAsk, addGo:addGo, togDay:togDay, assignAsk:assignAsk, assignGo:assignGo, togAll:togAll, syncAll:syncAll, renderTeam:renderTeam, refresh:refresh, tasks:function(){ return TASKS; } };
 })();
 try { TempsPortal.view('planning'); TempsPlan.refresh(); } catch(e){}
 
