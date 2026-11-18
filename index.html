@@ -22554,6 +22554,64 @@ return { days:ds, work:work, plan:plan, retard:ret, hs1:h1, hs2:h2, hs:h1 + h2, 
       '<div class="flex items-center gap-5 text-[11.5px] text-gray-500 mt-2"><span><span class="inline-block w-3 h-2 rounded bg-gray-200 mr-1"></span>Horaire prévu</span><span><span class="inline-block w-3 h-2 rounded mr-1" style="background:#34D399"></span>Présent</span><span><span class="inline-block w-3 h-2 rounded mr-1" style="background:#F59E0B"></span>Retard</span><span><span class="inline-block w-3 h-2 rounded mr-1" style="background:#38BDF8"></span>Au poste</span><span><span class="inline-block w-3 h-2 rounded bg-violet-200 mr-1"></span>Absence</span><span><span class="inline-block w-3 h-2 rounded mr-1" style="background:repeating-linear-gradient(45deg,#A78BFA,#A78BFA 3px,#DDD6FE 3px,#DDD6FE 6px)"></span>Intervention</span><span><span class="text-red-400 mr-1">│</span>Maintenant</span></div>';
   }
   function dashF(v){ DV.f = v; render('tp-dashboard'); }
+  /* aperçu d'une journée : synthèse, frise prévu / réel, chronologie, chiffres clés */
+  function hmm(m){ m = Math.round(m); return pad(Math.floor(m / 60)) + ':' + pad(m % 60); }
+  function dur(m){ m = Math.round(m); return m < 60 ? m + ' min' : fh(m); }
+  function dayDetail(id, date, r){
+    var pl = r.pl, plS = pl ? tm(pl.debut) : null, plE = pl ? tm(pl.fin) : null, t = today();
+    var pauses = [];
+    if(pl){ if(pl.pauses && pl.pauses.length) pauses = pl.pauses.map(function(p){ return { a:tm(p.debut), b:tm(p.fin), paid:!!p.payee, name:p.nom || 'Pause' }; }); else if(pl.pause > 0) pauses = [{ a:720, b:720 + pl.pause, paid:false, name:'Pause' }]; }
+    var complete = r.in != null && r.out != null && r.out > r.in, ecart = complete && pl ? r.worked - r.planned : null;
+    var live = r.statut === 'en_cours' && date === t, endR = r.out != null ? r.out : (live ? nowMin() : r.in);
+    /* synthèse */
+    var sum = '', col = 'text-slate-800';
+    if(r.ab){ sum = esc(r.ab.type); col = 'text-violet-700'; }
+    else if(r.statut === 'futur' || r.statut === 'attendu'){ sum = 'À venir'; col = 'text-gray-500'; }
+    else if(!pl && !r.ps.length){ sum = 'Jour de repos'; col = 'text-gray-500'; }
+    else if(!r.ps.length){ sum = 'Non pointé'; col = 'text-red-600'; }
+    else if(live){ sum = 'Au poste depuis ' + hmm(r.in); col = 'text-sky-700'; }
+    else if(!complete){ sum = 'Sortie manquante'; col = 'text-red-600'; }
+    else if(ecart != null){ if(ecart >= 0){ sum = 'Journée complète' + (ecart ? ' · +' + dur(ecart) : ' · à l’heure'); col = 'text-green-600'; } else { sum = dur(-ecart) + ' manquante' + (-ecart > 1 ? 's' : ''); col = 'text-red-600'; } }
+    else { sum = fh(r.worked) + ' travaillées'; }
+    var sub = []; if(r.retard) sub.push('retard de ' + dur(r.retard)); if(r.depAnt) sub.push('départ anticipé de ' + dur(r.depAnt)); if(r.hs) sub.push(fh(r.hs) + ' d’heures supplémentaires');
+    var h = '<div class="mb-4"><div class="text-[15px] font-semibold ' + col + '">' + sum + '</div>' + (sub.length ? '<div class="text-[12.5px] text-gray-500 mt-0.5">' + sub.join(' · ') + '</div>' : '') + '</div>';
+    /* frise */
+    if(pl || r.in != null){
+      var lo = Math.min(plS != null ? plS : 480, r.in != null ? r.in : 480, 480), hi = Math.max(plE != null ? plE : 1020, endR != null ? endR : 1020, 1020);
+      lo = Math.max(0, Math.floor((lo - 30) / 60) * 60); hi = Math.min(1440, Math.ceil((hi + 30) / 60) * 60);
+      var span = hi - lo, X = function(m){ return ((m - lo) / span * 100).toFixed(2) + '%'; }, Wd = function(a, b){ return (Math.max(0, b - a) / span * 100).toFixed(2) + '%'; };
+      var seg = function(a, b, bg, extra){ return '<div style="position:absolute;top:0;bottom:0;left:' + X(a) + ';width:' + Wd(a, b) + ';background:' + bg + ';' + (extra || '') + '"></div>'; };
+      var hatch = 'repeating-linear-gradient(45deg,#fff,#fff 3px,#D1D5DB 3px,#D1D5DB 5px)';
+      var pv = pl ? seg(plS, plE, '#CBD5E1', 'border-radius:5px') : '';
+      pauses.forEach(function(p){ pv += seg(p.a, p.b, hatch); });
+      var rl = '';
+      if(r.in != null){
+        rl += seg(r.in, endR, '#10B981', 'border-radius:5px');
+        if(pl && r.in > plS) rl += seg(plS, r.in, '#FCD34D', 'border-radius:5px 0 0 5px;opacity:.9');
+        if(pl && r.out != null && r.out < plE) rl += seg(r.out, plE, '#FCD34D', 'border-radius:0 5px 5px 0;opacity:.9');
+        if(pl && endR > plE) rl += seg(plE, endR, '#0EA5E9', 'border-radius:0 5px 5px 0');
+        pauses.forEach(function(p){ if(p.a >= r.in && p.b <= endR) rl += seg(p.a, p.b, hatch); });
+      }
+      var ticks = ''; for(var k = Math.ceil(lo / 120) * 2; k * 60 <= hi; k += 2) ticks += '<span style="position:absolute;left:' + X(k * 60) + ';transform:translateX(-50%)">' + pad(k) + 'h</span>';
+      h += '<div class="mb-2" style="display:grid;grid-template-columns:40px 1fr;gap:8px 10px;align-items:center;font-size:11px;color:#6B7280"><span>Prévu</span><div style="position:relative;height:18px;background:#F3F4F6;border-radius:5px">' + pv + '</div><span>Réel</span><div style="position:relative;height:18px;background:#F3F4F6;border-radius:5px">' + rl + '</div><span></span><div style="position:relative;height:14px">' + ticks + '</div></div>';
+      h += '<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-500 mb-4"><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#10B981;margin-right:4px"></i>Travaillé</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#FCD34D;margin-right:4px"></i>Manquant</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#0EA5E9;margin-right:4px"></i>Au-delà de l’horaire</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:' + hatch + ';border:1px solid #D1D5DB;margin-right:4px"></i>Pause</span></div>';
+    }
+    /* chronologie */
+    var ev = [];
+    r.ps.forEach(function(q, i){ var tt = tm(q.ts.slice(11)), isIn = q.sens === 'in', note = '', nc = 'text-gray-400';
+      if(isIn && i === 0 && r.retard){ note = 'Retard de ' + dur(r.retard); nc = 'text-amber-600'; }
+      if(!isIn && i === r.ps.length - 1){ if(r.depAnt){ note = 'Départ anticipé de ' + dur(r.depAnt); nc = 'text-amber-600'; } else if(pl && tt > plE){ note = '+' + dur(tt - plE) + ' après l’horaire'; nc = 'text-sky-600'; } }
+      ev.push({ t:tt, time:q.ts.slice(11, 16), label:isIn ? 'Entrée' : 'Sortie', dot:isIn ? '#10B981' : '#64748B', src:devNom(q.dev), note:note, nc:nc }); });
+    if(r.ps.length && r.in != null){ pauses.forEach(function(p){ if(p.a >= r.in && (r.out == null || p.b <= r.out)){ var d = p.b - p.a; ev.push({ t:p.a, time:hmm(p.a), label:'Début de pause', dot:'#9CA3AF', src:'', note:'prévue · ' + dur(d) + (p.paid ? ' · payée' : ''), nc:'text-gray-400', soft:1 }); ev.push({ t:p.b, time:hmm(p.b), label:'Reprise', dot:'#9CA3AF', src:'', note:'', nc:'', soft:1 }); } }); }
+    ev.sort(function(a, b){ return a.t - b.t; });
+    h += '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Chronologie</div><div class="mb-4">' + (ev.map(function(e){ return '<div class="flex items-center gap-3 py-1.5 border-t border-gray-100 first:border-t-0 text-[13px]" style="' + (e.soft ? 'opacity:.8' : '') + '"><b class="text-slate-800" style="min-width:44px">' + e.time + '</b><i style="width:9px;height:9px;border-radius:50%;background:' + e.dot + ';flex:none"></i><span class="text-slate-800">' + e.label + '</span><span class="ml-auto text-[12px] ' + e.nc + '">' + (e.note || esc(e.src || '')) + '</span></div>'; }).join('') || '<div class="text-[12.5px] text-gray-400 py-2">Aucun pointage.</div>') + '</div>';
+    /* chiffres clés */
+    var tile = function(l, v, c){ return '<div class="border border-gray-200 rounded-lg px-3 py-2.5 text-center"><div class="text-[18px] font-semibold ' + (c || 'text-slate-800') + '">' + v + '</div><div class="text-[11px] text-gray-400">' + l + '</div></div>'; };
+    h += '<div class="grid grid-cols-3 gap-3 mb-3">' + tile('Prévu', pl ? fh(r.planned) : '—') + tile('Travaillé', fh(r.worked)) + tile('Écart', ecart == null ? '—' : (ecart >= 0 ? '+' : '−') + dur(Math.abs(ecart)), ecart == null ? '' : (ecart >= 0 ? 'text-green-600' : 'text-red-600')) + '</div>';
+    var sec = []; if(pl && A.pauseTotal(pl) > 0) sec.push(['Pause déduite', dur(A.pauseTotal(pl))]); if(r.retard) sec.push(['Retard', dur(r.retard)]); if(r.depAnt) sec.push(['Départ anticipé', dur(r.depAnt)]); if(r.hs) sec.push(['Heures supplémentaires', fh(r.hs)]);
+    if(sec.length) h += '<div class="mb-4">' + sec.map(function(x){ return '<div class="flex justify-between py-1.5 text-[12.5px]"><span class="text-gray-500">' + x[0] + '</span><span class="text-slate-800">' + x[1] + '</span></div>'; }).join('') + '</div>';
+    return h;
+  }
   /* panneau latéral d'un collaborateur */
   function drawerOpen(id, date){
     DR = { id:id, date:date };
@@ -22570,8 +22628,8 @@ return { days:ds, work:work, plan:plan, retard:ret, hs1:h1, hs2:h2, hs:h1 + h2, 
       '<div class="px-5 py-4"><div class="flex items-center justify-between mb-4"><div class="inline-flex items-center gap-1"><button onclick="TempsRH.drawerNav(-1)" class="' + B2 + '" style="padding:3px 9px">‹</button><span class="px-2 text-[13px] text-slate-700 font-medium">' + JN[dow(date) - 1] + ' ' + dfr(date) + '</span><button onclick="TempsRH.drawerNav(1)" class="' + B2 + '" style="padding:3px 9px">›</button></div>' + (st[0] ? pill(st[0], st[1]) : '') + '</div>' +
       (r.ab ? '<div class="rounded-md bg-violet-50 text-violet-700 text-[12.5px] px-3 py-2 mb-3">' + esc(r.ab.type) + '</div>' : '') +
       (pen ? '<div class="rounded-md border border-amber-200 bg-amber-50 text-[12px] text-amber-800 px-3 py-2 mb-3">' + pen + ' pointage' + (pen > 1 ? 's' : '') + ' en attente d’import depuis la pointeuse.</div>' : '') +
-      '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Pointages</div><div class="mb-4">' + (ps || '<div class="text-[12.5px] text-gray-400 py-2">Aucun pointage.</div>') + '</div>' +
-      (r.ints && r.ints.length ? '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Interventions</div><div class="mb-4">' + r.ints.map(function(z){ return '<div class="flex items-center justify-between py-1.5 text-[12.5px]"><span><b class="text-slate-800">' + z.debut + ' – ' + z.fin + '</b> <span class="text-gray-500 ml-1">' + esc(z.typeNom) + ' · ' + esc(z.client) + '</span></span></div>'; }).join('') + '</div>' : '') + '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Journée</div><div class="border-t border-gray-100 pt-1 mb-4">' + row('Horaire', r.pl ? r.pl.debut + ' – ' + r.pl.fin : 'Repos') + row('Heures travaillées', fh(r.worked)) + row('Retard', r.retard ? r.retard + ' min' : '—') + row('Heures supplémentaires', r.hs ? fh(r.hs) : '—') + row('Pointeuses', esc((A.aff(id).devs || []).map(function(d){ return devNom(d).split(' — ')[1] || devNom(d); }).join(', ') || '—')) + '</div>' +
+      dayDetail(id, date, r) +
+      (r.ints && r.ints.length ? '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Interventions</div><div class="mb-4">' + r.ints.map(function(z){ return '<div class="flex items-center justify-between py-1.5 text-[12.5px]"><span><b class="text-slate-800">' + z.debut + ' – ' + z.fin + '</b> <span class="text-gray-500 ml-1">' + esc(z.typeNom) + ' · ' + esc(z.client) + '</span></span></div>'; }).join('') + '</div>' : '') + '' +
       (r.anomalies.length ? '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Anomalies</div><div class="mb-4">' + r.anomalies.map(function(a){ return '<div class="flex items-center justify-between py-1.5">' + pill(KIND[a.kind][0], KIND[a.kind][1]) + '<button onclick="TempsRH.fixAsk(\'' + id + '|' + date + '|' + a.kind + '\')" class="text-blue-600 text-[12.5px]">Corriger</button></div>'; }).join('') + '</div>' : '') +
       '<div class="flex gap-2 flex-wrap"><button onclick="TempsRH.manualAsk(\'' + id + '\',\'' + date + '\')" class="' + B2 + '">+ Pointage manuel</button><button onclick="TempsRH.drawerWeek()" class="' + B2 + '">Voir la semaine</button></div></div>';
   }
@@ -22608,7 +22666,7 @@ var sumT = (LIST.length - np) + ' pointé' + ((LIST.length - np) > 1 ? 's' : '')
 DEVS_HTML = '<div class="pt-devs">' + devs + '</div>' + imp;
 h.innerHTML = A.head('Pointages', '<button onclick="ImportKit.pointages()" class="' + B2 + '">Importer</button><button onclick="TempsRH.devAsk()" class="' + B2 + '">Synchroniser' + (pall ? ' (' + pall + ')' : '') + '</button><button onclick="TempsRH.manualAsk()" class="' + B1 + '">Saisir un pointage</button>') +
 '<div class="flex items-center justify-between gap-3 mb-4"><div class="text-[14px] font-medium ' + sumC + '">' + sumT + '</div></div>' +
-'<div class="pt-card"><div class="pt-head">' + nav(dfr(v.date) + (v.date === t ? (t === realToday() ? ' · aujourd’hui' : ' · dernier jour ouvré') : ''), 'TempsRH.ptDay(-1)', 'TempsRH.ptDay(1)') + '<input value="' + esc(v.q || '') + '" onchange="TempsRH.ptQ(this.value)" placeholder="🔍 Collaborateur" class="' + INP + '" style="flex:1 1 220px"></div><div class="pt-body"><table class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Collaborateur</th><th class="px-3 py-2.5 font-medium">Entrée</th><th class="px-3 py-2.5 font-medium">Sortie</th><th class="px-3 py-2.5 font-medium">État</th></tr></thead><tbody>' + (trs || '<tr><td colspan="4" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucun collaborateur.</td></tr>') + '</tbody></table></div></div>';
+'<div class="pt-card"><div class="pt-head">' + nav(dfr(v.date) + (v.date === t ? (t === realToday() ? ' · aujourd’hui' : ' · dernier jour ouvré') : ''), 'TempsRH.ptDay(-1)', 'TempsRH.ptDay(1)') + '<input value="' + esc(v.q || '') + '" onchange="TempsRH.ptQ(this.value)" placeholder="🔍 Collaborateur" class="' + INP + '" style="flex:1 1 220px"></div><div class="pt-body"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Collaborateur</th><th class="px-3 py-2.5 font-medium">Entrée</th><th class="px-3 py-2.5 font-medium">Sortie</th><th class="px-3 py-2.5 font-medium">État</th></tr></thead><tbody>' + (trs || '<tr><td colspan="4" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucun collaborateur.</td></tr>') + '</tbody></table></div></div>';
 }
 var DEVS_HTML = '';
 function winOpen(){ var m = $('tp-modal'); return !!(m && m.classList.contains('open') && m.querySelector('.pt-devs')); }
@@ -22664,7 +22722,8 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
       var cs = ds.map(function(d){ return day(x.id, d); }), pr = cs.filter(function(r){ return r.statut === 'present' || r.statut === 'retard' || r.statut === 'en_cours'; }).length, ab = cs.filter(function(r){ return r.statut === 'absence' || r.statut === 'absent'; }).length, rt = cs.filter(function(r){ return r.statut === 'retard'; }).length;
       return '<tr class="border-t border-gray-100"><td class="px-4 py-1.5"><div class="text-[13px] text-slate-800 font-medium">' + esc(x.nomComplet) + '</div><div class="text-[11px] text-gray-400">' + esc(A.pinfo(x).poste || '') + '</div></td>' + cs.map(function(r){ return ec && !isEcart(r) ? '<td class="px-1 py-1.5"></td>' : cellHtml(r); }).join('') + '<td class="px-3 py-1.5 text-[12px] text-gray-600 whitespace-nowrap">' + pr + ' prés. · <span class="' + (ab ? 'text-red-600' : '') + '">' + ab + ' abs.</span>' + (rt ? ' · <span class="text-amber-600">' + rt + ' ret.</span>' : '') + '</td></tr>';
     }).join('');
-    h.innerHTML = A.head('Présences', linked('tmerh') ? '' : '<button onclick="TempsRH.absAsk()" class="' + B1 + '">+ Déclarer une absence</button>') + (linked('tmerh') ? '<div class="rounded-md border border-gray-200 bg-gray-50 text-[12.5px] text-gray-600 px-4 py-2.5 mb-3">Les absences viennent de Soft e-RH (liaison active) : elles se déclarent et se valident là-bas.</div>' : '') +
+    var tRt = 0, tAb = 0; list.forEach(function(x){ ds.forEach(function(d){ var rr = day(x.id, d); if(rr.statut === 'retard') tRt++; if(rr.statut === 'absence' || rr.statut === 'absent') tAb++; }); });
+    h.innerHTML = A.head('Présences', linked('tmerh') ? '' : '<button onclick="TempsRH.absAsk()" class="' + B1 + '">+ Déclarer une absence</button>') + '<div class="text-[14px] font-medium mb-3 ' + (tAb || tRt ? 'text-amber-600' : 'text-green-600') + '">' + list.length + ' collaborateur' + (list.length > 1 ? 's' : '') + ' · ' + tRt + ' retard' + (tRt > 1 ? 's' : '') + ' · ' + tAb + ' absence' + (tAb > 1 ? 's' : '') + ' cette semaine</div>' +
       '<div class="flex items-center gap-3 mb-3">' + modeBar() + nav('Semaine du ' + dfr(v.week), 'TempsRH.prWeek(-1)', 'TempsRH.prWeek(1)', v.week === monday(t) ? '' : '<button onclick="TempsRH.prWeek(0)" class="text-blue-600 text-[12.5px] ml-2">Aujourd’hui</button>') + search('q', v.q, 'TempsRH.prQ(this.value)') + '</div>' +
       '<div class="flex items-center gap-4 text-[11.5px] text-gray-500 mb-3"><span><span class="inline-block w-2.5 h-2.5 rounded bg-emerald-200 mr-1"></span>Présent (heures)</span><span><span class="inline-block w-2.5 h-2.5 rounded bg-amber-200 mr-1"></span>Retard</span><span><span class="inline-block w-2.5 h-2.5 rounded bg-red-200 mr-1"></span>Absent</span><span><span class="inline-block w-2.5 h-2.5 rounded bg-violet-200 mr-1"></span>Absence justifiée</span><span><span class="text-red-500 mr-1">●</span>Anomalie</span></div>' +
       '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden" style="overflow-x:auto"><table class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium" style="min-width:200px">Collaborateur</th>' + ds.map(function(d, i){ return '<th class="px-1 py-2.5 font-medium text-center ' + (d === t ? 'text-blue-600' : '') + '">' + JN[i] + '<div class="normal-case tracking-normal text-[10.5px] text-gray-400">' + dshort(d) + '</div></th>'; }).join('') + '<th class="px-3 py-2.5 font-medium">Bilan</th></tr></thead><tbody>' + (rows || '<tr><td colspan="8" class="px-4 py-8 text-center text-[12px] text-gray-400">' + (ec ? 'Aucun écart cette semaine.' : 'Aucun collaborateur.') + '</td></tr>') + '</tbody></table></div>';
@@ -22676,10 +22735,9 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     var row = function(l, v){ return '<div class="flex justify-between py-1 text-[12.5px]"><span class="text-gray-500">' + l + '</span><span class="text-slate-800">' + v + '</span></div>'; };
     A.modal('<div class="flex items-center justify-between mb-1"><h3 class="text-[15px] font-semibold text-slate-800">' + esc(nom(id)) + '</h3><button onclick="Temps.closeM()" class="text-gray-400 text-xl leading-none">×</button></div><div class="text-[12px] text-gray-400 mb-4">' + JN[dow(date) - 1] + ' ' + dfr(date) + (r.pl ? ' · horaire ' + r.pl.debut + ' – ' + r.pl.fin : '') + '</div>' +
       (r.ab ? '<div class="rounded-md bg-violet-50 text-violet-700 text-[12.5px] px-3 py-2 mb-3">' + esc(r.ab.type) + '</div>' : '') +
-      '<div class="mb-3">' + (ps || '<div class="text-[12.5px] text-gray-400 py-2">Aucun pointage.</div>') + '</div>' +
-      '<div class="border-t border-gray-100 pt-2 mb-3">' + row('Heures prévues', fh(r.planned)) + row('Heures travaillées', fh(r.worked)) + row('Retard', r.retard ? r.retard + ' min' : '—') + row('Départ anticipé', r.depAnt ? r.depAnt + ' min' : '—') + row('Heures supplémentaires', r.hs ? fh(r.hs) : '—') + '</div>' +
+      dayDetail(id, date, r) +
       (r.anomalies.length ? '<div class="mb-3">' + r.anomalies.map(function(a){ return '<div class="flex items-center justify-between py-1">' + pill(KIND[a.kind][0], KIND[a.kind][1]) + '<button onclick="TempsRH.fixAsk(\'' + id + '|' + date + '|' + a.kind + '\')" class="text-blue-600 text-[12px]">Corriger</button></div>'; }).join('') + '</div>' : '') +
-      '<div class="flex justify-end gap-2"><button onclick="TempsRH.manualAsk(\'' + id + '\',\'' + date + '\')" class="' + B2 + '">+ Pointage manuel</button><button onclick="Temps.closeM()" class="' + B1 + '">Fermer</button></div>', 480);
+      '<div class="flex justify-end gap-2"><button onclick="TempsRH.manualAsk(\'' + id + '\',\'' + date + '\')" class="' + B2 + '">+ Pointage manuel</button><button onclick="Temps.closeM()" class="' + B1 + '">Fermer</button></div>', 580);
   }
   var ABSTYPES = ['Congé annuel', 'Maladie', 'Mission', 'Autre absence autorisée'];
   function absAsk(){
@@ -24416,7 +24474,6 @@ var TempsInd = (function(){
     'tp-san-regles':'Régler les seuils qui déclenchent une proposition de sanction (retards, absences…) et activer ou non la gestion des sanctions.',
     'tp-cloture':'Contrôler la période, voir l’aperçu des variables de paie, les transmettre à SoftPayroll après validation par la RH, puis verrouiller et régulariser.',
     'tp-sync':'Suivre les échanges avec Soft e-RH, SoftPayroll et les pointeuses : état, journal, erreurs à corriger et correspondance des types d’absence.',
-    'tp-presences':'Comparer, jour par jour, le prévu (planning) et le réel (pointages), et repérer les écarts.',
     'tp-heures':'Suivre les heures travaillées et supplémentaires par période, puis les transmettre à la paie.',
     'tp-ind-etat':'Suivre les indemnités générées par le pointage (cantine, transport…).',
     'tp-suivi':'Contrôler qui a saisi son temps, la couverture par rapport au pointage et l’état de chaque feuille.',
