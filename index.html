@@ -22594,12 +22594,16 @@ var rows = PUN.filter(function(q){ return q.ts.slice(0, 10) === v.date && q.imp 
 var trs = rows.slice(0, 120).map(function(q){ return '<tr class="border-t border-gray-100"><td class="px-4 py-2 text-[12.5px] text-slate-800">' + q.ts.slice(11) + '</td><td class="px-3 py-2 text-[13px] text-slate-800">' + esc(nom(q.empId)) + '</td><td class="px-3 py-2">' + (q.sens === 'in' ? pill('Entrée', 'bg-emerald-100 text-emerald-700') : pill('Sortie', 'bg-gray-100 text-gray-600')) + '</td><td class="px-3 py-2 text-[12.5px] text-gray-500">' + esc(devNom(q.dev)) + '</td></tr>'; }).join('');
 var pen = v.date === t ? pending() : 0;
 var imp = IMPH.length ? '<div class="pt-imp"><b>Derniers imports</b>' + IMPH.slice(0, 3).map(function(x){ return '<span>' + esc(x.file) + ' · ' + x.n + ' pointage' + (x.n > 1 ? 's' : '') + (x.ign ? ', ' + x.ign + ' ignoré' + (x.ign > 1 ? 's' : '') : '') + ' · ' + A.dtfr(x.at) + '</span>'; }).join('') + '</div>' : '';
-h.innerHTML = A.head('Pointages', '<button onclick="ImportKit.pointages()" class="' + B2 + '">Importer (Excel)</button><button onclick="TempsRH.syncAll()" class="' + B2 + '">Synchroniser tout</button><button onclick="TempsRH.manualAsk()" class="' + B1 + '">+ Pointage manuel</button>') +
-'<div class="pt-sect">Pointeuses</div><div class="pt-devs">' + devs + '</div>' +
-(pen ? '<div class="pt-alert"><div><b>' + pen + ' pointage' + (pen > 1 ? 's' : '') + ' du jour en attente d’import</b><span>Les collaborateurs concernés apparaissent « non pointés » tant que la synchronisation n’a pas eu lieu.</span></div><button onclick="TempsRH.syncAll()" class="pt-dev-b">Synchroniser maintenant</button></div>' : '') + imp +
-'<div class="pt-sect">Pointages du jour</div>' +
-'<div class="pt-card"><div class="pt-head">' + nav(dfr(v.date) + (v.date === t ? (t === realToday() ? ' · aujourd’hui' : ' · dernier jour ouvré') : ''), 'TempsRH.ptDay(-1)', 'TempsRH.ptDay(1)') + '<span class="pt-count">' + rows.length + ' pointage' + (rows.length > 1 ? 's' : '') + '</span></div><div class="pt-body"><table class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Heure</th><th class="px-3 py-2.5 font-medium">Collaborateur</th><th class="px-3 py-2.5 font-medium">Sens</th><th class="px-3 py-2.5 font-medium">Source</th></tr></thead><tbody>' + (trs || '<tr><td colspan="4" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucun pointage ce jour.</td></tr>') + '</tbody></table></div></div>';
+var ko = A.DEV.filter(function(d){ return d.actif && d.statut === 'hors_ligne'; }).length, pall = pending();
+var sumC = ko ? 'text-red-600' : (pall ? 'text-amber-600' : 'text-green-600');
+var sumT = rows.length + ' pointage' + (rows.length > 1 ? 's' : '') + (v.date === t ? ' aujourd’hui' : ' ce jour') + (pall ? ' · ' + pall + ' à importer' : '') + (ko ? ' · ' + ko + ' pointeuse' + (ko > 1 ? 's' : '') + ' hors ligne' : (pall ? '' : ' · tout est à jour'));
+DEVS_HTML = '<div class="pt-devs">' + devs + '</div>' + imp;
+h.innerHTML = A.head('Pointages', '<details class="relative pt-menu"><summary class="' + B2 + '" style="list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px">Actions <span style="font-size:10px">▾</span></summary><div class="absolute z-20 bg-white border border-gray-200 rounded-lg shadow-lg p-1" style="right:0;min-width:200px;margin-top:4px"><button onclick="this.closest(\'details\').removeAttribute(\'open\');ImportKit.pointages()" class="block w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-gray-50 rounded">Importer (Excel)</button><button onclick="this.closest(\'details\').removeAttribute(\'open\');TempsRH.syncAll()" class="block w-full text-left px-3 py-2 text-[13px] text-slate-700 hover:bg-gray-50 rounded">Synchroniser tout</button></div></details><button onclick="TempsRH.manualAsk()" class="' + B1 + '">+ Pointage manuel</button>') +
+'<div class="flex items-center justify-between gap-3 mb-4"><button type="button" onclick="TempsRH.devAsk()" class="text-left text-[14px] font-medium ' + sumC + '">' + sumT + '</button>' + (pall ? '<button onclick="TempsRH.syncAll()" class="' + B2 + '">Synchroniser</button>' : '') + '</div>' +
+'<div class="pt-card"><div class="pt-head">' + nav(dfr(v.date) + (v.date === t ? (t === realToday() ? ' · aujourd’hui' : ' · dernier jour ouvré') : ''), 'TempsRH.ptDay(-1)', 'TempsRH.ptDay(1)') + '<input value="' + esc(v.q || '') + '" onchange="TempsRH.ptQ(this.value)" placeholder="🔍 Collaborateur" class="' + INP + '" style="flex:1 1 220px"></div><div class="pt-body"><table class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Heure</th><th class="px-3 py-2.5 font-medium">Collaborateur</th><th class="px-3 py-2.5 font-medium">Sens</th><th class="px-3 py-2.5 font-medium">Source</th></tr></thead><tbody>' + (trs || '<tr><td colspan="4" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucun pointage ce jour.</td></tr>') + '</tbody></table></div></div>';
 }
+var DEVS_HTML = '';
+function devAsk(){ A.modal('<div class="flex items-center justify-between mb-4"><h3 class="text-[15px] font-semibold text-slate-800">Pointeuses</h3><button onclick="Temps.closeM()" class="text-gray-400 text-xl leading-none">×</button></div>' + DEVS_HTML, 820); }
 function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
   function ptQ(v){ V.pt.q = v; render('tp-pointages'); }
   function sync(id){ var d = A.byId(A.DEV, id), r = A.doSync(d); render('tp-pointages'); A.toast(r.ok ? (r.n ? r.n + ' pointage' + (r.n > 1 ? 's' : '') + ' importé' + (r.n > 1 ? 's' : '') + '.' : 'Aucun nouveau pointage.') : 'Synchronisation impossible : appareil injoignable.'); }
@@ -22798,7 +22802,7 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
   function refresh(){ Object.keys(HOSTS).forEach(function(id){ var p = $(id); if(p && p.classList.contains('active')) render(id); }); if(DR){ var dd = $('tr-drawer'); if(dd && dd.style.display !== 'none') drawerOpen(DR.id, DR.date); } try { if(window.TempsInbox) TempsInbox.render(); } catch(e){} }
   (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-heures') V.hr.emp = null; var r = sp.apply(this, arguments); if(HOSTS[id]) render(id); return r; }; })();
   seedAll();
-  return { render:render, importPending:importPending, pending:pending, sync:sync, syncAll:syncAll, ptDay:ptDay, ptQ:ptQ, manualAsk:manualAsk, manualGo:manualGo, prWeek:prWeek, prQ:prQ, dayOpen:dayOpen, absAsk:absAsk, absGo:absGo, prMode:prMode, plAsk:plAsk, plGo:plGo,
+  return { render:render, importPending:importPending, pending:pending, sync:sync, syncAll:syncAll, devAsk:devAsk, ptDay:ptDay, ptQ:ptQ, manualAsk:manualAsk, manualGo:manualGo, prWeek:prWeek, prQ:prQ, dayOpen:dayOpen, absAsk:absAsk, absGo:absGo, prMode:prMode, plAsk:plAsk, plGo:plGo,
     hrMode:hrMode, hrNav:hrNav, hrQ:hrQ, hrOpen:hrOpen, hrBack:hrBack, hrCsv:hrCsv, fixAsk:fixAsk, fixHow:fixHow, fixGo:fixGo,
     setInt:setInt, proposeOut:proposeOut, clearDay:clearDay, dashF:dashF, drawerOpen:drawerOpen, drawerNav:drawerNav, drawerClose:drawerClose, drawerWeek:drawerWeek, dropPunch:dropPunch, paieAsk:paieAsk, paieGo:paieGo, applyCorr:applyCorr, replaceP:replaceP, addAbs:addAbs, setHsv:setHsv, refresh:refresh, day:day, sumHs:sumHs, anomalies:anomalyList, punches:punches, planFor:planFor, absOf:absOf, assigned:assigned, util:{ iso:iso, today:today, addD:addD, monday:monday, dow:dow, dfr:dfr, fh:fh, fh1:fh1, tm:tm, hm:hmStr, nom:nom, nowMin:nowMin, FER:FER, JN:JN }, addP:addP, swapShift:swapShift, weeksWithHs:weeksWithHs, paieCount:function(){ var pe = periodOf(); return linked('tmpaie') ? paieItems(pe.from, pe.to).length : 0; }, data:function(){ return { PUN:PUN, CORR:CORR, ABS:ABS, EXC:EXC, HSV:HSV, IMPH:IMPH, ERH:ERH, ABSC:ABSC, PAIE:PAIE, SENT:SENT }; } };
 })();
@@ -24398,7 +24402,6 @@ var TempsInd = (function(){
     'tp-san-regles':'Régler les seuils qui déclenchent une proposition de sanction (retards, absences…) et activer ou non la gestion des sanctions.',
     'tp-cloture':'Contrôler la période, voir l’aperçu des variables de paie, les transmettre à SoftPayroll après validation par la RH, puis verrouiller et régulariser.',
     'tp-sync':'Suivre les échanges avec Soft e-RH, SoftPayroll et les pointeuses : état, journal, erreurs à corriger et correspondance des types d’absence.',
-    'tp-pointages':'Consulter les passages des pointeuses, les corriger si besoin et importer un fichier Excel.',
     'tp-presences':'Comparer, jour par jour, le prévu (planning) et le réel (pointages), et repérer les écarts.',
     'tp-heures':'Suivre les heures travaillées et supplémentaires par période, puis les transmettre à la paie.',
     'tp-ind-etat':'Suivre les indemnités générées par le pointage (cantine, transport…).',
@@ -25472,5 +25475,6 @@ var TableKit = (function(){
     return r;
   };
 })();
+document.addEventListener('click', function(e){ [].slice.call(document.querySelectorAll('details.pt-menu[open]')).forEach(function(d){ if(!d.contains(e.target)) d.removeAttribute('open'); }); });
 </script></body>
 </html>
