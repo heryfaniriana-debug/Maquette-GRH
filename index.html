@@ -14646,7 +14646,8 @@ function confirmerRattachement(){
       { id:'e12', mat:'SW-012', nom:'Rakotoson',      prenom:'Nirina',        email:'nirina.rakotoson@softwell.mg',          tel:'034 11 000 12', poste:'p_dc', dossier:false, src:'Plan' },
       { id:'e13', mat:'SW-013', nom:'Rasolofoson',    prenom:'Kiady',         email:'kiady.rasolofoson@softwell.mg',         tel:'034 11 000 13', poste:'p_ro', dossier:false, src:'Plan' },
       { id:'e14', mat:'SW-014', nom:'Rakoto',         prenom:'Mahery',        email:'mahery.rakoto@softwell.mg',             tel:'034 11 000 14', poste:'p_ctoa', dossier:false, src:'Plan' },
-      { id:'e15', mat:'SW-015', nom:'Randria',        prenom:'Tiana',         email:'tiana.randria@softwell.mg',             tel:'034 11 000 15', poste:'p_cfia', dossier:false, src:'Plan' }
+      { id:'e15', mat:'SW-015', nom:'Randria',        prenom:'Tiana',         email:'tiana.randria@softwell.mg',             tel:'034 11 000 15', poste:'p_cfia', dossier:false, src:'Plan' },
+      { id:'e16', mat:'EMP-P4-001', nom:'Rasoanaivo',   prenom:'Hery',          email:'hery.rasoanaivo@softwell.mg',           tel:'034 11 000 16', poste:'p_rc' }
     ]
   };
 
@@ -21971,6 +21972,7 @@ var Temps = (function(){
       var last = i >= people().length - 2, h2 = i % 5 === 3;
       AFF[x.id] = { hor:last ? null : (h2 ? 'h2' : 'h1'), regle:last ? null : (h2 ? 'r2' : 'r1'), devs:(i === 9 || i === 12) ? ['d3'] : h2 ? ['d2'] : (i % 4 === 1 ? ['d1', 'd2'] : ['d1']), badge:'B-' + x.mat.replace(/\D/g, ''), act:i % 2 === 0, presAct:false };
     });
+    var hy = people().filter(function(x){ return x.mat === 'EMP-P4-001'; })[0]; if(hy) AFF[hy.id] = { hor:'h1', regle:'r1', devs:['d1'], badge:'B-4001', act:true, presAct:false };
   }
   function aff(id){ return AFF[id] || (AFF[id] = { hor:null, regle:null, devs:['d1'], badge:'', act:false, presAct:false }); }
   function groupRule(id){
@@ -23402,7 +23404,7 @@ var TempsPortal = (function(){
   function pad(n){ return (n < 10 ? '0' : '') + n; }
   function fh(m){ return U.fh(m); } function fh1(m){ return U.fh1(m); } function dfr(x){ return U.dfr(x); } function dsh(x){ return x.slice(8) + '/' + x.slice(5, 7); }
   function licensed(){ try { return PJ.getContext().apps.indexOf('SoftTime') > -1; } catch(e){ return true; } }
-  function me(){ if(!ME){ var P = RH.assigned(); ME = (P.filter(function(x){ return /Njaka/.test(x.nomComplet); })[0] || P.filter(function(x){ return A.aff(x.id).act; })[0] || P[0]).id; } return ME; }
+  function me(){ if(!ME){ var P = RH.assigned(); ME = (P.filter(function(x){ return /Hery Rasoanaivo/.test(x.nomComplet); })[0] || P.filter(function(x){ return /Njaka/.test(x.nomComplet); })[0] || P.filter(function(x){ return A.aff(x.id).act; })[0] || P[0]).id; } return ME; }
   function act(){ return !!A.aff(me()).act; }
   function card(inner, cls){ return '<div class="bg-white rounded-lg shadow-sm border border-gray-100 ' + (cls || 'p-5 mb-4') + '">' + inner + '</div>'; }
   function who(){ return '<div class="flex items-center gap-2 text-[11.5px] text-gray-400"><span>Aperçu de la démo</span><select onchange="TempsPortal.setMe(this.value)" class="border border-gray-200 rounded-md px-2 py-1 text-[12px] text-gray-600 bg-white" style="max-width:230px">' + RH.assigned().map(function(x){ return '<option value="' + x.id + '"' + (x.id === me() ? ' selected' : '') + '>' + esc(x.nomComplet) + (A.aff(x.id).act ? '' : ' (sans activités)') + (window.TempsPlan && TempsPlan.isMgr(x.id) ? ' · manager' : '') + '</option>'; }).join('') + '</select></div>'; }
@@ -24567,7 +24569,8 @@ var TempsPlan = (function(){
 
   /* ---------- équipe : le responsable direct vient du Plan des salariés ---------- */
   function boss(id){ if(MEMO['b' + id] !== undefined) return MEMO['b' + id]; var r = null; try { var c = window.Plan ? Plan.chain(id, 1) : []; r = c[0] && c[0].planId ? c[0].planId : null; } catch(e){} MEMO['b' + id] = r; return r; }
-  function team(m){ if(MEMO['t' + m]) return MEMO['t' + m]; return (MEMO['t' + m] = RH.assigned().filter(function(x){ return x.id !== m && boss(x.id) === m; })); }
+  var DEMO_TEAM = { 'EMP-P4-001':['SW-004', 'SW-005', 'SW-006'] };
+  function team(m){ if(MEMO['t' + m]) return MEMO['t' + m]; var P = RH.assigned(), mm = P.filter(function(x){ return x.id === m; })[0], ex = (mm && DEMO_TEAM[mm.mat]) || []; return (MEMO['t' + m] = P.filter(function(x){ return x.id !== m && (boss(x.id) === m || ex.indexOf(x.mat) > -1); })); }
   function isMgr(id){ return team(id).length > 0; }
 
   /* ---------- données de démonstration (créées à la première ouverture d'une personne) ---------- */
