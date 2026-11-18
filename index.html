@@ -23546,7 +23546,7 @@ var TempsPortal = (function(){
   var JV = 'planning';
   function alertN(emp){ return (alertCards(emp).match(/flex items-center justify-between gap-3 bg-white border/g) || []).length; }
   function intN(emp){ return window.TempsInter ? TempsInter.list().filter(function(i){ return i.emp === emp && (i.statut === 'a_relire' || i.statut === 'programme'); }).length : 0; }
-  function viewList(emp){ var L = []; if(window.TempsPlan){ L.push(['planning', 'Aujourd’hui', TempsPlan.nToday(emp)]); L.push(['planif', 'Planification de la semaine', 0]); } L.push(['semaine', 'Ma semaine', jwStats(emp).todo]); if(A.aff(emp).act) L.push(['interventions', 'Mes interventions', intN(emp)]); return L; }
+  function viewList(emp){ var L = []; if(window.TempsPlan){ L.push(['planning', 'Aujourd’hui', TempsPlan.nToday(emp)]); L.push(['planif', 'Planification de la semaine', 0]); } L.push(['semaine', 'Mon temps réalisé', jwStats(emp).todo]); if(A.aff(emp).act) L.push(['interventions', 'Mes interventions', intN(emp)]); return L; }
 function view(k){ JV = (k === 'interventions' || ((k === 'planning' || k === 'planif') && window.TempsPlan)) ? k : 'semaine'; closeMenu(); renderJournee(); }
 /* ---------- Ma semaine : pointages jour par jour, « ce que j'ai fait », jours à justifier ---------- */
 var JW = null, JE = null;
@@ -24642,14 +24642,14 @@ var TempsPlan = (function(){
   function finishAsk(id){
     var x = byId(id); if(!x) return; hideAlert();
     var h = Math.max(0.25, Math.ceil(spentS(x) / 900) / 4);
-    A.modal('<h3 class="text-[15px] font-semibold text-slate-800 mb-1">Terminer la tâche</h3><div class="text-[12px] text-gray-400 mb-4">' + esc(x.titre) + ' · prévu ' + fmin(planned(x)) + ' · écoulé ' + clock(spentS(x)) + '</div>' + A.lab('Temps à enregistrer (heures)') + '<input id="pl-real" type="number" min="0.25" step="0.25" value="' + h + '" class="' + INP + '"><div class="text-[12px] text-gray-500 mt-3">Ce temps sera ajouté à « ce que j’ai fait » du ' + dsh(x.date) + ', dans Ma semaine.</div><div id="pl-fin-err" class="text-[12px] text-red-600 mt-2"></div><div class="flex justify-end gap-2 mt-5"><button onclick="Temps.closeM()" class="' + A.B2 + '">Annuler</button><button onclick="TempsPlan.finish(\'' + id + '\')" class="' + A.B1 + '">Enregistrer</button></div>', 440);
+    A.modal('<h3 class="text-[15px] font-semibold text-slate-800 mb-1">Terminer la tâche</h3><div class="text-[12px] text-gray-400 mb-4">' + esc(x.titre) + ' · prévu ' + fmin(planned(x)) + ' · écoulé ' + clock(spentS(x)) + '</div>' + A.lab('Temps à enregistrer (heures)') + '<input id="pl-real" type="number" min="0.25" step="0.25" value="' + h + '" class="' + INP + '"><div class="text-[12px] text-gray-500 mt-3">Ce temps sera ajouté à « ce que j’ai fait » du ' + dsh(x.date) + ', dans Mon temps réalisé.</div><div id="pl-fin-err" class="text-[12px] text-red-600 mt-2"></div><div class="flex justify-end gap-2 mt-5"><button onclick="Temps.closeM()" class="' + A.B2 + '">Annuler</button><button onclick="TempsPlan.finish(\'' + id + '\')" class="' + A.B1 + '">Enregistrer</button></div>', 440);
   }
   function finish(id){
     var x = byId(id); if(!x) return; var hh = parseFloat($('pl-real').value);
     if(!hh || hh < 0.25){ $('pl-fin-err').textContent = 'Indiquez au moins 0,25 h.'; return; }
     var r = ACT.api.add(x.emp, { date:x.date, projet:null, tache:ACT.api.taskFor(x.cat, null), min:Math.round(hh * 60), note:x.titre, src:'manuel' });
     if(!r.ok){ $('pl-fin-err').textContent = r.msg; return; }
-    logEv(x, 'end'); x.real = Math.round(hh * 60); x.st = 'done'; x.t0 = 0; if(RUN === id) RUN = null; A.closeM(); ACT.api.render(); refresh(); A.toast('Tâche terminée : ' + fmin(x.real) + ' ajoutées à Ma semaine.');
+    logEv(x, 'end'); x.real = Math.round(hh * 60); x.st = 'done'; x.t0 = 0; if(RUN === id) RUN = null; A.closeM(); ACT.api.render(); refresh(); A.toast('Tâche terminée : ' + fmin(x.real) + ' ajoutées à Mon temps réalisé.');
   }
 
   /* ---------- Ma journée > Mon planning ---------- */
