@@ -2972,27 +2972,23 @@ renderAppLauncher();
         <div class="submenu pl-11 pr-2" id="sub-tp-temps">
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-planning">Planning</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-pointages">Pointages</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-presences">Présences</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-heures">Heures</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-ind">Individuel</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-jour">Journée</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-sem">Semaine</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-mois">Mois</button>
+        </div>
+        <button class="submenu-toggle w-full flex items-center justify-between gap-2.5 px-4 py-2 text-[13px] hover:bg-white/5" data-target="sub-tp-act"><span class="flex items-center gap-2 whitespace-nowrap text-left"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2M3 13h18"/></svg> Activités</span><svg class="w-3.5 h-3.5 chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg></button>
+        <div class="submenu pl-11 pr-2" id="sub-tp-act">
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-suivi">Feuilles de temps</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-analyse">Répartition</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-rap-act">Détail des activités</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-rap-analyse">Analyse croisée</button>
         </div>
         <button class="submenu-toggle w-full flex items-center justify-between gap-2.5 px-4 py-2 text-[13px] hover:bg-white/5" data-target="sub-tp-fin"><span class="flex items-center gap-2 whitespace-nowrap text-left"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="5" width="16" height="15" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/></svg> Fin de période</span><svg class="w-3.5 h-3.5 chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg></button>
         <div class="submenu pl-11 pr-2" id="sub-tp-fin">
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-sanctions">Sanctions</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-ind-etat">Indemnités</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-cloture">Clôture de période</button>
-        </div>
-        <button class="submenu-toggle w-full flex items-center justify-between gap-2.5 px-4 py-2 text-[13px] hover:bg-white/5" data-target="sub-tp-act"><span class="flex items-center gap-2 whitespace-nowrap text-left"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2M3 13h18"/></svg> Activités</span><svg class="w-3.5 h-3.5 chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg></button>
-        <div class="submenu pl-11 pr-2" id="sub-tp-act">
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-suivi">Feuilles de temps</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-analyse">Répartition</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-rap-analyse">Analyse croisée</button>
-        </div>
-        <button class="submenu-toggle w-full flex items-center justify-between gap-2.5 px-4 py-2 text-[13px] hover:bg-white/5" data-target="sub-tp-rap"><span class="flex items-center gap-2 whitespace-nowrap text-left"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M7 3h8l4 4v14H7z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 3v4h4M10 12h6M10 16h6"/></svg> Rapports</span><svg class="w-3.5 h-3.5 chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg></button>
-        <div class="submenu pl-11 pr-2" id="sub-tp-rap">
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-rap-pres">Présences</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-rap-heures">Heures</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-rap-hs">Heures supplémentaires</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-rap-act">Activités</button>
         </div>
         <button class="submenu-toggle w-full flex items-center justify-between gap-2.5 px-4 py-2 text-[13px] hover:bg-white/5" data-target="sub-tp-param"><span class="flex items-center gap-2 whitespace-nowrap text-left"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1Z"/></svg> Paramétrage</span><svg class="w-3.5 h-3.5 chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg></button>
         <div class="submenu pl-11 pr-2" id="sub-tp-param">
@@ -5430,6 +5426,10 @@ renderAppLauncher();
         <section class="panel" id="tp-pointages"><div id="tr-h-pointages"></div></section>
         <section class="panel" id="tp-presences"><div id="tr-h-presences"></div></section>
         <section class="panel" id="tp-heures"><div id="tr-h-heures"></div></section>
+        <section class="panel" id="tp-ind"><div id="tr-h-ind"></div></section>
+        <section class="panel" id="tp-jour"><div id="tr-h-jour"></div></section>
+        <section class="panel" id="tp-sem"><div id="tr-h-sem"></div></section>
+        <section class="panel" id="tp-mois"><div id="tr-h-mois"></div></section>
         <section class="panel" id="tp-taches"><div id="ta-h-taches"></div></section>
         <section class="panel" id="tp-suivi"><div id="ta-h-suivi"></div></section>
         <section class="panel" id="tp-analyse"><div id="ta-h-analyse"></div></section>
@@ -8762,7 +8762,7 @@ Fait à Antananarivo, le ${dateDuJour}.</textarea>
       rows:['Questionnaire technique','Test technique','Disponibilités & prétentions salariales']}
   };
 
-  const breadcrumbLabels = { 't-competences-poste':['Compétences','Compétences par poste'], 't-competences-situation':['Compétences','Situation individuelle'], 't-evaluations-camp':['Évaluation','Campagne'], 't-evaluations-saisie':['Évaluation','Saisie des résultats'], 'r-eb-candidats':['Embauche','Candidats retenus'], 'r-eb-generer':['Embauche','Plan et dossiers e-RH'], 'r-eb-candidat':['Embauche','Fiche candidat'], 'r-eb-params':['Paramétrages','Embauche : dossier à remplir'], 'e-rapports':['softerh','Rapports'], 'u-recrutement':['Paramétrages','Gestion des utilisateurs'], 'u-formation':['Paramétrages','Gestion des utilisateurs'], 'u-talent':['Paramètres','Gestion des utilisateurs'], 'u-erh':['Paramétrages','Gestion des utilisateurs'], 'u-temps':['Paramétrage','Profils d’accès'], 'tp-collaborateurs':['Paramétrage','Salariés'], 'tp-horaires':['Paramétrage','Horaires et plannings'], 'tp-regles':['Paramétrage','Règles de calcul'], 'tp-pointeuses':['Paramétrage','Pointeuses'], 'tp-circuits':['Paramétrage','Circuits de validation'], 'tp-dashboard':['SoftTime','Tableau de bord'], 'tp-pointages':['Temps de travail','Pointages'], 'tp-presences':['Temps de travail','Présences'], 'tp-heures':['Temps de travail','Heures'], 'tp-taches':['Paramétrage','Catégories'], 'tp-recherche':['SoftTime','Recherche'], 'tp-int-types':['Paramétrage','Types d’intervention'], 'tp-ind-etat':['Temps de travail','Indemnités'], 'tp-ind-regles':['Paramétrage','Indemnités'], 'tp-ind-groupes':['Paramétrage','Groupes'], 'tp-traiter':['SoftTime','Validations'], 'tp-sanctions':['Temps de travail','Sanctions'], 'tp-san-regles':['Paramétrage','Règles de sanction'], 'tp-sync':['Paramétrage','Synchronisations'], 'tp-cloture':['Temps de travail','Clôture de période'], 'tp-suivi':['Activités','Feuilles de temps'], 'tp-analyse':['Activités','Répartition'], 'tp-rap-pres':['Rapports','Présences'], 'tp-rap-heures':['Rapports','Heures'], 'tp-rap-hs':['Rapports','Heures supplémentaires'], 'tp-rap-act':['Rapports','Activités'], 'tp-rap-analyse':['Rapports','Analyse croisée'], 'e-mouvements':['Parcours du salarié','Mouvements'], 'r-eb-offres':['Embauche',"Offres d'embauche"], 'r-eb-verif':['Embauche','Vérifications'], 'r-eb-integ':['Embauche','Intégration'],
+  const breadcrumbLabels = { 't-competences-poste':['Compétences','Compétences par poste'], 't-competences-situation':['Compétences','Situation individuelle'], 't-evaluations-camp':['Évaluation','Campagne'], 't-evaluations-saisie':['Évaluation','Saisie des résultats'], 'r-eb-candidats':['Embauche','Candidats retenus'], 'r-eb-generer':['Embauche','Plan et dossiers e-RH'], 'r-eb-candidat':['Embauche','Fiche candidat'], 'r-eb-params':['Paramétrages','Embauche : dossier à remplir'], 'e-rapports':['softerh','Rapports'], 'u-recrutement':['Paramétrages','Gestion des utilisateurs'], 'u-formation':['Paramétrages','Gestion des utilisateurs'], 'u-talent':['Paramètres','Gestion des utilisateurs'], 'u-erh':['Paramétrages','Gestion des utilisateurs'], 'u-temps':['Paramétrage','Profils d’accès'], 'tp-collaborateurs':['Paramétrage','Salariés'], 'tp-horaires':['Paramétrage','Horaires et plannings'], 'tp-regles':['Paramétrage','Règles de calcul'], 'tp-pointeuses':['Paramétrage','Pointeuses'], 'tp-circuits':['Paramétrage','Circuits de validation'], 'tp-dashboard':['SoftTime','Tableau de bord'], 'tp-pointages':['Temps de travail','Pointages'], 'tp-presences':['Temps de travail','Présences'], 'tp-heures':['Temps de travail','Heures'], 'tp-ind':['Suivi du temps','Individuel'], 'tp-jour':['Suivi du temps','Journée'], 'tp-sem':['Suivi du temps','Semaine'], 'tp-mois':['Suivi du temps','Mois'], 'tp-taches':['Paramétrage','Catégories'], 'tp-recherche':['SoftTime','Recherche'], 'tp-int-types':['Paramétrage','Types d’intervention'], 'tp-ind-etat':['Temps de travail','Indemnités'], 'tp-ind-regles':['Paramétrage','Indemnités'], 'tp-ind-groupes':['Paramétrage','Groupes'], 'tp-traiter':['SoftTime','Validations'], 'tp-sanctions':['Temps de travail','Sanctions'], 'tp-san-regles':['Paramétrage','Règles de sanction'], 'tp-sync':['Paramétrage','Synchronisations'], 'tp-cloture':['Temps de travail','Clôture de période'], 'tp-suivi':['Activités','Feuilles de temps'], 'tp-analyse':['Activités','Répartition'], 'tp-rap-pres':['Rapports','Présences'], 'tp-rap-heures':['Rapports','Heures'], 'tp-rap-hs':['Rapports','Heures supplémentaires'], 'tp-rap-act':['Activités','Détail des activités'], 'tp-rap-analyse':['Activités','Analyse croisée'], 'e-mouvements':['Parcours du salarié','Mouvements'], 'r-eb-offres':['Embauche',"Offres d'embauche"], 'r-eb-verif':['Embauche','Vérifications'], 'r-eb-integ':['Embauche','Intégration'],
     'p-generaux':['Paramètres','Paramètres généraux'], 'p-sites':['Paramètres','Sites'], 'p-etablissements':['Paramètres','Établissements'], 'p-niveaux':['Paramètres','Niveaux de l\'organisation'], 'p-organisation':['Paramètres','Organisation'], 'p-plan-salaries':['Paramètres','Plan des salariés'], 'p-plan-comptes':['Paramètres','Plan des comptes'], 'p-rh':['Paramètres','Ressources humaines'], 'p-logistique':['Paramètres','Logistique'],
     'f-dashboard':['softformation','Tableau de bord'],
     'f-themes':['Catalogue','Thèmes de formation'], 'f-formateurs':['Catalogue','Organismes de formation'], 'f-employes':['Catalogue','Fiches formation des collaborateurs'],
@@ -22642,11 +22642,11 @@ return { days:ds, work:work, plan:plan, retard:ret, hs1:h1, hs2:h2, hs:h1 + h2, 
       dayDetail(id, date, r) +
       (r.ints && r.ints.length ? '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Interventions</div><div class="mb-4">' + r.ints.map(function(z){ return '<div class="flex items-center justify-between py-1.5 text-[12.5px]"><span><b class="text-slate-800">' + z.debut + ' – ' + z.fin + '</b> <span class="text-gray-500 ml-1">' + esc(z.typeNom) + ' · ' + esc(z.client) + '</span></span></div>'; }).join('') + '</div>' : '') + '' +
       (r.anomalies.length ? '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Anomalies</div><div class="mb-4">' + r.anomalies.map(function(a){ return '<div class="flex items-center justify-between py-1.5">' + pill(KIND[a.kind][0], KIND[a.kind][1]) + '<button onclick="TempsRH.fixAsk(\'' + id + '|' + date + '|' + a.kind + '\')" class="text-blue-600 text-[12.5px]">Corriger</button></div>'; }).join('') + '</div>' : '') +
-      '<div class="flex gap-2 flex-wrap"><button onclick="TempsRH.manualAsk(\'' + id + '\',\'' + date + '\')" class="' + B2 + '">+ Pointage manuel</button><button onclick="TempsRH.drawerWeek()" class="' + B2 + '">Voir la semaine</button></div></div>';
+      '<div class="flex gap-2 flex-wrap"><button onclick="TempsRH.manualAsk(\'' + id + '\',\'' + date + '\')" class="' + B2 + '">+ Pointage manuel</button><button onclick="TempsRH.drawerWeek()" class="' + B2 + '">Voir le mois</button></div></div>';
   }
   function drawerNav(n){ if(!DR) return; var d = DR.date; for(var i = 0; i < 7; i++){ d = addD(d, n); if(d <= today()) break; } if(d > today()) return; drawerOpen(DR.id, d); }
   function drawerClose(){ DR = null; var a = $('tr-drawer'), b = $('tr-drawer-bg'); if(a) a.style.display = 'none'; if(b) b.style.display = 'none'; }
-  function drawerWeek(){ if(!DR) return; var x = A.people().filter(function(p){ return p.id === DR.id; })[0]; V.pr.q = x.nomComplet; V.pr.week = monday(DR.date); drawerClose(); showPanel('tp-presences'); }
+  function drawerWeek(){ if(!DR) return; VW.emp = DR.id; VW.ref = DR.date; drawerClose(); showPanel('tp-ind'); }
   function setInt(fn){ INTP = fn; }
   function proposeOut(emp, date){ var pl = planFor(emp, date), best = pl ? { t:pl.fin, src:'fin du planning' } : { t:'17:00', src:'horaire standard' }; (INTP ? INTP(emp, date) : []).forEach(function(z){ if(tm(z.fin) > tm(best.t)) best = { t:z.fin, src:'fin de l’intervention ' + z.ref }; }); return best; }
   function clearDay(emp, date){ note(emp, date, 'Pointages du jour supprimés'); PUN = PUN.filter(function(q){ return !(q.empId === emp && q.ts.slice(0, 10) === date); }); }
@@ -22846,6 +22846,63 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\n')], { type:'text/csv;charset=utf-8' })); a.download = 'heures_' + pe.from + '_' + pe.to + '.csv'; document.body.appendChild(a); a.click(); a.remove(); A.toast('Export généré : ' + a.download);
   }
 
+  /* ---------- Vues : individuelle, journée, semaine, mois ---------- */
+  var VW = { ref:null, emp:null, q:'', mode:'semaine' }, VWP = { ind:'tp-ind', jour:'tp-jour', semaine:'tp-sem', mois:'tp-mois' };
+  function vwRef(){ return VW.ref || (VW.ref = today()); }
+  function vwRange(mode){
+    var r = vwRef(), d = new Date(r + 'T12:00:00');
+    if(mode === 'jour') return { from:r, to:r, label:JN[dow(r) - 1] + ' ' + dfr(r) };
+    if(mode === 'semaine'){ var m = monday(r); return { from:m, to:addD(m, 6), label:'Semaine du ' + dfr(m) }; }
+    return { from:iso(new Date(d.getFullYear(), d.getMonth(), 1)), to:iso(new Date(d.getFullYear(), d.getMonth() + 1, 0)), label:MOIS[d.getMonth()].charAt(0).toUpperCase() + MOIS[d.getMonth()].slice(1) + ' ' + d.getFullYear() };
+  }
+  function vwFlags(q){
+    var rt = 0, ab = 0, an = 0, aj = 0;
+    q.days.forEach(function(r){ if(r.statut === 'retard') rt++; if(r.statut === 'absent') ab++; if(r.statut === 'absence') aj++; if(r.statut === 'non_pointe' || (r.anomalies || []).some(function(a){ return a.kind !== 'absence_non_justifiee'; })) an++; });
+    var o = []; if(ab) o.push([ab + ' absence' + (ab > 1 ? 's' : ''), 'text-red-600']); if(an) o.push([an + ' anomalie' + (an > 1 ? 's' : ''), 'text-red-600']); if(rt) o.push([rt + ' retard' + (rt > 1 ? 's' : ''), 'text-amber-600']); if(aj) o.push([aj + ' absence' + (aj > 1 ? 's' : '') + ' justifiée' + (aj > 1 ? 's' : ''), 'text-violet-600']);
+    return o;
+  }
+  function vwHead(title){ return A.head(title, (linked('tmerh') ? '' : '<button onclick="TempsRH.absAsk()" class="' + B2 + '">Déclarer une absence</button>') + '<button onclick="TempsRH.vwCsv()" class="' + B2 + '">Exporter</button>'); }
+  function vwNav(pr, today_){ return nav(pr.label, 'TempsRH.vwGo(-1)', 'TempsRH.vwGo(1)', (pr.from <= today_ && pr.to >= today_) ? '' : '<button onclick="TempsRH.vwGo(0)" class="text-blue-600 text-[12.5px] ml-2">Aujourd’hui</button>'); }
+  function renderVue(h, mode){
+    VW.mode = mode; var pr = vwRange(mode), t = today(), tot = { plan:0, work:0 };
+    var L = assigned().filter(function(x){ return !VW.q || x.nomComplet.toLowerCase().indexOf(VW.q.toLowerCase()) > -1; }).map(function(x){ var q = sumHs(x.id, pr.from, pr.to); tot.plan += q.plan; tot.work += q.work; return { x:x, q:q, f:vwFlags(q) }; });
+    L.sort(function(a, b){ return (a.f.length ? 0 : 1) - (b.f.length ? 0 : 1) || (a.x.nomComplet < b.x.nomComplet ? -1 : 1); });
+    var rows = L.map(function(o){
+      var ec = o.q.work - o.q.plan, any = o.q.plan || o.q.work;
+      return '<tr class="border-t border-gray-100 cursor-pointer hover:bg-blue-50/30" onclick="TempsRH.vwOpen(\'' + o.x.id + '\')"><td class="px-4 py-2.5"><div class="text-[13px] text-slate-800 font-medium">' + esc(o.x.nomComplet) + '</div><div class="text-[11px] text-gray-400">' + esc(posteOf(o.x.id)) + o.f.map(function(z){ return ' · <span class="' + z[1] + '">' + z[0] + '</span>'; }).join('') + (o.q.hs ? ' · <span class="text-sky-600">' + fh1(o.q.hs) + ' HS</span>' : '') + '</div></td><td class="px-3 py-2.5 text-[12.5px] text-gray-600">' + (o.q.plan ? fh1(o.q.plan) : '—') + '</td><td class="px-3 py-2.5 text-[12.5px] text-slate-800 font-medium">' + (o.q.work ? fh1(o.q.work) : '—') + '</td><td class="px-3 py-2.5 text-[12.5px] ' + (ec < -30 ? 'text-red-600' : ec > 30 ? 'text-emerald-600' : 'text-gray-500') + '">' + (any ? (ec > 0 ? '+' : '') + fh1(ec) : '—') + '</td></tr>';
+    }).join('');
+    var ttl = { jour:'Journée', semaine:'Semaine', mois:'Mois' }[mode];
+    h.innerHTML = vwHead(ttl) + '<div class="flex items-center gap-3 mb-3">' + vwNav(pr, t) + search('q', VW.q, 'TempsRH.vwQ(this.value)') + '</div>' +
+      '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Collaborateur</th><th class="px-3 py-2.5 font-medium">Prévues</th><th class="px-3 py-2.5 font-medium">Travaillées</th><th class="px-3 py-2.5 font-medium">Écart</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucun collaborateur.</td></tr>') + (rows ? '<tr class="border-t-2 border-gray-200 bg-gray-50"><td class="px-4 py-2.5 text-[12px] font-medium text-slate-700">Total</td><td class="px-3 py-2.5 text-[12.5px]">' + fh1(tot.plan) + '</td><td class="px-3 py-2.5 text-[12.5px] font-medium">' + fh1(tot.work) + '</td><td></td></tr>' : '') + '</tbody></table></div>';
+  }
+  var ST_LAB = { present:'Présent', retard:'Retard', en_cours:'En cours', absent:'Absent', incomplet:'Sortie manquante', non_pointe:'Non pointé', attendu:'Attendu', ferie:'Férié', repos:'Repos' };
+  function renderInd(h){
+    VW.mode = 'ind'; var L = assigned(), t = today();
+    if(!VW.emp || !L.some(function(p){ return p.id === VW.emp; })) VW.emp = L[0] ? L[0].id : null;
+    var id = VW.emp, pr = vwRange('mois'), q = id ? sumHs(id, pr.from, pr.to) : null;
+    var rows = q ? q.days.filter(function(r){ return r.pl || r.ps.length || r.ab || r.fer; }).map(function(r){
+      var st = CELL[r.statut] || CELL.repos, lab = r.statut === 'absence' ? (r.ab ? r.ab.type : 'Absence') : (ST_LAB[r.statut] || '');
+      return '<tr class="border-t border-gray-100 cursor-pointer hover:bg-blue-50/30" onclick="TempsRH.dayOpen(\'' + id + '\',\'' + r.date + '\')"><td class="px-4 py-2.5 text-[12.5px] text-slate-800">' + JN[dow(r.date) - 1] + ' ' + dfr(r.date) + '</td><td class="px-3 py-2.5 text-[12.5px]">' + (r.in != null || r.out != null ? (r.in != null ? hmStr(r.in) : '—') + ' – ' + (r.out != null ? hmStr(r.out) : '—') : '<span class="text-gray-300">—</span>') + '</td><td class="px-3 py-2.5 text-[12.5px] font-medium text-slate-800">' + (r.worked ? fh(r.worked) : '<span class="text-gray-300">—</span>') + (r.hs ? ' <span class="text-sky-600 text-[11px] font-normal">+' + fh(r.hs) + ' HS</span>' : '') + '</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-[11px] ' + st[1] + '">' + esc(lab) + '</span>' + (r.retard ? ' <span class="text-amber-600 text-[11.5px]">' + r.retard + ' min</span>' : '') + (r.anomalies.length ? ' <span class="text-red-500" title="Anomalie">●</span>' : '') + '</td></tr>';
+    }).join('') : '';
+    var sel = '<select onchange="TempsRH.vwEmp(this.value)" class="' + INP + '" style="width:280px">' + L.map(function(p){ return '<option value="' + p.id + '"' + (p.id === id ? ' selected' : '') + '>' + esc(p.nomComplet) + '</option>'; }).join('') + '</select>';
+    h.innerHTML = vwHead('Individuel') + '<div class="flex items-center gap-3 mb-3">' + sel + vwNav(pr, t) + '</div>' +
+      '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Jour</th><th class="px-3 py-2.5 font-medium">Pointages</th><th class="px-3 py-2.5 font-medium">Travaillé</th><th class="px-3 py-2.5 font-medium">État</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucune journée.</td></tr>') + (rows ? '<tr class="border-t-2 border-gray-200 bg-gray-50"><td class="px-4 py-2.5 text-[12px] font-medium text-slate-700">Total</td><td></td><td class="px-3 py-2.5 text-[12.5px] font-medium">' + fh1(q.work) + ' <span class="text-gray-400 font-normal">sur ' + fh1(q.plan) + '</span></td><td></td></tr>' : '') + '</tbody></table></div>';
+  }
+  function vwGo(n){
+    var d = new Date(vwRef() + 'T12:00:00'), m = VW.mode;
+    if(n === 0) VW.ref = today();
+    else { if(m === 'jour') d.setDate(d.getDate() + n); else if(m === 'semaine') d.setDate(d.getDate() + 7 * n); else { d.setDate(1); d.setMonth(d.getMonth() + n); } VW.ref = iso(d); }
+    render(VWP[m]);
+  }
+  function vwQ(v){ VW.q = v; render(VWP[VW.mode]); }
+  function vwEmp(v){ VW.emp = v; render('tp-ind'); }
+  function vwOpen(id){ if(VW.mode === 'jour') dayOpen(id, vwRange('jour').from); else { VW.emp = id; showPanel('tp-ind'); } }
+  function vwCsv(){
+    var m = VW.mode === 'ind' ? 'mois' : VW.mode, pr = vwRange(m), f = function(x){ return (Math.round(x / 6) / 10).toString().replace('.', ','); }, lines;
+    if(VW.mode === 'ind' && VW.emp){ lines = ['Jour;Entrée;Sortie;Travaillé (h);Retard (min);HS (h);État']; sumHs(VW.emp, pr.from, pr.to).days.filter(function(r){ return r.pl || r.ps.length || r.ab || r.fer; }).forEach(function(r){ lines.push([r.date, r.in != null ? hmStr(r.in) : '', r.out != null ? hmStr(r.out) : '', f(r.worked), r.retard || 0, f(r.hs || 0), ST_LAB[r.statut] || (r.ab ? r.ab.type : '')].join(';')); }); }
+    else { lines = ['Collaborateur;Prévues (h);Travaillées (h);Retards (min);HS exonérées (h);HS imposables (h);Nuit (h);Dim./férié (h)']; assigned().forEach(function(x){ var q = sumHs(x.id, pr.from, pr.to); lines.push([x.nomComplet, f(q.plan), f(q.work), q.retard, f(q.hs1), f(q.hs2), f(q.nuit), f(q.maj)].join(';')); }); }
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], { type:'text/csv;charset=utf-8' })); a.download = (VW.mode === 'ind' ? 'individuel_' : 'heures_') + pr.from + '_' + pr.to + '.csv'; document.body.appendChild(a); a.click(); a.remove(); A.toast('Export généré : ' + a.download);
+  }
   /* ---------- Corrections et régularisations ---------- */
   var JUST = ['Maladie', 'Mission extérieure', 'Congé', 'Autre'];
   function fixAsk(key){
@@ -22882,14 +22939,14 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
   }
 
   /* ---------- rendu ---------- */
-  var HOSTS = { 'tp-dashboard':['tr-h-dashboard', renderDash], 'tp-pointages':['tr-h-pointages', renderPt], 'tp-presences':['tr-h-presences', renderPr], 'tp-heures':['tr-h-heures', renderHr] };
+  var HOSTS = { 'tp-dashboard':['tr-h-dashboard', renderDash], 'tp-pointages':['tr-h-pointages', renderPt], 'tp-presences':['tr-h-presences', renderPr], 'tp-heures':['tr-h-heures', renderHr], 'tp-ind':['tr-h-ind', renderInd], 'tp-jour':['tr-h-jour', function(h){ renderVue(h, 'jour'); }], 'tp-sem':['tr-h-sem', function(h){ renderVue(h, 'semaine'); }], 'tp-mois':['tr-h-mois', function(h){ renderVue(h, 'mois'); }] };
   function render(id){ var h = HOSTS[id]; if(!h || !$(h[0])) return; h[1]($(h[0])); }
   function refresh(){ Object.keys(HOSTS).forEach(function(id){ var p = $(id); if(p && p.classList.contains('active')) render(id); }); if(DR){ var dd = $('tr-drawer'); if(dd && dd.style.display !== 'none') drawerOpen(DR.id, DR.date); } try { if(window.TempsInbox) TempsInbox.render(); } catch(e){} }
   (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-heures') V.hr.emp = null; var r = sp.apply(this, arguments); if(HOSTS[id]) render(id); return r; }; })();
   seedAll();
   return { render:render, importPending:importPending, pending:pending, sync:sync, syncAll:syncAll, devAsk:devAsk, ptDetail:ptDetail, ptDay:ptDay, ptQ:ptQ, manualAsk:manualAsk, manualGo:manualGo, prWeek:prWeek, prQ:prQ, dayOpen:dayOpen, absAsk:absAsk, absGo:absGo, prMode:prMode, plAsk:plAsk, plGo:plGo,
     hrMode:hrMode, hrNav:hrNav, hrQ:hrQ, hrOpen:hrOpen, hrBack:hrBack, hrCsv:hrCsv, fixAsk:fixAsk, fixHow:fixHow, fixGo:fixGo,
-    setInt:setInt, proposeOut:proposeOut, clearDay:clearDay, dashF:dashF, drawerOpen:drawerOpen, drawerNav:drawerNav, drawerClose:drawerClose, drawerWeek:drawerWeek, dropPunch:dropPunch, paieAsk:paieAsk, paieGo:paieGo, applyCorr:applyCorr, replaceP:replaceP, addAbs:addAbs, setHsv:setHsv, refresh:refresh, day:day, sumHs:sumHs, anomalies:anomalyList, punches:punches, planFor:planFor, absOf:absOf, assigned:assigned, util:{ iso:iso, today:today, addD:addD, monday:monday, dow:dow, dfr:dfr, fh:fh, fh1:fh1, tm:tm, hm:hmStr, nom:nom, nowMin:nowMin, FER:FER, JN:JN }, addP:addP, ptLab:ptLab, pausePt:function(id){ var q = regle(id); return !!(q && q.pausePt); }, swapShift:swapShift, weeksWithHs:weeksWithHs, paieCount:function(){ var pe = periodOf(); return linked('tmpaie') ? paieItems(pe.from, pe.to).length : 0; }, data:function(){ return { PUN:PUN, CORR:CORR, ABS:ABS, EXC:EXC, HSV:HSV, IMPH:IMPH, ERH:ERH, ABSC:ABSC, PAIE:PAIE, SENT:SENT }; } };
+    setInt:setInt, proposeOut:proposeOut, clearDay:clearDay, dashF:dashF, drawerOpen:drawerOpen, drawerNav:drawerNav, drawerClose:drawerClose, drawerWeek:drawerWeek, dropPunch:dropPunch, paieAsk:paieAsk, paieGo:paieGo, applyCorr:applyCorr, replaceP:replaceP, addAbs:addAbs, setHsv:setHsv, refresh:refresh, day:day, sumHs:sumHs, anomalies:anomalyList, punches:punches, planFor:planFor, absOf:absOf, assigned:assigned, util:{ iso:iso, today:today, addD:addD, monday:monday, dow:dow, dfr:dfr, fh:fh, fh1:fh1, tm:tm, hm:hmStr, nom:nom, nowMin:nowMin, FER:FER, JN:JN }, addP:addP, vwGo:vwGo, vwQ:vwQ, vwEmp:vwEmp, vwOpen:vwOpen, vwCsv:vwCsv, ptLab:ptLab, pausePt:function(id){ var q = regle(id); return !!(q && q.pausePt); }, swapShift:swapShift, weeksWithHs:weeksWithHs, paieCount:function(){ var pe = periodOf(); return linked('tmpaie') ? paieItems(pe.from, pe.to).length : 0; }, data:function(){ return { PUN:PUN, CORR:CORR, ABS:ABS, EXC:EXC, HSV:HSV, IMPH:IMPH, ERH:ERH, ABSC:ABSC, PAIE:PAIE, SENT:SENT }; } };
 })();
 
 
@@ -25549,13 +25606,15 @@ var TableKit = (function(){
     'tp-rotations':['tp-horaires', function(){ Temps.horTab('rotations'); }],
     'tp-planning':['tp-horaires', function(){ Temps.horTab('planning'); }],
     'tp-circuits':['tp-circuits', function(){ Temps.cirTab('circuits'); }],
-    'tp-circ-regles':['tp-circuits', function(){ Temps.cirTab('regles'); }]
+    'tp-circ-regles':['tp-circuits', function(){ Temps.cirTab('regles'); }],
+    'tp-presences':['tp-sem', null, 'tp-sem'],
+    'tp-heures':['tp-mois', null, 'tp-mois']
   };
   window.showPanel = function(id){
     var a = AL[id]; if(!a) return sp.apply(this, arguments);
-    var r = sp.call(this, a[0]); a[1]();
+    var r = sp.call(this, a[0]); if(a[1]) a[1]();
     document.querySelectorAll('.nav-item[data-panel]').forEach(function(b){
-      var on = b.dataset.panel === id;
+      var on = b.dataset.panel === (a[2] || id);
       b.classList.toggle('bg-navy-800', on); b.classList.toggle('text-white', on);
       b.classList.toggle('border-blue-500', on); b.classList.toggle('border-transparent', !on);
     });
