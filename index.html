@@ -22211,7 +22211,7 @@ var bad = (d.pauses || []).filter(function(p){ return !p.debut || !p.fin || p.fi
     var body = blk('Retards et départs anticipés', 'tolOn', true, g2(field('Tolérance de retard (min)', num('tp-r-tr', d.tolRetard)) + field('Tolérance de départ anticipé (min)', num('tp-r-td', d.tolDepart)))) +
       blk('Arrondi des pointages', 'arrOn', true, g2(field('Pas de l’arrondi', sel('tp-r-arr', [['0', 'Aucun'], ['5', '5 min'], ['10', '10 min'], ['15', '15 min']], d.arrondi)) + field('Sens de l’arrondi', sel('tp-r-as', [['proche', 'Au plus proche'], ['entreprise', 'Au profit de l’entreprise'], ['salarie', 'Au profit du salarié']], d.arrSens || 'proche')))) +
       blk('Heures hors plage de l’horaire', 'horsOn', false, g2(field('Arrivée avant l’heure d’entrée', sel('tp-r-av', [['compte', 'Comptée comme du temps travaillé'], ['ignore', 'Non comptée']], d.avantMode || 'compte')) + field('Franchise après la sortie (min)', num('tp-r-fr', d.franchiseApres || 0)))) +
-      blk('Pauses', 'pauOn', true, g2('<div>' + lab('Si l’horaire ne définit aucune pause') + row('Déduire automatiquement', sw(d.pauseAuto, 'Temps.regTog(\'pauseAuto\')')) + '</div>' + field('Durée déduite (min)', num('tp-r-pm', d.pauseMin))) + '<div class="mt-4">' + field('Pointage des pauses', sel('tp-r-pp', [['non', 'Entrée et sortie seulement'], ['oui', 'Entrée, sortie et pauses']], d.pausePt ? 'oui' : 'non')) + '</div>') +
+      blk('Pauses', 'pauOn', true, g2('<div>' + lab('Si l’horaire ne définit aucune pause') + row('Déduire automatiquement', sw(d.pauseAuto, 'Temps.regTog(\'pauseAuto\')')) + '</div>' + field('Durée déduite (min)', num('tp-r-pm', d.pauseMin))) + '<div class="mt-4">' + field('Pointage des pauses et autres types', sel('tp-r-pp', [['non', 'Entrée et sortie seulement'], ['oui', 'Entrée, sortie, pauses et autres types']], d.pausePt ? 'oui' : 'non')) + '</div><div class="mt-4">' + g2(field('Sorties personnelles', sel('tp-r-t1p', [['deduit', 'Déduites du temps travaillé'], ['compte', 'Comptées comme du travail']], d.tPerso || 'deduit')) + field('Sorties professionnelles', sel('tp-r-t2p', [['compte', 'Comptées comme du travail'], ['deduit', 'Déduites du temps travaillé']], d.tPro || 'compte')) + field('Repas', sel('tp-r-t3p', [['deduit', 'Déduit du temps travaillé'], ['compte', 'Compté comme du travail']], d.tRepas || 'deduit')) + field('Télétravail', sel('tp-r-t4p', [['compte', 'Compté comme du travail'], ['non', 'Non compté']], d.tTele || 'compte'))) + '</div>') +
       blk('Heures supplémentaires', 'hsActive', true, hsBody) +
       '<div style="display:' + (hs ? 'none' : 'block') + '" class="border border-gray-200 rounded-xl p-5 mb-4">' + g2(field('Alerte au-delà de (h) par semaine', num('tp-r-al', d.alerteSem || 0, 0, 0.5))) + '</div>' +
       blk('Nuit, dimanche et jours fériés', 'majOn', true, g2(field('Nuit : début', '<input id="tp-r-nd" type="time" value="' + d.nuitDeb + '" class="' + INP + '">') + field('Nuit : fin', '<input id="tp-r-nf" type="time" value="' + d.nuitFin + '" class="' + INP + '">') + field('Majoration nuit (%)', num('tp-r-nt', d.nuitTaux)) + field('Dimanche (%)', num('tp-r-dt', d.dimTaux)) + field('Jour férié (%)', num('tp-r-ft', d.ferieTaux))));
@@ -22222,7 +22222,7 @@ var bad = (d.pauses || []).filter(function(p){ return !p.debut || !p.fin || p.fi
     var d = V.reg.draft; if(!$('tp-r-nom')) return; var g = function(i, def){ return $(i) ? (parseFloat($(i).value) || 0) : def; };
     d.nom = $('tp-r-nom').value; d.tolRetard = g('tp-r-tr', d.tolRetard); d.tolDepart = g('tp-r-td', d.tolDepart); if($('tp-r-arr')) d.arrondi = parseInt($('tp-r-arr').value, 10); if($('tp-r-as')) d.arrSens = $('tp-r-as').value;
     if($('tp-r-av')){ d.avantMode = $('tp-r-av').value; d.franchiseApres = g('tp-r-fr', 0); }
-    d.pauseMin = g('tp-r-pm', d.pauseMin); if($('tp-r-pp')) d.pausePt = $('tp-r-pp').value === 'oui'; d.hsJour = g('tp-r-hj', d.hsJour); d.hsSem = g('tp-r-hs', d.hsSem); d.plafond = g('tp-r-pl', d.plafond); if($('tp-r-t1')) d.taux1 = g('tp-r-t1', d.taux1); if($('tp-r-tb')) d.trBase = $('tp-r-tb').value;
+    d.pauseMin = g('tp-r-pm', d.pauseMin); if($('tp-r-pp')) d.pausePt = $('tp-r-pp').value === 'oui'; if($('tp-r-t1p')){ d.tPerso = $('tp-r-t1p').value; d.tPro = $('tp-r-t2p').value; d.tRepas = $('tp-r-t3p').value; d.tTele = $('tp-r-t4p').value; } d.hsJour = g('tp-r-hj', d.hsJour); d.hsSem = g('tp-r-hs', d.hsSem); d.plafond = g('tp-r-pl', d.plafond); if($('tp-r-t1')) d.taux1 = g('tp-r-t1', d.taux1); if($('tp-r-tb')) d.trBase = $('tp-r-tb').value;
     d.nuitDeb = $('tp-r-nd') ? $('tp-r-nd').value : d.nuitDeb; d.nuitFin = $('tp-r-nf') ? $('tp-r-nf').value : d.nuitFin; d.nuitTaux = g('tp-r-nt', d.nuitTaux); d.dimTaux = g('tp-r-dt', d.dimTaux); d.ferieTaux = g('tp-r-ft', d.ferieTaux); if($('tp-r-al')) d.alerteSem = g('tp-r-al', 0);
     (d.tranches || []).forEach(function(t, i){ if($('tp-r-tr-' + i + '-de')){ t.de = parseFloat($('tp-r-tr-' + i + '-de').value) || 0; var a = $('tp-r-tr-' + i + '-a').value; t.a = a === '' ? null : parseFloat(a); t.regime = $('tp-r-tr-' + i + '-rg').value; t.taux = parseFloat($('tp-r-tr-' + i + '-tx').value) || 0; } });
   }
@@ -22374,10 +22374,19 @@ var TempsRH = (function(){
   function devFor(id, i){ var a = A.aff(id); return (a.devs && a.devs[0]) || 'd1'; }
   function devOut(id, i){ var a = A.aff(id); return (a.devs && (a.devs[1] || a.devs[0])) || 'd1'; }
   function note(emp, date, what){ try { if(window.TempsClot) TempsClot.noteChange(emp, date, what); } catch(e){} }
-  var PTL = { 'in':'Entrée', 'out':'Sortie', pd:'Début de pause', pf:'Fin de pause' }, PTC = { 'in':'bg-emerald-100 text-emerald-700', 'out':'bg-gray-100 text-gray-600', pd:'bg-amber-100 text-amber-700', pf:'bg-amber-100 text-amber-700' };
+  var PTL = { 'in':'Entrée', 'out':'Sortie', pd:'Début de pause', pf:'Fin de pause', rb:'Début de repas', rf:'Fin de repas', ps:'Sortie personnelle', pr:'Retour de sortie personnelle', mb:'Sortie professionnelle', mf:'Retour de sortie professionnelle', tb:'Début de télétravail', tf:'Fin de télétravail' };
+  var PTC = { 'in':'bg-emerald-100 text-emerald-700', 'out':'bg-gray-100 text-gray-600', pd:'bg-amber-100 text-amber-700', pf:'bg-amber-100 text-amber-700', rb:'bg-amber-100 text-amber-700', rf:'bg-amber-100 text-amber-700', ps:'bg-orange-100 text-orange-700', pr:'bg-orange-100 text-orange-700', mb:'bg-sky-100 text-sky-700', mf:'bg-sky-100 text-sky-700', tb:'bg-violet-100 text-violet-700', tf:'bg-violet-100 text-violet-700' };
+  var PAIR = { pd:['pf', 'pause'], rb:['rf', 'repas'], ps:['pr', 'perso'], mb:['mf', 'mission'], tb:['tf', 'tele'] }, ENDK = { pf:'pause', rf:'repas', pr:'perso', mf:'mission', tf:'tele' };
+  var KNAME = { pause:'Pause', repas:'Repas', perso:'Sortie personnelle', mission:'Sortie professionnelle', tele:'Télétravail' };
+  function dedOf(k, re){ re = re || {}; return k === 'pause' || (k === 'perso' ? re.tPerso !== 'compte' : k === 'repas' ? re.tRepas !== 'compte' : k === 'mission' ? re.tPro === 'deduit' : re.tTele === 'non'); }
   function ptLab(s){ return PTL[s] || 'Sortie'; }
   function pauseWin(h){ if(!h) return null; var l = (h.pauses || []).filter(function(p){ return !p.payee; })[0]; if(l) return { a:tm(l.debut), b:tm(l.fin) }; if(h.pause > 0) return { a:720, b:720 + h.pause }; return null; }
-  function realPauses(ps){ var o = [], op = null; ps.forEach(function(q){ if(q.sens === 'pd') op = tm(q.ts.slice(11)); else if(q.sens === 'pf' && op != null){ o.push({ a:op, b:tm(q.ts.slice(11)) }); op = null; } }); return { list:o, open:op }; }
+  function realPauses(ps, re){
+    var o = [], op = {};
+    ps.forEach(function(q){ var m = tm(q.ts.slice(11)); if(PAIR[q.sens]) op[PAIR[q.sens][1]] = { a:m, t:q.sens }; else if(ENDK[q.sens]){ var k = ENDK[q.sens]; if(op[k]){ o.push({ a:op[k].a, b:m, k:k, ded:dedOf(k, re) }); op[k] = null; } } });
+    var open = null; Object.keys(op).forEach(function(k){ if(op[k]) open = { t:op[k].t, a:op[k].a, k:k }; });
+    return { list:o, open:open };
+  }
   function addP(id, date, time, sens, dev, imp){ note(id, date, 'Pointage : ' + ptLab(sens).toLowerCase() + ' ' + time + ' ajouté'); PUN.push({ id:'p' + (seq++), empId:id, ts:date + ' ' + time, sens:sens, dev:dev, imp:imp !== false }); }
   function planFor(id, date){
 var k = id + '|' + date; if(EXC[k] === 'repos') return null;
@@ -22409,7 +22418,8 @@ function swapShift(a, b, date){ note(a, date, 'Échange de shift'); note(b, date
         addP(x.id, d, hmStr(deb + off), 'in', dev, !pendI);
         if(r > 0.992 && n > 0) addP(x.id, d, hmStr(deb + off + 2), 'in', dev, true);
         var pw0 = pauseWin(h);
-        if(pw0){ var pa = pw0.a + Math.round(-10 + r2 * 25), pdur = (pw0.b - pw0.a) + Math.round(-5 + r3 * 25); if(n > 0 || pa <= now){ addP(x.id, d, hmStr(pa), 'pd', dev, !pendI); if(n > 0 || pa + pdur <= now) addP(x.id, d, hmStr(pa + pdur), 'pf', dev, !pendI); } }
+        if(pw0){ var kd = hash(x.id) % 5 === 0 ? ['rb', 'rf'] : ['pd', 'pf'], pa = pw0.a + Math.round(-10 + r2 * 25), pdur = (pw0.b - pw0.a) + Math.round(-5 + r3 * 25); if(n > 0 || pa <= now){ addP(x.id, d, hmStr(pa), kd[0], dev, !pendI); if(n > 0 || pa + pdur <= now) addP(x.id, d, hmStr(pa + pdur), kd[1], dev, !pendI); } }
+        if(n > 0 && tm(h.fin) >= 1020){ var tx = hash(x.id + d) % 100; if(tx < 4){ addP(x.id, d, '15:00', 'ps', dev, true); addP(x.id, d, '15:25', 'pr', dev, true); } else if(tx < 8){ addP(x.id, d, '10:00', 'mb', dev, true); addP(x.id, d, '11:30', 'mf', dev, true); } }
         if(n === 0){ var oo = fin + Math.round(-5 + r3 * 20); if(oo < now && (r > 0.5)) addP(x.id, d, hmStr(oo), 'out', devO, !pendO); continue; }
         if(r > 0.98 && r <= 0.992) continue;
         var o = r < 0.08 ? Math.round(60 + r3 * 90) : r < 0.14 ? -Math.round(30 + r3 * 30) : Math.round(-5 + r3 * 25);
@@ -22435,7 +22445,7 @@ function swapShift(a, b, date){ note(a, date, 'Échange de shift'); note(b, date
   function regle(id){ return eff(A.ruleOf(id)); }
   function pauseFor(re, pl, a, b, ps){
     if(re.pauOn === false) return 0;
-    if(re.pausePt){ var rp0 = realPauses(ps).list; if(rp0.length) return rp0.reduce(function(sm, z){ return sm + overlap(a, b, z.a, z.b); }, 0); }
+    if(re.pausePt){ var rp0 = realPauses(ps, re).list.filter(function(z){ return z.ded; }); if(rp0.length) return rp0.reduce(function(sm, z){ return sm + overlap(a, b, z.a, z.b); }, 0); }
     if(pl && pl.pauses && pl.pauses.length){
       var tot = 0;
       pl.pauses.forEach(function(p){
@@ -22453,8 +22463,8 @@ function swapShift(a, b, date){ note(a, date, 'Échange de shift'); note(b, date
   function day(id, date){
     var re = regle(id), pl = planFor(id, date), fer = FER.indexOf(date.slice(5)) > -1, ab = absOf(id, date), t = today(), now = nowMin();
     var ps = punches(id, date), ins = ps.filter(function(q){ return q.sens === 'in'; }), outs = ps.filter(function(q){ return q.sens === 'out'; });
-    var rpz = re && re.pausePt ? realPauses(ps) : { list:[], open:null };
-    var r ={ id:id, date:date, pl:pl, fer:fer, ab:ab, ps:ps, re:re, pp:rpz.list, ppOpen:rpz.open, anomalies:[], worked:0, retard:0, depAnt:0, hs:0, nuit:0, majJour:0, planned:pl ? tm(pl.fin) - tm(pl.debut) - A.pauseTotal(pl) : 0 };
+    var rpz = re && re.pausePt ? realPauses(ps, re) : { list:[], open:null };
+    var r ={ id:id, date:date, pl:pl, fer:fer, ab:ab, ps:ps, re:re, pp:rpz.list.filter(function(z){ return z.ded; }), ext:rpz.list.filter(function(z){ return !z.ded; }), ppOpen:rpz.open, anomalies:[], worked:0, retard:0, depAnt:0, hs:0, nuit:0, majJour:0, planned:pl ? tm(pl.fin) - tm(pl.debut) - A.pauseTotal(pl) : 0 };
     var dbl = ins.length > 1 && tm(ins[1].ts.slice(11)) - tm(ins[0].ts.slice(11)) <= 5;
     if(dbl) r.anomalies.push({ kind:'double', pid:ins[1].id });
     if(outs.length && !ins.length) r.anomalies.push({ kind:'entree_manquante' });
@@ -22606,6 +22616,7 @@ return { days:ds, work:work, plan:plan, retard:ret, hs1:h1, hs2:h2, hs:h1 + h2, 
         if(pl && r.out != null && r.out < plE) rl += seg(r.out, plE, '#FCD34D', 'border-radius:0 5px 5px 0;opacity:.9');
         if(pl && endR > plE) rl += seg(plE, endR, '#0EA5E9', 'border-radius:0 5px 5px 0');
         (r.pp && r.pp.length ? r.pp : pauses).forEach(function(p){ if(p.a >= r.in && p.b <= endR) rl += seg(p.a, p.b, hatch); });
+        (r.ext || []).forEach(function(p){ if(p.a >= r.in && p.b <= endR) rl += seg(p.a, p.b, p.k === 'tele' ? '#A78BFA' : '#38BDF8', 'opacity:.85'); });
       }
       var ticks = ''; for(var k = Math.ceil(lo / 120) * 2; k * 60 <= hi; k += 2) ticks += '<span style="position:absolute;left:' + X(k * 60) + ';transform:translateX(-50%)">' + pad(k) + 'h</span>';
       h += '<div class="mb-2" style="display:grid;grid-template-columns:40px 1fr;gap:8px 10px;align-items:center;font-size:11px;color:#6B7280"><span>Prévu</span><div style="position:relative;height:18px;background:#F3F4F6;border-radius:5px">' + pv + '</div><span>Réel</span><div style="position:relative;height:18px;background:#F3F4F6;border-radius:5px">' + rl + '</div><span></span><div style="position:relative;height:14px">' + ticks + '</div></div>';
@@ -22613,12 +22624,12 @@ return { days:ds, work:work, plan:plan, retard:ret, hs1:h1, hs2:h2, hs:h1 + h2, 
     }
     /* chronologie */
     var ev = [];
-    var DOT = { 'in':'#10B981', 'out':'#64748B', pd:'#F59E0B', pf:'#F59E0B' }, pvT = pl ? A.pauseTotal(pl) : 0;
+    var DOT = { 'in':'#10B981', 'out':'#64748B', pd:'#F59E0B', pf:'#F59E0B', rb:'#F59E0B', rf:'#F59E0B', ps:'#F97316', pr:'#F97316', mb:'#0EA5E9', mf:'#0EA5E9', tb:'#8B5CF6', tf:'#8B5CF6' }, pvT = pl ? A.pauseTotal(pl) : 0;
     r.ps.forEach(function(q, i){ var tt = tm(q.ts.slice(11)), isIn = q.sens === 'in', note = '', nc = 'text-gray-400';
       if(isIn && i === 0 && r.retard){ note = 'Retard de ' + dur(r.retard); nc = 'text-amber-600'; }
       if(q.sens === 'out' && i === r.ps.length - 1){ if(r.depAnt){ note = 'Départ anticipé de ' + dur(r.depAnt); nc = 'text-amber-600'; } else if(pl && tt > plE){ note = '+' + dur(tt - plE) + ' après l’horaire'; nc = 'text-sky-600'; } }
-      if(q.sens === 'pd' && r.ppOpen === tt){ note = 'En pause'; nc = 'text-sky-600'; }
-      if(q.sens === 'pf'){ var z0 = (r.pp || []).filter(function(y){ return y.b === tt; })[0]; if(z0){ var d0 = z0.b - z0.a; note = 'Pause de ' + dur(d0); if(pvT && d0 > pvT){ note += ' · +' + dur(d0 - pvT) + ' de plus que prévu'; nc = 'text-amber-600'; } } }
+      if(PAIR[q.sens] && r.ppOpen && r.ppOpen.t === q.sens && r.ppOpen.a === tt){ note = 'En cours'; nc = 'text-sky-600'; }
+      if(ENDK[q.sens]){ var z0 = (r.pp || []).concat(r.ext || []).filter(function(y){ return y.b === tt && y.k === ENDK[q.sens]; })[0]; if(z0){ var d0 = z0.b - z0.a; note = KNAME[z0.k] + ' de ' + dur(d0) + (z0.ded ? '' : ' · compté'); if(z0.k === 'pause' && pvT && d0 > pvT){ note += ' · +' + dur(d0 - pvT) + ' de plus que prévu'; nc = 'text-amber-600'; } } }
       ev.push({ t:tt, time:q.ts.slice(11, 16), label:ptLab(q.sens), dot:DOT[q.sens] || '#64748B', src:devNom(q.dev), note:note, nc:nc }); });
     if(!(r.pp && r.pp.length) && !r.ppOpen && r.ps.length && r.in != null){ pauses.forEach(function(p){ if(p.a >= r.in && (r.out == null || p.b <= r.out)){ var d = p.b - p.a; ev.push({ t:p.a, time:hmm(p.a), label:'Début de pause', dot:'#9CA3AF', src:'', note:'prévue · ' + dur(d) + (p.paid ? ' · payée' : ''), nc:'text-gray-400', soft:1 }); ev.push({ t:p.b, time:hmm(p.b), label:'Reprise', dot:'#9CA3AF', src:'', note:'', nc:'', soft:1 }); } }); }
     ev.sort(function(a, b){ return a.t - b.t; });
@@ -22626,7 +22637,8 @@ return { days:ds, work:work, plan:plan, retard:ret, hs1:h1, hs2:h2, hs:h1 + h2, 
     /* chiffres clés */
     var tile = function(l, v, c){ return '<div class="border border-gray-200 rounded-lg px-3 py-2.5 text-center"><div class="text-[18px] font-semibold ' + (c || 'text-slate-800') + '">' + v + '</div><div class="text-[11px] text-gray-400">' + l + '</div></div>'; };
     h += '<div class="grid grid-cols-3 gap-3 mb-3">' + tile('Prévu', pl ? fh(r.planned) : '—') + tile('Travaillé', fh(r.worked)) + tile('Écart', ecart == null ? '—' : (ecart >= 0 ? '+' : '−') + dur(Math.abs(ecart)), ecart == null ? '' : (ecart >= 0 ? 'text-green-600' : 'text-red-600')) + '</div>';
-    var sec = []; if(r.pp && r.pp.length){ sec.push(['Pause prise', dur(r.pp.reduce(function(sm, z){ return sm + z.b - z.a; }, 0))]); if(pl && A.pauseTotal(pl) > 0) sec.push(['Pause prévue', dur(A.pauseTotal(pl))]); } else if(pl && A.pauseTotal(pl) > 0) sec.push(['Pause déduite', dur(A.pauseTotal(pl))]); if(r.retard) sec.push(['Retard', dur(r.retard)]); if(r.depAnt) sec.push(['Départ anticipé', dur(r.depAnt)]); if(r.hs) sec.push(['Heures supplémentaires', fh(r.hs)]);
+    var sec = []; var KS = { pause:'Pause prise', repas:'Repas', perso:'Sorties personnelles', mission:'Sorties professionnelles', tele:'Télétravail' }, sk = {}; (r.pp || []).concat(r.ext || []).forEach(function(z){ sk[z.k] = (sk[z.k] || 0) + z.b - z.a; });
+    if(Object.keys(sk).length){ Object.keys(KS).forEach(function(k){ if(sk[k]) sec.push([KS[k], dur(sk[k])]); }); if(sk.pause && pl && A.pauseTotal(pl) > 0) sec.push(['Pause prévue', dur(A.pauseTotal(pl))]); } else if(pl && A.pauseTotal(pl) > 0) sec.push(['Pause déduite', dur(A.pauseTotal(pl))]); if(r.retard) sec.push(['Retard', dur(r.retard)]); if(r.depAnt) sec.push(['Départ anticipé', dur(r.depAnt)]); if(r.hs) sec.push(['Heures supplémentaires', fh(r.hs)]);
     if(sec.length) h += '<div class="mb-4">' + sec.map(function(x){ return '<div class="flex justify-between py-1.5 text-[12.5px]"><span class="text-gray-500">' + x[0] + '</span><span class="text-slate-800">' + x[1] + '</span></div>'; }).join('') + '</div>';
     return h;
   }
@@ -22670,12 +22682,18 @@ var rows = PUN.filter(function(q){ return q.ts.slice(0, 10) === v.date && q.imp 
 var byE = {}; rows.forEach(function(q){ (byE[q.empId] = byE[q.empId] || []).push(q); });
 var LIST = assigned().filter(function(p){ return !v.q || p.nomComplet.toLowerCase().indexOf(v.q.toLowerCase()) > -1; }).map(function(p){
   var L = (byE[p.id] || []).slice().sort(function(a, b){ return a.ts < b.ts ? -1 : 1; }), ins = L.filter(function(q){ return q.sens === 'in'; }), outs = L.filter(function(q){ return q.sens === 'out'; });
-  var fi = ins[0], lo = outs[outs.length - 1], last = L[L.length - 1], st = !L.length ? 0 : (lo && fi && lo.ts >= fi.ts ? 3 : (last.sens === 'pd' ? 2 : 1));
-  return { p:p, n:L.length, fi:fi ? fi.ts.slice(11, 16) : '', lo:lo ? lo.ts.slice(11, 16) : '', st:st };
+  var fi = ins[0], lo = outs[outs.length - 1], last = L[L.length - 1], st = !L.length ? 0 : (lo && fi && lo.ts >= fi.ts ? 3 : (last.sens === 'pd' || last.sens === 'rb' || last.sens === 'ps' ? 2 : 1));
+  var rpz = realPauses(L, regle(p.id)), brk = rpz.list.filter(function(z){ return z.k === 'pause' || z.k === 'repas'; }), btot = brk.reduce(function(a, z){ return a + z.b - z.a; }, 0), op = rpz.open, ex = {};
+  rpz.list.forEach(function(z){ ex[z.k] = (ex[z.k] || 0) + 1; }); if(op) ex[op.k] = (ex[op.k] || 0) + 1;
+  var pl0 = planFor(p.id, v.date), pv = pl0 ? A.pauseTotal(pl0) : 0;
+  var ptxt = op && (op.k === 'pause' || op.k === 'repas') ? 'En ' + (op.k === 'repas' ? 'repas' : 'pause') + ' depuis ' + hmStr(op.a) : brk.length === 1 ? hmStr(brk[0].a) + ' – ' + hmStr(brk[0].b) + ' · ' + dur(btot) : brk.length > 1 ? brk.length + ' pauses · ' + dur(btot) : '';
+  var sl = op ? { pause:['En pause', 'bg-amber-100 text-amber-700'], repas:['Au repas', 'bg-amber-100 text-amber-700'], perso:['Sortie personnelle', 'bg-orange-100 text-orange-700'], mission:['En mission', 'bg-sky-100 text-sky-700'], tele:['Télétravail', 'bg-violet-100 text-violet-700'] }[op.k] : null;
+  return { p:p, n:L.length, fi:fi ? fi.ts.slice(11, 16) : '', lo:lo ? lo.ts.slice(11, 16) : '', st:st, ptxt:ptxt, pover:!!(btot > pv && pv > 0 && !op), ex:ex, sl:sl };
 }).sort(function(a, b){ return a.st - b.st || (a.p.nomComplet < b.p.nomComplet ? -1 : 1); });
 var ST_ = [['Non pointé', 'bg-red-100 text-red-700'], ['Présent', 'bg-emerald-100 text-emerald-700'], ['En pause', 'bg-amber-100 text-amber-700'], ['Parti', 'bg-gray-100 text-gray-600']];
 var np = LIST.filter(function(x){ return !x.st; }).length;
-var trs = LIST.map(function(x){ return '<tr class="border-t border-gray-100 cursor-pointer hover:bg-blue-50/30" onclick="TempsRH.ptDetail(\'' + x.p.id + '\')"><td class="px-4 py-2.5"><div class="text-[13px] text-slate-800 font-medium">' + esc(x.p.nomComplet) + '</div><div class="text-[11px] text-gray-400">' + esc(posteOf(x.p.id)) + (x.n ? ' · ' + x.n + ' pointage' + (x.n > 1 ? 's' : '') : '') + '</div></td><td class="px-3 py-2.5 text-[12.5px] text-slate-800">' + (x.fi || '<span class="text-gray-300">—</span>') + '</td><td class="px-3 py-2.5 text-[12.5px] text-slate-800">' + (x.lo || '<span class="text-gray-300">—</span>') + '</td><td class="px-3 py-2.5">' + pill(ST_[x.st][0], ST_[x.st][1]) + '</td></tr>'; }).join('');
+var EXL = { perso:'sortie personnelle', mission:'sortie professionnelle', tele:'télétravail' };
+var trs = LIST.map(function(x){ return '<tr class="border-t border-gray-100 cursor-pointer hover:bg-blue-50/30" onclick="TempsRH.ptDetail(\'' + x.p.id + '\')"><td class="px-4 py-2.5"><div class="text-[13px] text-slate-800 font-medium">' + esc(x.p.nomComplet) + '</div><div class="text-[11px] text-gray-400">' + esc(posteOf(x.p.id)) + (x.n ? ' · ' + x.n + ' pointage' + (x.n > 1 ? 's' : '') : '') + '</div><div class="mt-1">' + (x.sl ? pill(x.sl[0], x.sl[1]) : pill(ST_[x.st][0], ST_[x.st][1])) + Object.keys(x.ex).filter(function(k){ return EXL[k]; }).map(function(k){ return ' <span class="text-[11px] text-gray-500">+ ' + EXL[k] + (x.ex[k] > 1 ? ' ×' + x.ex[k] : '') + '</span>'; }).join('') + '</div></td><td class="px-3 py-2.5 text-[12.5px] text-slate-800">' + (x.fi || '<span class="text-gray-300">—</span>') + '</td><td class="px-3 py-2.5 text-[12.5px] ' + (x.pover ? 'text-amber-600' : 'text-slate-800') + '">' + (x.ptxt || '<span class="text-gray-300">—</span>') + '</td><td class="px-3 py-2.5 text-[12.5px] text-slate-800">' + (x.lo || '<span class="text-gray-300">—</span>') + '</td></tr>'; }).join('');
 var pen = v.date === t ? pending() : 0;
 var imp = IMPH.length ? '<div class="pt-imp"><b>Derniers imports</b>' + IMPH.slice(0, 3).map(function(x){ return '<span>' + esc(x.file) + ' · ' + x.n + ' pointage' + (x.n > 1 ? 's' : '') + (x.ign ? ', ' + x.ign + ' ignoré' + (x.ign > 1 ? 's' : '') : '') + ' · ' + A.dtfr(x.at) + '</span>'; }).join('') + '</div>' : '';
 var ko = A.DEV.filter(function(d){ return d.actif && d.statut === 'hors_ligne'; }).length, pall = pending();
@@ -22684,7 +22702,7 @@ var sumT = (LIST.length - np) + ' pointé' + ((LIST.length - np) > 1 ? 's' : '')
 DEVS_HTML = '<div class="pt-devs">' + devs + '</div>' + imp;
 h.innerHTML = A.head('Pointages', '<button onclick="ImportKit.pointages()" class="' + B2 + '">Importer</button><button onclick="TempsRH.devAsk()" class="' + B2 + '">Synchroniser' + (pall ? ' (' + pall + ')' : '') + '</button><button onclick="TempsRH.manualAsk()" class="' + B1 + '">Saisir un pointage</button>') +
 
-'<div class="pt-card"><div class="pt-head">' + nav(dfr(v.date) + (v.date === t ? (t === realToday() ? ' · aujourd’hui' : ' · dernier jour ouvré') : ''), 'TempsRH.ptDay(-1)', 'TempsRH.ptDay(1)') + '<input value="' + esc(v.q || '') + '" onchange="TempsRH.ptQ(this.value)" placeholder="🔍 Collaborateur" class="' + INP + '" style="flex:1 1 220px"></div><div class="pt-body"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Collaborateur</th><th class="px-3 py-2.5 font-medium">Entrée</th><th class="px-3 py-2.5 font-medium">Sortie</th><th class="px-3 py-2.5 font-medium">État</th></tr></thead><tbody>' + (trs || '<tr><td colspan="4" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucun collaborateur.</td></tr>') + '</tbody></table></div></div>';
+'<div class="pt-card"><div class="pt-head">' + nav(dfr(v.date) + (v.date === t ? (t === realToday() ? ' · aujourd’hui' : ' · dernier jour ouvré') : ''), 'TempsRH.ptDay(-1)', 'TempsRH.ptDay(1)') + '<input value="' + esc(v.q || '') + '" onchange="TempsRH.ptQ(this.value)" placeholder="🔍 Collaborateur" class="' + INP + '" style="flex:1 1 220px"></div><div class="pt-body"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Collaborateur</th><th class="px-3 py-2.5 font-medium">Entrée</th><th class="px-3 py-2.5 font-medium">Pause</th><th class="px-3 py-2.5 font-medium">Sortie</th></tr></thead><tbody>' + (trs || '<tr><td colspan="4" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucun collaborateur.</td></tr>') + '</tbody></table></div></div>';
 }
 var DEVS_HTML = '';
 function winOpen(){ var m = $('tp-modal'); return !!(m && m.classList.contains('open') && m.querySelector('.pt-devs')); }
@@ -22692,8 +22710,8 @@ function devAsk(){ A.modal('<div class="flex items-center justify-between mb-4">
 function posteOf(id){ try { return (window.Plan && Plan.get(id) || {}).poste || ''; } catch(e){ return ''; } }
 function ptDetail(id){
   var v = V.pt, L = PUN.filter(function(q){ return q.empId === id && q.ts.slice(0, 10) === v.date && q.imp && !DEL[q.id]; }).sort(function(a, b){ return a.ts < b.ts ? -1 : 1; });
-  var PL = {}, o_ = null; L.forEach(function(q){ if(q.sens === 'pd') o_ = q; else if(q.sens === 'pf' && o_){ PL[q.id] = tm(q.ts.slice(11)) - tm(o_.ts.slice(11)); o_ = null; } });
-  A.modal('<div class="flex items-center justify-between mb-1"><h3 class="text-[15px] font-semibold text-slate-800">' + esc(nom(id)) + '</h3><button onclick="Temps.closeM()" class="text-gray-400 text-xl leading-none">×</button></div><div class="text-[12px] text-gray-400 mb-4">' + dfr(v.date) + ' · ' + L.length + ' pointage' + (L.length > 1 ? 's' : '') + '</div><div class="border border-gray-200 rounded-lg overflow-hidden">' + (L.map(function(q){ return '<div class="flex items-center justify-between px-4 py-2.5 border-t border-gray-100 first:border-t-0 text-[13px]"><span class="text-slate-800" style="min-width:56px"><b>' + q.ts.slice(11, 16) + '</b></span>' + pill(ptLab(q.sens), PTC[q.sens] || PTC.out) + '<span class="text-gray-500 text-[12.5px]">' + (PL[q.id] != null ? 'Pause de ' + dur(PL[q.id]) + ' · ' : '') + esc(devNom(q.dev)) + '</span></div>'; }).join('') || '<div class="px-4 py-6 text-center text-[12px] text-gray-400">Aucun pointage ce jour.</div>') + '</div><div class="flex justify-between gap-2 mt-5"><button onclick="TempsRH.manualAsk(\'' + id + '\',\'' + v.date + '\')" class="' + B2 + '">+ Pointage manuel</button><button onclick="Temps.closeM()" class="' + B1 + '">Fermer</button></div>', 520);
+  var PL = {}, OP = {}; L.forEach(function(q){ if(PAIR[q.sens]) OP[PAIR[q.sens][1]] = q; else if(ENDK[q.sens] && OP[ENDK[q.sens]]){ PL[q.id] = [ENDK[q.sens], tm(q.ts.slice(11)) - tm(OP[ENDK[q.sens]].ts.slice(11))]; OP[ENDK[q.sens]] = null; } });
+  A.modal('<div class="flex items-center justify-between mb-1"><h3 class="text-[15px] font-semibold text-slate-800">' + esc(nom(id)) + '</h3><button onclick="Temps.closeM()" class="text-gray-400 text-xl leading-none">×</button></div><div class="text-[12px] text-gray-400 mb-4">' + dfr(v.date) + ' · ' + L.length + ' pointage' + (L.length > 1 ? 's' : '') + '</div><div class="border border-gray-200 rounded-lg overflow-hidden">' + (L.map(function(q){ return '<div class="flex items-center justify-between px-4 py-2.5 border-t border-gray-100 first:border-t-0 text-[13px]"><span class="text-slate-800" style="min-width:56px"><b>' + q.ts.slice(11, 16) + '</b></span>' + pill(ptLab(q.sens), PTC[q.sens] || PTC.out) + '<span class="text-gray-500 text-[12.5px]">' + (PL[q.id] ? KNAME[PL[q.id][0]] + ' de ' + dur(PL[q.id][1]) + ' · ' : '') + esc(devNom(q.dev)) + '</span></div>'; }).join('') || '<div class="px-4 py-6 text-center text-[12px] text-gray-400">Aucun pointage ce jour.</div>') + '</div><div class="flex justify-between gap-2 mt-5"><button onclick="TempsRH.manualAsk(\'' + id + '\',\'' + v.date + '\')" class="' + B2 + '">+ Pointage manuel</button><button onclick="Temps.closeM()" class="' + B1 + '">Fermer</button></div>', 520);
 }
 function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
   function ptQ(v){ V.pt.q = v; render('tp-pointages'); }
@@ -22703,7 +22721,7 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
   function optsEmp(cur){ return A.people().map(function(x){ return '<option value="' + x.id + '"' + (cur === x.id ? ' selected' : '') + '>' + esc(x.nomComplet) + '</option>'; }).join(''); }
   function motifSel(id){ return '<select id="' + id + '" class="' + INP + '"><option value="">— Choisir —</option>' + MOTIFS.map(function(m){ return '<option>' + m + '</option>'; }).join('') + '</select>'; }
   function manualAsk(emp, date){
-    A.modal('<h3 class="text-[15px] font-semibold text-slate-800 mb-4">Pointage manuel</h3><div class="grid grid-cols-2 gap-4"><div style="grid-column:1/-1">' + A.lab('Collaborateur') + '<select id="tr-m-emp" class="' + INP + '">' + optsEmp(emp) + '</select></div><div>' + A.lab('Date') + '<input id="tr-m-date" type="date" value="' + (date || today()) + '" max="' + today() + '" class="' + INP + '"></div><div>' + A.lab('Heure') + '<input id="tr-m-time" type="time" value="08:00" class="' + INP + '"></div><div>' + A.lab('Sens') + '<select id="tr-m-sens" class="' + INP + '"><option value="in">Entrée</option><option value="pd">Début de pause</option><option value="pf">Fin de pause</option><option value="out">Sortie</option></select></div><div>' + A.lab('Motif') + motifSel('tr-m-motif') + '</div></div><div id="tr-m-err" class="text-[12px] text-red-600 mt-2"></div><div class="flex justify-end gap-2 mt-5"><button onclick="Temps.closeM()" class="' + B2 + '">Annuler</button><button onclick="TempsRH.manualGo()" class="' + B1 + '">Enregistrer</button></div>', 520);
+    A.modal('<h3 class="text-[15px] font-semibold text-slate-800 mb-4">Pointage manuel</h3><div class="grid grid-cols-2 gap-4"><div style="grid-column:1/-1">' + A.lab('Collaborateur') + '<select id="tr-m-emp" class="' + INP + '">' + optsEmp(emp) + '</select></div><div>' + A.lab('Date') + '<input id="tr-m-date" type="date" value="' + (date || today()) + '" max="' + today() + '" class="' + INP + '"></div><div>' + A.lab('Heure') + '<input id="tr-m-time" type="time" value="08:00" class="' + INP + '"></div><div>' + A.lab('Sens') + '<select id="tr-m-sens" class="' + INP + '"><option value="in">Entrée</option><option value="pd">Début de pause</option><option value="pf">Fin de pause</option><option value="rb">Début de repas</option><option value="rf">Fin de repas</option><option value="ps">Sortie personnelle</option><option value="pr">Retour de sortie personnelle</option><option value="mb">Sortie professionnelle</option><option value="mf">Retour de sortie professionnelle</option><option value="tb">Début de télétravail</option><option value="tf">Fin de télétravail</option><option value="out">Sortie</option></select></div><div>' + A.lab('Motif') + motifSel('tr-m-motif') + '</div></div><div id="tr-m-err" class="text-[12px] text-red-600 mt-2"></div><div class="flex justify-end gap-2 mt-5"><button onclick="Temps.closeM()" class="' + B2 + '">Annuler</button><button onclick="TempsRH.manualGo()" class="' + B1 + '">Enregistrer</button></div>', 520);
   }
   function manualGo(){
     var e = $('tr-m-emp').value, d = $('tr-m-date').value, tt = $('tr-m-time').value, s = $('tr-m-sens').value, m = $('tr-m-motif').value;
@@ -25177,12 +25195,17 @@ var ImportKit = (function(){
   /* lecture tolérante des valeurs (Excel envoie parfois des nombres ou des dates au format local) */
   function pDate(x){ x = String(x == null ? '' : x).trim(); var m; if((m = x.match(/^(\d{4})-(\d{2})-(\d{2})/))) return m[1] + '-' + m[2] + '-' + m[3]; if((m = x.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/))){ var y = m[3].length === 2 ? '20' + m[3] : m[3]; return y + '-' + pad(+m[2]) + '-' + pad(+m[1]); } if(/^\d{5}(\.\d+)?$/.test(x)){ var d = new Date(Math.round((+x - 25569) * 86400000)); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); } return null; }
   function pTime(x){ x = String(x == null ? '' : x).trim(); var m; if((m = x.match(/^(\d{1,2})\s*[:hH]\s*(\d{2})/))) return +m[1] < 24 && +m[2] < 60 ? pad(+m[1]) + ':' + m[2] : null; if(/^0?\.\d+$|^0$|^1$/.test(x)){ var t = Math.round(parseFloat(x) * 1440); return pad(Math.floor(t / 60) % 24) + ':' + pad(t % 60); } return null; }
-  function pSens(x){ var k = norm(x); if(!k) return null; if(/pause|reprise|^pd\$|^pf\$/.test(k)) return /fin|reprise|retour|end|entr|^pf\$/.test(k) ? 'pf' : 'pd'; if(/^(e|in|entr|1|arr)/.test(k)) return 'in'; if(/^(s|out|sort|0|2|dep)/.test(k)) return 'out'; return null; }
+  function pSens(x){ var k = norm(x); if(!k) return null; var back =/fin|reprise|retour|end|entr/.test(k);
+  if(/repas|dejeuner/.test(k)) return back ? 'rf' : 'rb';
+  if(/teletravail|remote|domicile/.test(k)) return back ? 'tf' : 'tb';
+  if(/mission|professionnel|deplacement|client/.test(k)) return back ? 'mf' : 'mb';
+  if(/personnel|perso|prive/.test(k)) return back ? 'pr' : 'ps';
+  if(/pause|reprise|^pd$|^pf$/.test(k)) return /fin|reprise|retour|end|entr|^pf$/.test(k) ? 'pf' : 'pd'; if(/^(e|in|entr|1|arr)/.test(k)) return 'in'; if(/^(s|out|sort|0|2|dep)/.test(k)) return 'out'; return null; }
   function emps(){ return Temps.api().people(); }
   function findEmp(v){ var k = norm(v), a = Temps.api(); return emps().filter(function(x){ return norm(x.mat) === k || norm(a.aff(x.id).badge) === k || norm(x.nomComplet) === k; })[0]; }
   function pointages(){
     open({ title:'Importer des pointages',
-      columns:[{ k:'mat', label:'Matricule ou badge', req:true, alias:/matricule|badge|^id|employ|salari|^nom/ }, { k:'date', label:'Date', req:true, alias:/date|jour/ }, { k:'heure', label:'Heure', req:true, alias:/heure|time|^h$/ }, { k:'sens', label:'Type (entrée, sortie, début ou fin de pause)', req:false, alias:/sens|type|entree|sortie|^in|^out/ }],
+      columns:[{ k:'mat', label:'Matricule ou badge', req:true, alias:/matricule|badge|^id|employ|salari|^nom/ }, { k:'date', label:'Date', req:true, alias:/date|jour/ }, { k:'heure', label:'Heure', req:true, alias:/heure|time|^h$/ }, { k:'sens', label:'Type de pointage', req:false, alias:/sens|type|entree|sortie|^in|^out/ }],
       ctx:function(){ var seen = {}; TempsRH.data().PUN.forEach(function(q){ seen[q.empId + q.ts + q.sens] = 1; }); return { seen:seen, alt:{} }; },
       row:function(o, ctx){
         var e = findEmp(o.mat); if(!e) return { ok:false, msg:'Matricule ou badge inconnu : « ' + o.mat + ' »' };
