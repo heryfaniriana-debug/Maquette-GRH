@@ -23002,12 +23002,13 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     else { lines = ['Collaborateur;Prévues (h);Travaillées (h);Retards (min);HS exonérées (h);HS imposables (h);Nuit (h);Dim./férié (h)']; assigned().forEach(function(x){ var q = sumHs(x.id, pr.from, pr.to); lines.push([x.nomComplet, f(q.plan), f(q.work), q.retard, f(q.hs1), f(q.hs2), f(q.nuit), f(q.maj)].join(';')); }); }
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], { type:'text/csv;charset=utf-8' })); a.download = (VW.mode === 'ind' ? 'individuel_' : 'heures_') + pr.from + '_' + pr.to + '.csv'; document.body.appendChild(a); a.click(); a.remove(); A.toast('Export généré : ' + a.download);
   }
-  /* ---------- États du temps : filtre complet puis résultats ---------- */
-  var ET = { step:'filtre', per:'semaine', ref:null, from:'', to:'', svc:'', sel:[], group:'collab', st:{ retard:1, absnj:1, nonpointe:1, sortie_manq:1, entree_manq:1, double:1 }, err:'' };
+  /* ---------- États du temps : un seul écran de filtre, puis les résultats ---------- */
+  var ET = { step:'filtre', pre:'month', from:'', to:'', svc:'', sel:[], group:'', st:{ bilan:1 }, err:'' };
   var STD = [
     ['Présence', 'present', 'Présent', 'bg-emerald-100 text-emerald-700', function(r){ return ['present', 'retard', 'en_cours', 'incomplet'].indexOf(r.statut) > -1 ? r.worked : null; }],
     ['Écarts d’horaire', 'retard', 'Retard', 'bg-amber-100 text-amber-700', function(r){ return r.retard > 0 ? r.retard : null; }],
     ['Écarts d’horaire', 'depart', 'Départ anticipé', 'bg-amber-100 text-amber-700', function(r){ return r.depAnt > 0 ? r.depAnt : null; }],
+    ['Écarts d’horaire', 'manque', 'Heures manquantes', 'bg-amber-100 text-amber-700', function(r){ return r.planned && r.worked && r.statut !== 'en_cours' && r.planned - r.worked > 30 ? r.planned - r.worked : null; }],
     ['Absences', 'absnj', 'Absence non justifiée', 'bg-red-100 text-red-700', function(r){ return r.statut === 'absent' ? (r.planned || 0) : null; }],
     ['Absences', 'absj', 'Absence justifiée', 'bg-violet-100 text-violet-700', function(r){ return r.statut === 'absence' ? (r.planned || 0) : null; }],
     ['Anomalies', 'nonpointe', 'Non pointé', 'bg-red-100 text-red-700', function(r){ return r.statut === 'non_pointe' ? 0 : null; }],
@@ -23022,19 +23023,20 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     ['Pauses et sorties', 'mission', 'Sortie professionnelle', 'bg-sky-100 text-sky-700', function(r){ return etSum(r, 'mission'); }],
     ['Pauses et sorties', 'tele', 'Télétravail', 'bg-violet-100 text-violet-700', function(r){ return etSum(r, 'tele'); }]
   ];
+  var ETATS = [['bilan', 'Bilan des heures', []], ['retard', 'Retards', ['retard']], ['depart', 'Départs anticipés', ['depart']], ['manque', 'Heures manquantes', ['manque']], ['absnj', 'Absences non justifiées', ['absnj']], ['absj', 'Absences justifiées', ['absj']], ['anomalies', 'Non pointés et anomalies', ['nonpointe', 'sortie_manq', 'entree_manq', 'double']], ['hs', 'Heures supplémentaires', ['hs']], ['nuitmaj', 'Heures de nuit, dimanche et jours fériés', ['nuit', 'maj']], ['pause_long', 'Pauses trop longues', ['pause_long']], ['sorties', 'Sorties personnelles et professionnelles', ['perso', 'mission']], ['tele', 'Télétravail', ['tele']], ['present', 'Présents', ['present']]];
+  var PRES = [['today', 'Aujourd’hui'], ['yesterday', 'Hier'], ['week', 'Cette semaine'], ['lastweek', 'Semaine dernière'], ['month', 'Ce mois'], ['lastmonth', 'Mois dernier'], ['perso', 'Personnalisée']];
   function etSum(r, k){ var t = 0, n = 0; (r.pp || []).concat(r.ext || []).forEach(function(z){ if(z.k === k){ t += z.b - z.a; n++; } }); return n ? t : null; }
-  var MODELS = [['Retards du mois', 'mois', ['retard'], 'collab'], ['Absences de la semaine', 'semaine', ['absnj', 'absj'], 'collab'], ['Heures supplémentaires du mois', 'mois', ['hs'], 'collab'], ['Anomalies à corriger', 'mois', ['nonpointe', 'sortie_manq', 'entree_manq', 'double'], 'jour'], ['Pauses trop longues', 'mois', ['pause_long'], 'collab']];
-  function etRef(){ return ET.ref || (ET.ref = today()); }
   function etRange(){
-    var r = etRef(), t = today(), a, b;
-    if(ET.per === 'jour'){ a = b = r; }
-    else if(ET.per === 'semaine'){ a = monday(r); b = addD(a, 6); }
-    else if(ET.per === 'mois'){ var d = new Date(r + 'T12:00:00'); a = iso(new Date(d.getFullYear(), d.getMonth(), 1)); b = iso(new Date(d.getFullYear(), d.getMonth() + 1, 0)); }
+    var t = today(), a, b, d = new Date(t + 'T12:00:00'), p = ET.pre;
+    if(p === 'today' || p === 'yesterday'){ a = b = p === 'today' ? t : addD(t, -1); }
+    else if(p === 'week' || p === 'lastweek'){ a = monday(p === 'week' ? t : addD(t, -7)); b = addD(a, 6); }
+    else if(p === 'month' || p === 'lastmonth'){ var o = p === 'month' ? 0 : -1; a = iso(new Date(d.getFullYear(), d.getMonth() + o, 1)); b = iso(new Date(d.getFullYear(), d.getMonth() + o + 1, 0)); }
     else { a = ET.from || addD(t, -29); b = ET.to || t; if(b < a){ var x = a; a = b; b = x; } }
     return { from:a, to:b, end:b > t ? t : b };
   }
   function etPeople(){ return assigned().filter(function(x){ return (!ET.svc || svcOfV(x.id) === ET.svc) && (!ET.sel.length || ET.sel.indexOf(x.id) > -1); }); }
-  function etChosen(){ return STD.filter(function(d){ return ET.st[d[1]]; }); }
+  function etChosen(){ var ks = []; ETATS.forEach(function(e){ if(ET.st[e[0]]) ks = ks.concat(e[2]); }); return STD.filter(function(d){ return ks.indexOf(d[1]) > -1; }); }
+  function etGroup(){ if(ET.group) return ET.group; var on = ETATS.filter(function(e){ return ET.st[e[0]]; }); return on.length && on.every(function(e){ return e[0] === 'anomalies'; }) ? 'jour' : 'collab'; }
   function etCells(){
     var R = etRange(), P = etPeople(), ch = etChosen(), out = [];
     if(R.from > R.end) return out;
@@ -23042,33 +23044,42 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     return out;
   }
   function etSumary(){
-    var R = etRange(), ch = etChosen(), lab = { jour:'Jour', semaine:'Semaine', mois:'Mois', perso:'Période' }[ET.per];
-    return lab + ' · ' + (R.from === R.to ? dfr(R.from) : dfr(R.from) + ' → ' + dfr(R.to)) + ' · ' + (ET.sel.length ? ET.sel.length + ' collaborateur' + (ET.sel.length > 1 ? 's' : '') : ET.svc || 'Tous les collaborateurs') + ' · ' + (ch.length ? ch.map(function(s){ return s[2]; }).join(', ') : 'Heures prévues et travaillées');
+    var R = etRange(), on = ETATS.filter(function(e){ return ET.st[e[0]] && e[0] !== 'bilan'; }), pl = PRES.filter(function(p){ return p[0] === ET.pre; })[0][1];
+    return pl + ' · ' + (R.from === R.to ? dfr(R.from) : dfr(R.from) + ' → ' + dfr(R.to)) + ' · ' + (ET.sel.length ? ET.sel.length + ' collaborateur' + (ET.sel.length > 1 ? 's' : '') : ET.svc || 'Tous les collaborateurs') + ' · ' + (on.length ? on.map(function(e){ return e[1]; }).join(', ') : 'Bilan des heures');
   }
-  function etField(l, inner){ return '<div>' + A.lab(l) + inner + '</div>'; }
-  function etSel(id, opts, cur, fn){ return '<select id="' + id + '" onchange="' + fn + '" class="' + INP + '">' + opts.map(function(o){ return '<option value="' + o[0] + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>'; }
-  function etCard(t, body, extra){ return '<div class="border border-gray-200 rounded-xl bg-white p-5 mb-4"><div class="flex items-center justify-between mb-3"><div class="text-[11px] uppercase tracking-wider text-gray-400">' + t + '</div>' + (extra || '') + '</div>' + body + '</div>'; }
+  /* composants : listes déroulantes */
+  function etChip(label, fn){ return '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[12px]">' + esc(label) + (fn ? '<button type="button" onclick="event.preventDefault();event.stopPropagation();' + fn + '" class="text-blue-400 hover:text-blue-700" aria-label="Retirer">✕</button>' : '') + '</span>'; }
+  var CARET = '<span class="text-gray-400" style="margin-left:auto">▾</span>';
+  function etStSummary(){ var on = ETATS.filter(function(e){ return ET.st[e[0]]; }); return (on.length ? on.map(function(e){ return etChip(e[1], 'TempsRH.et.rm(\'' + e[0] + '\')'); }).join('') : '<span class="text-gray-400 text-[13px]">Choisir un ou plusieurs états</span>') + CARET; }
+  function etColSummary(){
+    var P = assigned(), s = '';
+    if(ET.sel.length){ var nm = ET.sel.slice(0, 2).map(function(id){ return etChip(nom(id)); }).join(''); s = nm + (ET.sel.length > 2 ? etChip('+' + (ET.sel.length - 2)) : ''); }
+    else if(ET.svc) s = etChip(ET.svc, 'TempsRH.et.svcSet(\'\')'); else s = '<span class="text-slate-700 text-[13px]">Tous les collaborateurs</span>';
+    return s + CARET;
+  }
+  function etSyncSt(){ var el = $('et-st-sum'); if(el) el.innerHTML = etStSummary(); [].slice.call(document.querySelectorAll('#et-st-list input[data-k]')).forEach(function(i){ i.checked = !!ET.st[i.getAttribute('data-k')]; }); var g = $('et-grp'); }
+  function etSyncCol(){ var el = $('et-col-sum'); if(el) el.innerHTML = etColSummary(); [].slice.call(document.querySelectorAll('#et-col-list input[data-id]')).forEach(function(i){ i.checked = ET.sel.indexOf(i.getAttribute('data-id')) > -1; }); }
+  var DDS = 'list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:40px';
+  var DDP = 'left:0;right:0;top:100%;margin-top:4px;max-height:280px;overflow:auto';
+  function etSelect(id, opts, cur, fn){ return '<select id="' + id + '" onchange="' + fn + '" class="' + INP + '">' + opts.map(function(o){ return '<option value="' + o[0] + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>'; }
   function renderEtats(h){
     if(ET.step === 'res') return renderEtRes(h);
-    var R = etRange(), t = today(), svcs = []; assigned().forEach(function(x){ var v = svcOfV(x.id); if(v && svcs.indexOf(v) < 0) svcs.push(v); }); svcs.sort();
-    var per = ET.per === 'perso'
-      ? '<div class="grid grid-cols-2 gap-4">' + etField('Type de période', etSel('et-per', [['jour', 'Jour'], ['semaine', 'Semaine'], ['mois', 'Mois'], ['perso', 'Personnalisée']], ET.per, 'TempsRH.et.set(\'per\',this.value)')) + '<div></div>' + etField('Du', '<input type="date" value="' + R.from + '" max="' + t + '" onchange="TempsRH.et.set(\'from\',this.value)" class="' + INP + '">') + etField('Au', '<input type="date" value="' + R.to + '" max="' + t + '" onchange="TempsRH.et.set(\'to\',this.value)" class="' + INP + '">') + '</div>'
-      : '<div class="grid grid-cols-2 gap-4">' + etField('Type de période', etSel('et-per', [['jour', 'Jour'], ['semaine', 'Semaine'], ['mois', 'Mois'], ['perso', 'Personnalisée']], ET.per, 'TempsRH.et.set(\'per\',this.value)')) + etField(ET.per === 'jour' ? 'Jour' : ET.per === 'semaine' ? 'Une date de la semaine' : 'Une date du mois', '<input type="date" value="' + etRef() + '" max="' + t + '" onchange="TempsRH.et.set(\'ref\',this.value)" class="' + INP + '">') + '</div>';
-    var quick = [['today', 'Aujourd’hui'], ['yesterday', 'Hier'], ['week', 'Cette semaine'], ['lastweek', 'Semaine dernière'], ['month', 'Ce mois'], ['lastmonth', 'Mois dernier']].map(function(q){ return '<button type="button" onclick="TempsRH.et.quick(\'' + q[0] + '\')" class="text-blue-600 text-[12.5px] mr-3">' + q[1] + '</button>'; }).join('');
-    var perBlock = etCard('Période', per + '<div class="mt-3">' + quick + '</div><div class="text-[12.5px] text-gray-500 mt-2">' + (R.from === R.to ? dfr(R.from) : 'Du ' + dfr(R.from) + ' au ' + dfr(R.to)) + '</div>');
-    var colBlock = etCard('Collaborateurs', '<div class="grid grid-cols-2 gap-4">' + etField('Service', etSel('et-svc', [['', 'Tous les services']].concat(svcs.map(function(v){ return [v, v]; })), ET.svc, 'TempsRH.et.set(\'svc\',this.value)')) + etField('Collaborateurs précis (facultatif)', '<select multiple onchange="TempsRH.et.pick(this)" class="' + INP + '" style="height:96px">' + assigned().filter(function(x){ return !ET.svc || svcOfV(x.id) === ET.svc; }).map(function(x){ return '<option value="' + x.id + '"' + (ET.sel.indexOf(x.id) > -1 ? ' selected' : '') + '>' + esc(x.nomComplet) + '</option>'; }).join('') + '</select>') + '</div>');
-    var groups = []; STD.forEach(function(s){ if(groups.indexOf(s[0]) < 0) groups.push(s[0]); });
-    var stBlock = etCard('États à consulter', '<div class="grid grid-cols-2 gap-x-6 gap-y-4">' + groups.map(function(g){ return '<div><div class="text-[12px] font-medium text-slate-700 mb-1.5">' + g + '</div>' + STD.filter(function(s){ return s[0] === g; }).map(function(s){ return '<label class="flex items-center gap-2 text-[13px] text-slate-700 py-0.5"><input type="checkbox" ' + (ET.st[s[1]] ? 'checked ' : '') + 'onchange="TempsRH.et.tog(\'' + s[1] + '\')"> ' + s[2] + '</label>'; }).join('') + '</div>'; }).join('') + '</div>', '<button type="button" onclick="TempsRH.et.clear()" class="text-blue-600 text-[12.5px]">Tout décocher</button>');
-    var dispBlock = etCard('Affichage', '<div class="grid grid-cols-2 gap-4">' + etField('Regrouper par', etSel('et-grp', [['collab', 'Collaborateur'], ['jour', 'Jour'], ['service', 'Service']], ET.group, 'TempsRH.et.set(\'group\',this.value)')) + '</div>');
-    var models = '<div class="flex flex-wrap items-center gap-2 mb-4"><span class="text-[12px] text-gray-400 mr-1">Modèles</span>' + MODELS.map(function(m, i){ return '<button type="button" onclick="TempsRH.et.model(' + i + ')" class="px-3 py-1.5 rounded-full border border-gray-200 bg-white text-[12.5px] text-slate-700 hover:border-blue-300 hover:text-blue-700">' + m[0] + '</button>'; }).join('') + '</div>';
-    h.innerHTML = A.head('États du temps', '<button onclick="TempsRH.et.reset()" class="' + B2 + '">Réinitialiser</button><button onclick="TempsRH.et.show()" class="' + B1 + '">Afficher</button>') + models + perBlock + colBlock + stBlock + dispBlock + (ET.err ? '<div class="text-[12.5px] text-red-600 mb-3">' + esc(ET.err) + '</div>' : '');
+    var R = etRange(), t = today(), svcs = [], P = assigned(); P.forEach(function(x){ var v = svcOfV(x.id); if(v && svcs.indexOf(v) < 0) svcs.push(v); }); svcs.sort();
+    var stDD = '<details class="relative pt-menu"><summary id="et-st-sum" class="' + INP + '" style="' + DDS + '">' + etStSummary() + '</summary><div id="et-st-list" class="absolute z-20 bg-white border border-gray-200 rounded-lg shadow-lg p-1" style="' + DDP + '"><div class="flex items-center gap-4 px-3 py-1.5"><button type="button" onclick="TempsRH.et.all()" class="text-blue-600 text-[12.5px]">Tout cocher</button><button type="button" onclick="TempsRH.et.none()" class="text-blue-600 text-[12.5px]">Aucun</button></div>' + ETATS.map(function(e){ return '<label class="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-gray-50 cursor-pointer text-[13px] text-slate-700"><input type="checkbox" data-k="' + e[0] + '" ' + (ET.st[e[0]] ? 'checked ' : '') + 'onchange="TempsRH.et.tog(\'' + e[0] + '\')"> ' + e[1] + '</label>'; }).join('') + '</div></details>';
+    var colDD = '<details class="relative pt-menu"><summary id="et-col-sum" class="' + INP + '" style="' + DDS + '">' + etColSummary() + '</summary><div id="et-col-list" class="absolute z-20 bg-white border border-gray-200 rounded-lg shadow-lg p-1" style="' + DDP + '"><div class="px-2 py-1.5"><input oninput="TempsRH.et.srch(this.value)" placeholder="🔍 Rechercher" class="' + INP + '" style="padding-top:4px;padding-bottom:4px"></div><div class="px-3 py-1 text-[11px] uppercase tracking-wider text-gray-400">Raccourcis</div><button type="button" onclick="TempsRH.et.svcSet(\'\')" class="block w-full text-left px-3 py-1.5 rounded hover:bg-gray-50 text-[13px] text-slate-700">Tous les collaborateurs</button>' + svcs.map(function(v){ return '<button type="button" onclick="TempsRH.et.svcSet(\'' + v.replace(/'/g, '\\\'') + '\')" class="block w-full text-left px-3 py-1.5 rounded hover:bg-gray-50 text-[13px] text-slate-700">' + esc(v) + '</button>'; }).join('') + '<div class="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wider text-gray-400 border-t border-gray-100 mt-1">Collaborateurs</div>' + P.map(function(x){ return '<label data-n="' + esc(x.nomComplet.toLowerCase()) + '" class="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-gray-50 cursor-pointer text-[13px] text-slate-700"><input type="checkbox" data-id="' + x.id + '" ' + (ET.sel.indexOf(x.id) > -1 ? 'checked ' : '') + 'onchange="TempsRH.et.pers(\'' + x.id + '\')"> ' + esc(x.nomComplet) + '</label>'; }).join('') + '</div></details>';
+    var dates = ET.pre === 'perso' ? '<div class="grid grid-cols-2 gap-4"><div>' + A.lab('Du') + '<input type="date" value="' + R.from + '" max="' + t + '" onchange="TempsRH.et.set(\'from\',this.value)" class="' + INP + '"></div><div>' + A.lab('Au') + '<input type="date" value="' + R.to + '" max="' + t + '" onchange="TempsRH.et.set(\'to\',this.value)" class="' + INP + '"></div></div>' : '<div></div>';
+    h.innerHTML = A.head('États du temps', '<button onclick="TempsRH.et.reset()" class="' + B2 + '">Réinitialiser</button><button onclick="TempsRH.et.show()" class="' + B1 + '">Afficher</button>') +
+      '<div class="border border-gray-200 rounded-xl bg-white p-5"><div class="mb-4">' + A.lab('États à sortir') + stDD + '</div>' +
+      '<div class="grid grid-cols-2 gap-4 mb-4"><div>' + A.lab('Période') + etSelect('et-pre', PRES, ET.pre, 'TempsRH.et.pre(this.value)') + '</div><div>' + A.lab('Collaborateurs') + colDD + '</div></div>' +
+      '<div class="grid grid-cols-2 gap-4"><div>' + A.lab('Regrouper par') + etSelect('et-grp', [['', 'Automatique'], ['collab', 'Collaborateur'], ['jour', 'Jour'], ['service', 'Service']], ET.group, 'TempsRH.et.set(\'group\',this.value)') + '</div>' + dates + '</div>' +
+      (ET.err ? '<div class="text-[12.5px] text-red-600 mt-3">' + esc(ET.err) + '</div>' : '') + '</div>';
   }
   function etRows(cells){
     var ch = etChosen(), only = ch.length && ch.every(function(s){ return s[1] === 'present'; });
     var val = function(hits){ return hits.reduce(function(a, x){ return a + ((only || x.k !== 'present') ? x.v : 0); }, 0); };
     var pills = function(m){ return STD.filter(function(s){ return m[s[1]]; }).map(function(s){ return pill(s[2] + ' ×' + m[s[1]].n, s[3]); }).join(' '); };
     var dcell = function(v){ return '<td class="px-3 py-2.5 text-[12.5px] text-slate-800 font-medium">' + (v ? fh1(v) : '<span class="text-gray-300">—</span>') + '</td>'; };
-    var rows = '', head, G = ET.group, tot = 0;
+    var rows = '', head, G = etGroup(), tot = 0;
     if(ch.length){
       var hit = cells.filter(function(c){ return c.hits.length; });
       if(G === 'jour'){
@@ -23103,18 +23114,11 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     h.innerHTML = '<div class="flex items-start justify-between gap-4 mb-4"><div><h1 class="text-[18px] font-semibold text-slate-800">États du temps</h1><div class="text-[12.5px] text-gray-500">' + esc(etSumary()) + '</div></div><div class="flex items-center gap-2">' + icons + '</div></div>' +
       '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '">' + o.head.map(function(t, i){ return '<th class="' + (i ? 'px-3' : 'px-4') + ' py-2.5 font-medium">' + t + '</th>'; }).join('') + '</tr></thead><tbody>' + (o.rows || '<tr><td colspan="4" class="px-4 py-10 text-center text-[12.5px] text-gray-400">Aucun résultat pour ce filtre.</td></tr>') + '</tbody></table></div>';
   }
-  function etSet(k, v){
-    if(k === 'per'){ ET.per = v; if(v === 'perso' && !ET.from){ ET.from = addD(today(), -29); ET.to = today(); } }
-    else if(k === 'ref') ET.ref = v || today(); else if(k === 'from') ET.from = v; else if(k === 'to') ET.to = v;
-    else if(k === 'svc'){ ET.svc = v; ET.sel = []; } else if(k === 'group') ET.group = v;
-    ET.err = ''; render('tp-etats');
-  }
-  function etQuick(k){
-    var t = today(), d = new Date(t + 'T12:00:00');
-    if(k === 'today'){ ET.per = 'jour'; ET.ref = t; } else if(k === 'yesterday'){ ET.per = 'jour'; ET.ref = addD(t, -1); }
-    else if(k === 'week'){ ET.per = 'semaine'; ET.ref = t; } else if(k === 'lastweek'){ ET.per = 'semaine'; ET.ref = addD(t, -7); }
-    else if(k === 'month'){ ET.per = 'mois'; ET.ref = t; } else { ET.per = 'mois'; ET.ref = iso(new Date(d.getFullYear(), d.getMonth() - 1, 15)); }
-    ET.err = ''; render('tp-etats');
+  function etCsv(){
+    var cells = etCells(), R = etRange(), f = function(x){ return (Math.round(x / 6) / 10).toString().replace('.', ','); }, ch = etChosen(), lines;
+    if(ch.length){ lines = ['Date;Collaborateur;Service;État;Durée (h)']; cells.forEach(function(c){ c.hits.forEach(function(x){ lines.push([c.d, c.p.nomComplet, svcOfV(c.p.id), x.l, f(x.v)].join(';')); }); }); }
+    else { lines = ['Date;Collaborateur;Service;Prévues (h);Travaillées (h)']; cells.forEach(function(c){ if(c.r.planned || c.r.worked) lines.push([c.d, c.p.nomComplet, svcOfV(c.p.id), f(c.r.planned || 0), f(c.r.worked || 0)].join(';')); }); }
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], { type:'text/csv;charset=utf-8' })); a.download = 'etats_temps_' + R.from + '_' + R.to + '.csv'; document.body.appendChild(a); a.click(); a.remove(); A.toast('Export généré : ' + a.download);
   }
   function etShow(){
     var R = etRange(), n = Math.round((new Date(R.to + 'T12:00:00') - new Date(R.from + 'T12:00:00')) / 86400000) + 1;
@@ -23122,21 +23126,20 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     if(R.from > today()){ ET.err = 'La période ne contient aucun jour écoulé.'; render('tp-etats'); return; }
     ET.err = ''; ET.step = 'res'; render('tp-etats');
   }
-  function etModel(i){ var m = MODELS[i]; ET.per = m[1]; ET.ref = today(); ET.svc = ''; ET.sel = []; ET.st = {}; m[2].forEach(function(k){ ET.st[k] = 1; }); ET.group = m[3]; ET.step = 'res'; ET.err = ''; render('tp-etats'); }
-  function etCsv(){
-    var cells = etCells(), R = etRange(), f = function(x){ return (Math.round(x / 6) / 10).toString().replace('.', ','); }, ch = etChosen(), lines;
-    if(ch.length){ lines = ['Date;Collaborateur;Service;État;Durée (h)']; cells.forEach(function(c){ c.hits.forEach(function(x){ lines.push([c.d, c.p.nomComplet, svcOfV(c.p.id), x.l, f(x.v)].join(';')); }); }); }
-    else { lines = ['Date;Collaborateur;Service;Prévues (h);Travaillées (h)']; cells.forEach(function(c){ if(c.r.planned || c.r.worked) lines.push([c.d, c.p.nomComplet, svcOfV(c.p.id), f(c.r.planned || 0), f(c.r.worked || 0)].join(';')); }); }
-    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], { type:'text/csv;charset=utf-8' })); a.download = 'etats_temps_' + R.from + '_' + R.to + '.csv'; document.body.appendChild(a); a.click(); a.remove(); A.toast('Export généré : ' + a.download);
-  }
   var ET_API = {
     home:function(){ ET.step = 'filtre'; ET.err = ''; render('tp-etats'); },
     edit:function(){ ET.step = 'filtre'; render('tp-etats'); },
-    reset:function(){ ET.per = 'semaine'; ET.ref = null; ET.from = ''; ET.to = ''; ET.svc = ''; ET.sel = []; ET.group = 'collab'; ET.st = { retard:1, absnj:1, nonpointe:1, sortie_manq:1, entree_manq:1, double:1 }; ET.err = ''; render('tp-etats'); },
-    show:etShow, set:etSet, quick:etQuick, model:etModel, csv:etCsv,
-    tog:function(k){ if(ET.st[k]) delete ET.st[k]; else ET.st[k] = 1; },
-    clear:function(){ ET.st = {}; render('tp-etats'); },
-    pick:function(el){ ET.sel = [].slice.call(el.selectedOptions).map(function(o){ return o.value; }); },
+    reset:function(){ ET.pre = 'month'; ET.from = ''; ET.to = ''; ET.svc = ''; ET.sel = []; ET.group = ''; ET.st = { bilan:1 }; ET.err = ''; render('tp-etats'); },
+    show:etShow, csv:etCsv,
+    pre:function(v){ ET.pre = v; if(v === 'perso' && !ET.from){ ET.from = addD(today(), -29); ET.to = today(); } ET.err = ''; render('tp-etats'); },
+    set:function(k, v){ if(k === 'from') ET.from = v; else if(k === 'to') ET.to = v; else if(k === 'group'){ ET.group = v; } },
+    tog:function(k){ if(k === 'bilan') ET.st = ET.st.bilan ? {} : { bilan:1 }; else { delete ET.st.bilan; if(ET.st[k]) delete ET.st[k]; else ET.st[k] = 1; } etSyncSt(); },
+    rm:function(k){ delete ET.st[k]; etSyncSt(); },
+    all:function(){ ET.st = {}; ETATS.forEach(function(e){ if(e[0] !== 'bilan') ET.st[e[0]] = 1; }); etSyncSt(); },
+    none:function(){ ET.st = {}; etSyncSt(); },
+    svcSet:function(v){ ET.svc = v; ET.sel = []; etSyncCol(); },
+    pers:function(id){ var i = ET.sel.indexOf(id); if(i > -1) ET.sel.splice(i, 1); else ET.sel.push(id); ET.svc = ''; etSyncCol(); },
+    srch:function(q){ q = String(q || '').toLowerCase(); [].slice.call(document.querySelectorAll('#et-col-list label[data-n]')).forEach(function(l){ l.style.display = l.getAttribute('data-n').indexOf(q) > -1 ? '' : 'none'; }); },
     open:function(id){ ET.step = 'res'; VW.emp = id; VW.ref = etRange().end; VW.keep = true; showPanel('tp-ind'); }
   };
   /* ---------- Corrections et régularisations ---------- */
