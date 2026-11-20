@@ -24926,6 +24926,7 @@ var TempsLien = (function(){
 .pl-task-h{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; } .pl-task-t{ display:flex; flex-direction:column; gap:4px; min-width:0; } .pl-task-t b{ font-size:15px; color:var(--navy-950); } .pl-task-t span{ font-size:13px; color:var(--n-600); display:flex; align-items:center; gap:6px; flex-wrap:wrap; } .pl-task-a{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .pl-task .pe-btn{ height:40px; min-height:40px !important; padding:0 18px !important; } .pl-task .pe-btn[disabled]{ opacity:.45; cursor:not-allowed; }
 .pl-task .pe-btn.ghost,.pl-alert-act .pe-btn.ghost{ background:#fff; color:var(--navy-700) !important; border:1px solid var(--n-300) !important; } .pl-task .pe-btn.ghost:hover,.pl-alert-act .pe-btn.ghost:hover{ background:var(--n-100); }
+.pl-task{ padding:12px 16px; } .pl-task-h{ gap:10px; } .pl-task-a{ gap:6px; } .pl-task-t b{ font-size:14px; } .pl-task-t{ gap:2px; }
 .pl-x{ width:32px; height:32px; border-radius:8px; border:1px solid var(--n-200); background:#fff; color:var(--n-600); font-size:13px; cursor:pointer; } .pl-x:hover{ background:var(--n-100); color:var(--navy-950); }
 .pl-dot{ width:8px; height:8px; border-radius:50%; background:var(--n-400,#969BA8); display:inline-block; flex:none; } .pl-blue{ background:#455D9C; } .pl-violet{ background:#2E427B; } .pl-amber{ background:#F59E0B; } .pl-emerald{ background:#10B981; } .pl-rose{ background:#F43F5E; } .pl-cyan{ background:#06B6D4; } .pl-gray{ background:#969BA8; }
 .pl-live{ display:flex; align-items:center; gap:24px; margin-top:16px; padding-top:16px; border-top:1px solid var(--n-100); flex-wrap:wrap; } .pl-clock{ font-family:var(--font-heading); font-size:36px; font-weight:600; color:var(--navy-950); font-variant-numeric:tabular-nums; letter-spacing:.02em; } .pl-live-m{ flex:1; min-width:200px; display:flex; flex-direction:column; gap:8px; } .pl-left{ font-size:13px; font-weight:600; color:var(--navy-700); } .pl-left.over{ color:#B45309; }
@@ -25059,13 +25060,13 @@ var TempsPlan = (function(){
   function taskRow(x, emp, n){
     var c = catOf(x.cat), left = planned(x) * 60 - spentS(x), run = x.st === 'run', mgr = (x.by ? '<span class="badge b-in">Attribuée par ' + esc(nom(x.by)) + '</span>' : '') + urgBadge(x) + movedBadge(x, true);
     var meta = '<span class="pl-dot pl-' + c.coul + '"></span>' + esc(c.nom) + ' · prévu ' + fmin(planned(x)) + (x.note ? ' · ' + esc(x.note) : '');
-    var mvb = x.mv === 'ok' && x.st === 'done' ? '<span class="badge b-ok">Validée par ' + esc(nom(x.mvBy)) + '</span>' : (x.mv === 'refused' && x.st !== 'done' ? '<span class="badge b-wn">À corriger : ' + esc(x.mvMotif || '') + '</span>' : '');
+    var mvb = x.mv === 'ok' && x.st === 'done' ? '<span class="badge b-ok">' + mvLabel(x) + '</span>' : (x.mv === 'refused' && x.st !== 'done' ? '<span class="badge b-wn">À corriger : ' + esc(x.mvMotif || '') + '</span>' : '');
     var right, extra = '';
     if(x.st === 'done') right = '<span class="badge b-ok">Terminée · ' + fmin(x.real) + '</span>';
-    else if(run){ right = '<button class="pe-btn ghost" onclick="TempsPlan.pause(\'' + x.id + '\')">Pause</button><button class="pe-btn" onclick="TempsPlan.finishAsk(\'' + x.id + '\')">Terminer</button>';
+    else if(run){ right = pbtn('<path d="M9 5v14M15 5v14"/>', 'Pause', 'TempsPlan.pause(\'' + x.id + '\')') + pbtn('<path d="M5 12l5 5 9-10"/>', 'Terminer', 'TempsPlan.finishAsk(\'' + x.id + '\')', true);
       extra = '<div class="pl-live"><div class="pl-clock" data-t="' + x.id + '">' + clock(spentS(x)) + '</div><div class="pl-live-m"><span class="pl-left' + (left < 0 ? ' over' : '') + '" data-t="' + x.id + '">' + (left >= 0 ? 'Reste ' + fmin(Math.ceil(left / 60)) : 'Dépassé de ' + fmin(Math.ceil(-left / 60))) + '</span><div class="pl-bar" data-t="' + x.id + '"><i class="' + (left < 0 ? 'over' : '') + '" style="width:' + Math.min(100, Math.round(100 * spentS(x) / (planned(x) * 60))) + '%"></i></div></div><button class="pl-demo" onclick="TempsPlan.simulate(\'' + x.id + '\')" title="Aperçu de la démo">Simuler la fin du temps prévu</button></div>'; }
     else { var lock = RUN && RUN !== x.id;
-      right = (x.st === 'pause' ? '<span class="badge b-wn">En pause · ' + fmin(spentS(x) / 60) + '</span>' : '') + '<button class="pe-btn" ' + (lock ? 'disabled title="Terminez d’abord la tâche en cours"' : '') + ' onclick="TempsPlan.begin(\'' + x.id + '\')">' + (x.st === 'pause' ? 'Reprendre' : 'Commencer') + '</button>'; }
+      right = (x.st === 'pause' ? '<span class="badge b-wn">En pause · ' + fmin(spentS(x) / 60) + '</span>' : '') + pbtn('<path d="M7 5l12 7-12 7z"/>', x.st === 'pause' ? 'Reprendre' : 'Commencer', 'TempsPlan.begin(\'' + x.id + '\')', true, lock); }
     var del = !x.by && x.st === 'todo' ? '<button class="pl-x" aria-label="Retirer" onclick="TempsPlan.del(\'' + x.id + '\')">✕</button>' : '';
     return '<div class="pl-task' + (run ? ' run' : '') + (x.st === 'done' ? ' done' : '') + '"><div class="pl-task-h"><div class="pl-task-t"><b>' + (n ? n + '. ' : '') + esc(x.titre) + '</b><span>' + meta + '</span></div><div class="pl-task-a">' + mgr + mvb + right + ctlBtns(x) + del + '</div></div>' + extra + logHtml(x) + '</div>';
   }
@@ -25165,7 +25166,44 @@ var TempsPlan = (function(){
 
   function tsAt(d, mn){ return new Date(d + 'T' + pad(Math.floor(mn / 60)) + ':' + pad(mn % 60) + ':00').getTime(); }
   function dayDone(emp, d){ var L = mine(emp, d, d); return !!DAYV[emp + '|' + d] || (d < U.today() && L.length > 0 && L.every(function(x){ return x.st === 'done'; })); }
-  function dayOpen(emp, d){ TD = { emp:emp, date:d }; renderTeam(); }
+  function pbtn(path, title, fn, primary, dis){ return '<button type="button" ' + (dis ? 'disabled ' : '') + 'style="width:28px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;' + (primary ? 'background:var(--navy-700,#2E427B);color:#fff;border:1px solid var(--navy-700,#2E427B)' : 'background:#fff;color:#475569;border:1px solid #CBD5E1') + (dis ? ';opacity:.4;cursor:default' : '') + '" title="' + title + '" aria-label="' + title + '" onclick="' + fn + '"><svg viewBox="0 0 24 24" style="width:16px;height:16px;flex:none;display:block" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg></button>'; }
+  function mvLabel(x){ return x.mvPartial ? 'Validée partiellement : ' + fmin(x.mvMin) + ' sur ' + fmin(x.real) : 'Validée par ' + esc(nom(x.mvBy)); }
+  function dayOpen(emp, d){
+    var L = mine(emp, d, d), t = U.today(), dd = dayDone(emp, d), todo = L.filter(function(x){ return x.st === 'done' && x.mv !== 'ok'; }), K = { start:'début', pause:'pause', resume:'reprise', end:'fin', ok:'validée', refus:'refusée' };
+    var rows = L.map(function(x){
+      var c = catOf(x.cat), late = x.st === 'todo' && x.date < t, chrono = (x.log || []).map(function(e){ return hm(e.at) + ' ' + (K[e.k] || ''); }).join(' · '), st, ctl = '';
+      if(x.st === 'done') st = x.mv === 'ok' ? '<span class="badge b-ok">' + mvLabel(x) + '</span>' : '<span class="badge b-in">Terminée · à valider</span>';
+      else if(x.st === 'run') st = '<span class="badge b-in">En cours</span>'; else if(x.st === 'pause') st = '<span class="badge b-wn">En pause</span>';
+      else st = x.mv === 'refused' ? '<span class="badge b-wn">À corriger : ' + esc(x.mvMotif || '') + '</span>' : (late ? '<span class="badge b-wn">Non faite</span>' : '<span class="badge b-nt">À faire</span>');
+      if(x.st === 'done' && x.mv !== 'ok'){
+        var rh = Math.round(x.real / 15) / 4 || 0.25, nm = 'mvd_' + x.id, rd = function(v, l, on){ return '<label class="text-[12.5px] text-slate-700" style="display:inline-flex;align-items:center;gap:5px;margin-right:14px"><input type="radio" name="' + nm + '" value="' + v + '"' + (on ? ' checked' : '') + ' onchange="TempsPlan.mvShow(\'' + x.id + '\')"> ' + l + '</label>'; };
+        ctl = '<div style="margin-top:8px">' + rd('ok', 'Valider') + rd('ko', 'Refuser') + rd('wait', 'Laisser en attente', true) + '</div><div id="mvo_' + x.id + '" style="display:none;margin-top:8px"><span class="text-[12px] text-gray-500">Durée validée (h)</span> <input id="mvh_' + x.id + '" type="number" min="0.25" max="' + (x.real / 60) + '" step="0.25" value="' + rh + '" class="' + INP + '" style="width:90px;display:inline-block;padding-top:4px;padding-bottom:4px"> <span class="text-[12px] text-gray-400">sur ' + fmin(x.real) + ' réalisées</span></div><div id="mvk_' + x.id + '" style="display:none;margin-top:8px"><input id="mvm_' + x.id + '" maxlength="120" placeholder="Motif du refus" class="' + INP + '" style="padding-top:5px;padding-bottom:5px"></div>';
+      }
+      return '<div style="padding:12px 0;border-top:1px solid #F1F5F9"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px"><div style="min-width:0;flex:1"><div class="text-[13.5px] text-slate-800 font-medium">' + esc(x.titre) + ' ' + urgBadge(x) + '</div><div class="text-[11.5px] text-gray-500"><span class="pl-dot pl-' + c.coul + '"></span> ' + esc(c.nom) + ' · prévu ' + fmin(planned(x)) + (x.st === 'done' ? ' · réel ' + fmin(x.real) : '') + (x.by ? ' · attribuée par ' + esc(nom(x.by)) : '') + '</div>' + (chrono ? '<div class="text-[11px] text-gray-400">' + chrono + '</div>' : '') + '</div><div style="flex:none">' + st + '</div></div>' + ctl + '</div>';
+    }).join('');
+    var real = L.reduce(function(a, x){ return a + (x.st === 'done' ? (x.mv === 'ok' && x.mvMin ? x.mvMin : x.real) : 0); }, 0), tot = L.reduce(function(a, x){ return a + planned(x); }, 0);
+    A.modal('<div class="flex items-center justify-between mb-1"><h3 class="text-[15px] font-semibold text-slate-800">Journée de ' + esc(nom(emp)) + '</h3><button onclick="Temps.closeM()" class="text-gray-400 text-xl leading-none">×</button></div><div class="text-[12px] text-gray-400 mb-3">' + longDay(d) + ' · ' + fmin(real) + ' réalisées sur ' + fmin(tot) + ' prévues · ' + (dd ? 'journée validée par le salarié' : 'journée pas encore validée par le salarié') + '</div><div style="max-height:56vh;overflow-y:auto">' + (rows || '<div class="text-[12.5px] text-gray-400 py-4">Aucune tâche ce jour-là.</div>') + '</div><div class="flex items-center justify-between mt-4">' + (todo.length ? '<button type="button" onclick="TempsPlan.mvAllSet()" class="text-blue-600 text-[12.5px]">Tout valider</button>' : '<span></span>') + '<div class="flex gap-2"><button onclick="Temps.closeM()" class="' + A.B2 + '">' + (todo.length ? 'Annuler' : 'Fermer') + '</button>' + (todo.length ? '<button onclick="TempsPlan.mvSave(\'' + emp + '\',\'' + d + '\')" class="' + A.B1 + '">Enregistrer</button>' : '') + '</div></div><div id="mv-err" class="text-[12px] text-red-600 mt-2"></div>', 640);
+  }
+  function mvVal(id){ var r = document.querySelector('input[name="mvd_' + id + '"]:checked'); return r ? r.value : 'wait'; }
+  function mvShow(id){ var v = mvVal(id); $('mvo_' + id).style.display = v === 'ok' ? 'block' : 'none'; $('mvk_' + id).style.display = v === 'ko' ? 'block' : 'none'; }
+  function mvAllSet(){ [].slice.call(document.querySelectorAll('input[type=radio][name^="mvd_"][value="ok"]')).forEach(function(r){ r.checked = true; mvShow(r.name.slice(4)); }); }
+  function mvSave(emp, d){
+    var L = mine(emp, d, d).filter(function(x){ return x.st === 'done' && x.mv !== 'ok'; }), err = $('mv-err'), plan = [];
+    for(var i = 0; i < L.length; i++){
+      var x = L[i], v = mvVal(x.id);
+      if(v === 'ok'){ var hh = parseFloat($('mvh_' + x.id).value); if(!hh || hh < 0.25 || hh * 60 > x.real + 0.5){ err.textContent = 'Durée validée invalide pour « ' + x.titre + ' » (entre 0,25 h et ' + fmin(x.real) + ').'; return; } plan.push({ x:x, v:v, min:Math.round(hh * 60) }); }
+      else if(v === 'ko'){ var m = ($('mvm_' + x.id).value || '').trim(); if(!m){ err.textContent = 'Indiquez le motif du refus pour « ' + x.titre + ' ».'; return; } plan.push({ x:x, v:v, motif:m }); }
+    }
+    if(!plan.length){ err.textContent = 'Choisissez Valider ou Refuser pour au moins une tâche.'; return; }
+    var ok = 0, ko = 0, S = ACT.data().SAI;
+    plan.forEach(function(p){
+      var x = p.x, e = S.filter(function(z){ return z.id === x.sai; })[0];
+      if(p.v === 'ok'){ x.mv = 'ok'; x.mvMin = Math.min(p.min, x.real); x.mvPartial = x.mvMin < x.real; x.mvBy = me(); x.mvAt = Date.now(); if(e) e.min = x.mvMin; logEv(x, 'ok'); ok++; }
+      else { if(e) S.splice(S.indexOf(e), 1); logEv(x, 'refus'); x.st = 'todo'; x.real = 0; x.spent = 0; x.t0 = 0; x.mv = 'refused'; x.mvMotif = p.motif; x.mvBy = me(); x.sai = null; x.mvPartial = false; delete DAYV[x.emp + '|' + x.date]; ko++; }
+    });
+    A.closeM(); try { ACT.api.render(); } catch(e2){} refresh();
+    A.toast(ok + ' tâche' + (ok > 1 ? 's' : '') + ' validée' + (ok > 1 ? 's' : '') + (ko ? ', ' + ko + ' refusée' + (ko > 1 ? 's' : '') : '') + '.');
+  }
   function dayBack(){ TD = { emp:null, date:null }; renderTeam(); }
   var SVG_OK = '<svg viewBox="0 0 24 24" width="18" height="18" style="width:18px;height:18px;flex:none;display:block" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>', SVG_KO = '<svg viewBox="0 0 24 24" width="18" height="18" style="width:18px;height:18px;flex:none;display:block" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', IBS = 'width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center';
   function dayHtml(){
@@ -25227,7 +25265,7 @@ var TempsPlan = (function(){
   function refresh(){ try { TempsPortal.renderAll(); } catch(e){} renderTeam(); drawPill(); }
   [].slice.call(document.querySelectorAll('.erh-portal-tab[data-erh-portal="erhp-taches"]')).forEach(function(b){ b.addEventListener('click', renderTeam); });
   var sh = $('portal-employes-shell'); if(sh && window.MutationObserver) new MutationObserver(drawPill).observe(sh, { attributes:true, attributeFilter:['class', 'style'] });
-  return { moveT:moveT, reprAsk:reprAsk, reprGo:reprGo, dayOpen:dayOpen, dayBack:dayBack, mvOk:mvOk, mvAll:mvAll, mvRefAsk:mvRefAsk, mvRefGo:mvRefGo, mine:mine, myHtml:myHtml, validateDay:validateDay, weekHtml:weekHtml, nToday:nToday, isMgr:isMgr, team:team, begin:begin, pause:pause, finishAsk:finishAsk, finish:finish, more:more, simulate:simulate, nav:nav, navT:navT, del:del, delT:delT, addAsk:addAsk, addGo:addGo, togDay:togDay, assignAsk:assignAsk, assignGo:assignGo, togAll:togAll, syncAll:syncAll, renderTeam:renderTeam, refresh:refresh, tasks:function(){ return TASKS; } };
+  return { mvShow:mvShow, mvSave:mvSave, mvAllSet:mvAllSet, moveT:moveT, reprAsk:reprAsk, reprGo:reprGo, dayOpen:dayOpen, dayBack:dayBack, mvOk:mvOk, mvAll:mvAll, mvRefAsk:mvRefAsk, mvRefGo:mvRefGo, mine:mine, myHtml:myHtml, validateDay:validateDay, weekHtml:weekHtml, nToday:nToday, isMgr:isMgr, team:team, begin:begin, pause:pause, finishAsk:finishAsk, finish:finish, more:more, simulate:simulate, nav:nav, navT:navT, del:del, delT:delT, addAsk:addAsk, addGo:addGo, togDay:togDay, assignAsk:assignAsk, assignGo:assignGo, togAll:togAll, syncAll:syncAll, renderTeam:renderTeam, refresh:refresh, tasks:function(){ return TASKS; } };
 })();
 try { TempsPortal.view('planning'); TempsPlan.refresh(); } catch(e){}
 
