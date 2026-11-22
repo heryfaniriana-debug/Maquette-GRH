@@ -24542,7 +24542,15 @@ function dvSend(d){
   var emp = me(), n = 0;
   daySai(emp, d).forEach(function(q){ if(sv(q) === 'brouillon'){ q.vs = 'envoye'; q.vat = Date.now(); n++; var x = planOf(q); if(x) x.mv = null; } });
   if(!n) return; try { TempsPlan.markDay(emp, d); } catch(e){}
-  A.toast('Journée du ' + dsh(d) + ' envoyée à ' + bossName(emp) + '.'); try { ACT.api.render(); } catch(e){} renderAll();
+  var auto = false;
+  try {
+    var rl = TempsRules.rules().filter(function(r){ return r.type === 'jour' && r.on; })[0], S2 = daySai(emp, d), tot = S2.reduce(function(a, q){ return a + q.min; }, 0), wk = RH.day(emp, d).worked || 0;
+    if(rl && wk && tot * 100 >= wk * rl.param){
+      var by = 'Règle automatique : ' + rl.nom; S2.filter(function(q){ return sv(q) === 'envoye'; }).forEach(function(q){ dvApprove(q.id, by); }); rl.count++; auto = true;
+      VAL.data().HIST.push({ id:'hj' + Date.now(), type:'jour', emp:emp, objet:'Activités du ' + dsh(d) + ' : ' + fh(tot) + ' saisies sur ' + fh(wk) + ' pointées', decision:'validee', by:by, motif:'', at:A.nowStr() });
+    }
+  } catch(e){}
+  A.toast(auto ? 'Journée du ' + dsh(d) + ' validée automatiquement.' : 'Journée du ' + dsh(d) + ' envoyée à ' + bossName(emp) + '.'); try { ACT.api.render(); } catch(e){} renderAll();
 }
 function dvApprove(id, by){
   var q = findSai(id); if(!q) return; q.vs = 'valide'; q.vby = by || bossName(q.emp); q.vat = Date.now();
@@ -24879,7 +24887,7 @@ var TempsInbox = (function(){
     h.innerHTML = A.head(ST.tab === 'mgr' ? 'Chez les managers' : 'Validations', right) + (ST.tab === 'mgr' ? '' : filt) + tbl;
   }
   function hist(){
-    var L = VAL.data().HIST.slice().sort(function(a, b){ return a.at < b.at ? 1 : -1; }).slice(0, 60), TY = { correction:'Correction', absence:'Absence', hs:'Heures supp.', feuille:'Feuille' };
+    var L = VAL.data().HIST.slice().sort(function(a, b){ return a.at < b.at ? 1 : -1; }).slice(0, 60), TY = { correction:'Correction', absence:'Absence', hs:'Heures supp.', feuille:'Feuille', jour:'Activités du jour' };
     return '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Date</th><th class="px-3 py-2.5 font-medium">Type</th><th class="px-3 py-2.5 font-medium">Salarié</th><th class="px-3 py-2.5 font-medium">Objet</th><th class="px-3 py-2.5 font-medium">Décision</th><th class="px-3 py-2.5 font-medium">Par</th><th class="px-4 py-2.5 font-medium">Motif</th></tr></thead><tbody>' + L.map(function(x){ return '<tr class="border-t border-gray-100"><td class="px-4 py-2.5 text-[12.5px] text-gray-500 whitespace-nowrap">' + A.dtfr(x.at) + '</td><td class="px-3 py-2.5 text-[12.5px]">' + (TY[x.type] || x.type) + '</td><td class="px-3 py-2.5 text-[13px] text-slate-800">' + esc(nom(x.emp)) + '</td><td class="px-3 py-2.5 text-[12.5px] text-gray-600">' + esc(x.objet) + '</td><td class="px-3 py-2.5">' + (x.decision === 'validee' ? pill('Validée', 'bg-emerald-100 text-emerald-700') : pill('Refusée', 'bg-red-100 text-red-700')) + '</td><td class="px-3 py-2.5 text-[12.5px] text-gray-500">' + esc(x.by) + '</td><td class="px-4 py-2.5 text-[12px] text-gray-500">' + (x.motif ? esc(x.motif) : '<span class="text-gray-300">—</span>') + '</td></tr>'; }).join('') + '</tbody></table></div>';
   }
   function btn(i, k){ var it = VIS[i]; if(it && it.btns && it.btns[k]) it.btns[k].fn(); renderTraiter(); VAL.badges(); }
@@ -24917,7 +24925,7 @@ var TempsInbox = (function(){
       out += sect('Pointages' + (col.length > 6 ? ' (6 premiers collaborateurs)' : ''), Math.min(ps.length, 25), ps.slice(0, 25).map(function(p){ var dv = A.byId(A.DEV, p.dev); return '<div class="flex items-center justify-between px-4 py-2 border-t border-gray-100 first:border-t-0 text-[12.5px]"><span><span class="text-gray-400 mr-3">' + dsh(p.ts.slice(0, 10)) + ' ' + p.ts.slice(11) + '</span>' + esc(nom(p.empId)) + '</span><span class="text-gray-500">' + (p.sens === 'in' ? 'Entrée' : 'Sortie') + ' · ' + esc(dv ? dv.nom : (p.dev === 'manuel' ? 'Saisie RH' : 'Correction RH')) + '</span></div>'; }).join(''));
     }
     if(!t || t === 'dem'){
-      var dm = [], TY = { correction:'Correction', absence:'Absence', hs:'Heures supp.', feuille:'Feuille' };
+      var dm = [], TY = { correction:'Correction', absence:'Absence', hs:'Heures supp.', feuille:'Feuille', jour:'Activités du jour' };
       VAL.data().REQ.forEach(function(r){ var txt = VAL.describe(r); if((!SR.svc || svcOf(r.emp) === SR.svc) && (!q || norm(nom(r.emp) + ' ' + txt + ' ' + TY[r.type]).indexOf(q) > -1)) dm.push({ t:r.type, e:r.emp, o:txt, st:r.statut === 'en_attente' ? 'En attente' : r.statut === 'validee' ? 'Validée' : 'Refusée', at:r.at }); });
       VAL.data().HIST.forEach(function(x){ if((!SR.svc || svcOf(x.emp) === SR.svc) && (!q || norm(nom(x.emp) + ' ' + x.objet + ' ' + TY[x.type]).indexOf(q) > -1)) dm.push({ t:x.type, e:x.emp, o:x.objet, st:x.decision === 'validee' ? 'Validée' : 'Refusée', at:x.at }); });
       dm.sort(function(a, b){ return a.at < b.at ? 1 : -1; });
@@ -25179,10 +25187,10 @@ var TempsRules = (function(){
   var esc = A.esc, pill = A.pill, INP = A.INP, B1 = A.B1, B2 = A.B2;
   var BY = 'Règle automatique : ';
   var R = [
-    { id:'ra1', nom:'Correction proche de l’horaire', type:'correction', on:true, param:15, unit:'minutes', count:0, phrase:function(r){ return 'Valider seule toute correction de pointage à moins de ' + inp(r) + ' minutes de l’heure du planning (ou de l’heure remplacée).'; } },
-    { id:'ra2', nom:'Heures supplémentaires sous un seuil', type:'hs', on:true, param:1, unit:'heures', count:0, phrase:function(r){ return 'Valider seules les heures supplémentaires d’une semaine qui ne dépassent pas ' + inp(r) + ' heure(s).'; } },
-    { id:'ra3', nom:'Feuille de temps bien renseignée', type:'feuille', on:true, param:95, unit:'%', count:0, phrase:function(r){ return 'Valider seule toute feuille de temps dont le temps saisi atteint ' + inp(r) + ' % du temps pointé.'; } },
-    { id:'ra4', nom:'Double pointage rapproché', type:'double', on:true, param:5, unit:'minutes', count:0, phrase:function(r){ return 'Supprimer seul le second pointage quand deux entrées sont à moins de 5 minutes l’une de l’autre.'; } }
+    { id:'ra1', nom:'Corrections proches de l’horaire (écart maximal)', type:'correction', on:true, param:15, unit:'minutes', count:0, phrase:function(r){ return 'Valider seule toute correction de pointage à moins de ' + inp(r) + ' minutes de l’heure du planning (ou de l’heure remplacée).'; } },
+    { id:'ra2', nom:'Heures supplémentaires sous un seuil (par semaine)', type:'hs', on:true, param:1, unit:'heures', count:0, phrase:function(r){ return 'Valider seules les heures supplémentaires d’une semaine qui ne dépassent pas ' + inp(r) + ' heure(s).'; } },
+    { id:'ra3', nom:'Activités du jour bien renseignées (couverture minimale)', type:'jour', on:true, param:95, unit:'%', count:0, phrase:function(r){ return ''; } },
+    { id:'ra4', nom:'Double pointage rapproché (écart maximal)', type:'double', on:true, param:5, unit:'minutes', count:0, phrase:function(r){ return 'Supprimer seul le second pointage quand deux entrées sont à moins de 5 minutes l’une de l’autre.'; } }
   ];
   function inp(r){ return '<input type="number" min="1" value="' + r.param + '" onchange="TempsRules.setParam(\'' + r.id + '\',this.value)" class="border border-gray-300 rounded px-2 py-0.5 text-[13px] text-center mx-1" style="width:62px">'; }
   function by(id){ return R.filter(function(x){ return x.id === id; })[0]; }
@@ -25200,7 +25208,6 @@ var TempsRules = (function(){
       if(!rule.on) return;
       if(rule.type === 'correction') REQ.filter(function(r){ return r.type === 'correction' && r.statut === 'en_attente'; }).forEach(function(r){ if(matchCorr(r, rule.param) && VAL.auto(r.id, BY + rule.nom)){ rule.count++; n++; } });
       else if(rule.type === 'hs') REQ.filter(function(r){ return r.type === 'hs' && r.statut === 'en_attente'; }).forEach(function(r){ var q = RH.sumHs(r.emp, r.p.week, U.addD(r.p.week, 6)); if(q.hs <= rule.param * 60 && VAL.auto(r.id, BY + rule.nom)){ rule.count++; n++; } });
-      else if(rule.type === 'feuille') REQ.filter(function(r){ return r.type === 'feuille' && r.statut === 'en_attente'; }).forEach(function(r){ var e = U.addD(r.p.week, 6), sa = ACT.data().SAI.filter(function(q){ return q.emp === r.emp && q.date >= r.p.week && q.date <= e; }).reduce(function(a, q){ return a + q.min; }, 0), pt = RH.sumHs(r.emp, r.p.week, e).work; if(pt && Math.round(100 * sa / pt) >= rule.param && VAL.auto(r.id, BY + rule.nom)){ rule.count++; n++; } });
       else if(rule.type === 'double') RH.anomalies().filter(function(a){ return a.kind === 'double'; }).forEach(function(a){ RH.dropPunch(a.empId, a.date, a.pid, 'Doublon supprimé automatiquement', BY + rule.nom); rule.count++; n++; });
     });
     if(n){ try { VAL.refresh(); } catch(e){} }
@@ -25208,12 +25215,12 @@ var TempsRules = (function(){
   }
   function autoCount(){ return VAL.data().HIST.filter(function(h){ return h.by.indexOf(BY) === 0; }).length + R.filter(function(r){ return r.type === 'double'; }).reduce(function(a, r){ return a + r.count; }, 0); }
   function render(h){
-    var tot = autoCount();
-    h.innerHTML = A.head('Circuits de validation', '<button onclick="TempsRules.runNow()" class="' + B1 + '">Appliquer maintenant</button>') + Temps.cirTabsHtml() +
-      '<div class="text-[12.5px] text-gray-500 mb-4">La RH définit ce qu’elle ne veut plus voir : les cas simples se valident seuls, avec une trace dans l’historique, et seules les exceptions arrivent dans « Validations ».</div>' +
-      '<div class="space-y-3 mb-6">' + R.map(function(r){ return '<div class="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between gap-6"><div><div class="flex items-center gap-3 mb-1"><span class="text-[13.5px] font-semibold text-slate-800">' + esc(r.nom) + '</span>' + pill(r.type === 'correction' ? 'Corrections' : r.type === 'hs' ? 'Heures supp.' : r.type === 'feuille' ? 'Feuilles' : 'Pointages', 'bg-gray-100 text-gray-600') + '</div><div class="text-[13px] text-gray-600">' + r.phrase(r) + '</div><div class="text-[11.5px] text-gray-400 mt-1">' + (r.count ? r.count + ' élément' + (r.count > 1 ? 's' : '') + ' traité' + (r.count > 1 ? 's' : '') + ' automatiquement' : 'Aucun élément traité pour l’instant') + '</div></div><div>' + A.sw(r.on, 'TempsRules.tog(\'' + r.id + '\')') + '</div></div>'; }).join('') + '</div>' +
-      '<div class="text-[11px] uppercase tracking-wider text-gray-400 mb-2">Propositions pré-remplies (toujours actives)</div><div class="bg-white border border-gray-200 rounded-xl px-5 py-4 text-[13px] text-gray-600"><ul class="space-y-1.5" style="list-style:disc;padding-left:18px"><li>Sortie oubliée : l’heure de fin du planning est proposée en un clic.</li><li>Entrée oubliée : l’heure de début du planning.</li><li>Jour non pointé : l’horaire habituel ou les heures de l’intervention enregistrée.</li></ul></div>' +
-      (tot ? '<div class="text-[12px] text-gray-400 mt-3">' + tot + ' décision' + (tot > 1 ? 's' : '') + ' automatique' + (tot > 1 ? 's' : '') + ' au total, consultables dans l’historique de « Validations ».</div>' : '');
+    var KIND = { correction:'Corrections', hs:'Heures supp.', jour:'Activités', double:'Pointages' }, UN = { minutes:'min', heures:'h', '%':'%' };
+    var rows = R.map(function(r){
+      var seuil = r.type === 'double' ? '<span class="text-[13px] text-gray-500">5 min</span>' : '<div class="inline-flex items-center gap-2"><input type="number" min="1" value="' + r.param + '" onchange="TempsRules.setParam(\'' + r.id + '\',this.value)" class="' + INP + '" style="width:84px;text-align:center"><span class="text-[12.5px] text-gray-500">' + (UN[r.unit] || r.unit) + '</span></div>';
+      return '<tr class="border-t border-gray-100"><td class="px-4 py-3"><div class="text-[13.5px] text-slate-800 font-medium">' + esc(r.nom) + '</div><div class="mt-1">' + pill(KIND[r.type] || 'Pointages', 'bg-gray-100 text-gray-600') + '</div></td><td class="px-3 py-3">' + seuil + '</td><td class="px-3 py-3 text-[13px] text-slate-800">' + r.count + '</td><td class="px-4 py-3 text-right">' + A.sw(r.on, 'TempsRules.tog(\'' + r.id + '\')') + '</td></tr>';
+    }).join('');
+    h.innerHTML = A.head('Règles automatiques', '') + '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table data-nokit class="w-full text-left"><colgroup><col><col style="width:200px"><col style="width:110px"><col style="width:90px"></colgroup><thead><tr class="' + A.TH + '"><th class="px-4 py-2.5 font-medium">Règle</th><th class="px-3 py-2.5 font-medium">Seuil</th><th class="px-3 py-2.5 font-medium">Traités</th><th class="px-4 py-2.5 font-medium text-right">Actif</th></tr></thead><tbody>' + rows + '</tbody></table></div><i data-nosub hidden></i>';
   }
   function tog(id){ var r = by(id); r.on = !r.on; var n = r.on ? run() : 0; Temps.render('tp-circuits'); refreshInbox(); A.toast(r.on ? 'Règle activée' + (n ? ' : ' + n + ' élément' + (n > 1 ? 's traités' : ' traité') + '.' : '.') : 'Règle désactivée.'); }
   function setParam(id, v){ var r = by(id); r.param = Math.max(1, parseFloat(v) || 1); }
@@ -25473,7 +25480,7 @@ var TempsInd = (function(){
   Object.keys(DEF).forEach(function(k){ var b = nav.querySelector('[data-panel="' + k + '"]'); if(b) b.title = DEF[k]; });
   Object.keys(GRP).forEach(function(k){ var b = nav.querySelector('[data-target="' + k + '"]'); if(b) b.title = GRP[k]; });
   function decorate(panel){
-    var d = DEF[panel.id]; if(!d || NOSUB[panel.id]) return;
+    var d = DEF[panel.id]; if(panel.querySelector('[data-nosub]')){ var xs = panel.querySelector('.def-sub'); if(xs) xs.remove(); return; } if(!d || NOSUB[panel.id]) return;
     var h1 = panel.querySelector('h1'); if(!h1) return;
     var head = h1.parentElement; if(!/justify-between|items-start/.test(head.className)) head = head.parentElement;
     if(!head || head.previousElementSibling) return;            /* écrans de détail : un lien « retour » précède l'en-tête */
