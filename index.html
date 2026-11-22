@@ -3011,7 +3011,6 @@ renderAppLauncher();
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-ind-groupes">Groupes</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-pointeuses">Pointeuses</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-sync">Synchronisations</button>
-          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-int-types">Types d’intervention</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-taches">Catégories</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-circuits">Circuits de validation</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-circ-regles">Règles automatiques</button>
@@ -5434,7 +5433,6 @@ renderAppLauncher();
         <section class="panel" id="tp-sync"><div id="sy-h-sync"></div></section>
         <section class="panel" id="tp-cloture"><div id="cl-h-clot"></div></section>
         <section class="panel" id="tp-hs"><div id="hs-h-hs"></div></section>
-        <section class="panel" id="tp-int-types"><div id="ti-h-types"></div></section>
         <section class="panel" id="tp-ind-etat"><div id="tn-h-etat"></div></section>
         <section class="panel" id="tp-ind-regles"><div id="tn-h-regles"></div></section>
         <section class="panel" id="tp-ind-groupes"><div id="tn-h-groupes"></div></section>
@@ -22324,11 +22322,11 @@ var Temps = (function(){
   ];
   var KINDS = [['nplus', 'Supérieur hiérarchique (N+k) · par e-mail'], ['personne', 'Personne nommée · par e-mail'], ['role', 'Rôle (profil)'], ['rh', 'Responsable RH'], ['user', 'Utilisateur désigné']];
   var ROLES = ['Responsable RH', 'Direction', 'Responsable paie', 'Contrôle de gestion'];
-  var FAMS = { correction:'Corrections de pointage', hs:'Heures supplémentaires', feuille:'Feuilles de temps', echange:'Échanges de shift', absence:'Absences (sans Soft e-RH)' };
+  var FAMS = { correction:'Corrections de pointage', hs:'Heures supplémentaires', activites:'Activités du jour', echange:'Échanges de shift', absence:'Absences (sans Soft e-RH)' };
   var CIR = [
     { id:'c1', nom:'Corrections de pointage', famille:'correction', etapes:[{ k:'nplus', v:1 }], relance:2, escalade:5, vacance:true, deleg:true, actif:true },
     { id:'c2', nom:'Heures supplémentaires', famille:'hs', etapes:[{ k:'nplus', v:1 }, { k:'rh', v:'' }], relance:2, escalade:4, vacance:true, deleg:true, actif:true },
-    { id:'c3', nom:'Feuilles de temps', famille:'feuille', etapes:[{ k:'nplus', v:1 }, { k:'rh', v:'' }], relance:3, escalade:7, vacance:true, deleg:true, actif:true },
+    { id:'c3', nom:'Activités du jour', famille:'activites', etapes:[{ k:'nplus', v:1 }], relance:1, escalade:3, vacance:true, deleg:true, actif:true },
     { id:'c4', nom:'Absences', famille:'absence', etapes:[{ k:'nplus', v:1 }, { k:'rh', v:'' }], relance:2, escalade:5, vacance:true, deleg:true, actif:true },
 { id:'c5', nom:'Échanges de shift', famille:'echange', etapes:[{ k:'nplus', v:1 }, { k:'rh', v:'' }], relance:2, escalade:5, vacance:true, deleg:true, actif:true }
   ];
@@ -24106,7 +24104,7 @@ if(r.type === 'echange'){ RH.swapShift(r.emp, p.with, p.date); return; }
       var ql = RH.sumHs(x.id, last, weekEnd(last)); if(ql.hs > 0) mk({ type:'hs', emp:x.id, p:{ week:last }, step:i % 2, at:ago(2) });
     });
     var ws = ACT.api.weekState();
-    Object.keys(ws).forEach(function(k){ if(ws[k] === 'soumise'){ var a = k.split('|'); mk({ type:'feuille', emp:a[0], p:{ week:a[1] }, step:hashN(k) % 2, at:ago(1) }); } });
+    Object.keys(ws).forEach(function(k){ if(ws[k] === 'soumise') ws[k] = 'validee'; });
     REQ.filter(function(r){ return r.type === 'feuille' && r.statut === 'en_attente'; }).forEach(function(r){ r.step = 0; r.at = ago(8); });
     REQ.filter(function(r){ return r.type === 'hs' && r.statut === 'en_attente'; }).forEach(function(r, i){ if(i < 2){ r.step = 0; r.at = ago(i ? 3 : 5); } });
     ACT.data().PRO.length; var tech = Object.keys(ws).filter(function(k){ return ws[k] === 'validee'; }).slice(0, 3);
@@ -24471,7 +24469,7 @@ var TempsPortal = (function(){
       var pl = RH.planFor(emp, a.date), d = U.JN[U.dow(a.date) - 1] + ' ' + dsh(a.date);
       if(a.kind === 'sortie_manquante'){ var po = RH.proposeOut(emp, a.date), tt = po.t; out.push(card('text-amber-500', 'Sortie oubliée le ' + d + ' : confirmer <b>' + tt + '</b> ?' + (po.src.indexOf('intervention') > -1 ? ' <span class="text-gray-400">(' + esc(po.src) + ')</span>' : ''), b('Modifier', 'TempsPortal.corrAsk(\'' + a.date + '\',\'sortie_manquante\')') + b('Confirmer', 'TempsPortal.quickCorr(\'' + a.date + '\',\'sortie\',\'' + tt + '\')', true))); }
       else if(a.kind === 'entree_manquante'){ var te = pl ? pl.debut : '08:00'; out.push(card('text-amber-500', 'Entrée oubliée le ' + d + ' : confirmer <b>' + te + '</b> ?', b('Modifier', 'TempsPortal.corrAsk(\'' + a.date + '\',\'entree_manquante\')') + b('Confirmer', 'TempsPortal.quickCorr(\'' + a.date + '\',\'entree\',\'' + te + '\')', true))); }
-      else if(a.kind === 'absence_non_justifiee'){ out.push(card('text-red-500', 'Aucun pointage le ' + d + ' : absence ou intervention ?', b('Absence', 'TempsPortal.demAsk(\'absence\')') + b('Journée non pointée', 'TempsPortal.corrAsk(\'' + a.date + '\',\'absence_non_justifiee\')') + (A.aff(emp).act ? b('Intervention', 'TempsInter.formAsk(\'' + emp + '\')', true) : ''))); }
+      else if(a.kind === 'absence_non_justifiee'){ out.push(card('text-red-500', 'Aucun pointage le ' + d + ' : que s’est-il passé ?', b('Absence', 'TempsPortal.demAsk(\'absence\')') + b('Journée non pointée', 'TempsPortal.corrAsk(\'' + a.date + '\',\'absence_non_justifiee\')'))); }
     });
     if(window.TempsInter) TempsInter.list().filter(function(i){ return i.emp === emp; }).forEach(function(i){
       if(i.statut === 'a_relire') out.push(card('text-sky-500', 'Compte rendu <b>' + esc(i.ref) + '</b> à relire avant transmission' + (i.refus ? ' <span class="text-amber-600">(renvoyé par le N+1 : ' + esc(i.refus) + ')</span>' : ''), b('Relire', 'TempsInter.relire(\'' + i.id + '\')', true)));
@@ -24600,7 +24598,7 @@ function dvEmail(){
     '<p class="text-[13px] text-gray-700 mb-3">Bonjour ' + esc(mg) + ',<br><br><b>' + esc(who) + '</b> a envoyé ses activités du <b>' + longDate(d) + '</b> (' + fh(tot) + ' au total). Validez ou refusez chaque activité :</p>' +
     '<div class="bg-gray-50 border border-gray-200 rounded-md px-4 mb-4" style="padding-top:0;padding-bottom:0">' + rows + '</div>' +
     (pend.length ? '<button type="button" onclick="TempsPortal.dvEmailAll()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-md py-2.5 text-[13px] font-medium">✓ Tout valider (' + pend.length + ')</button>' : '<div class="rounded-md border border-gray-200 bg-white text-gray-600 text-[12.5px] px-3 py-2">Toutes les activités de cette journée ont reçu une décision.</div>') +
-    '<p class="text-[11.5px] text-gray-400 mt-4">Ce lien est personnel et à usage unique, valable 72 h : aucune connexion n’est nécessaire. Un refus est signalé en rouge au salarié, qui corrige ou commente.</p>';
+    '<p class="text-[11.5px] text-gray-400 mt-4">Ce lien est personnel et à usage unique, valable 72 h : aucune connexion n’est nécessaire. Un refus est signalé en rouge au salarié, qui corrige ou commente.' + (function(){ var cc = (A.CIR || []).filter(function(c){ return c.famille === 'activites'; })[0]; return cc ? ' Sans réponse, vous recevez une relance après ' + cc.relance + ' jour' + (cc.relance > 1 ? 's' : '') + ', puis la RH est prévenue après ' + cc.escalade + ' jours.' : ''; })() + '</p>';
 }
 function longDate(d){ var x = new Date(d + 'T12:00:00'); return ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][x.getDay()] + ' ' + dsh(d); }
 function dvEmailOk(id){ dvApprove(id); DE.no = ''; dvEmail(); renderAll(); }
@@ -25169,7 +25167,7 @@ var TempsInter = (function(){
   var HOSTS = { 'tp-int-types':['ti-h-types', renderTypes] };
   function render(id){ var hh = HOSTS[id]; if(!hh || !$(hh[0])) return; hh[1]($(hh[0])); }
   (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-int-types') V.tdraft = null; var r = sp.apply(this, arguments); if(HOSTS[id]) render(id); return r; }; })();
-  RH.setInt(provider); seed();
+  RH.setInt(provider);
   return { provider:provider, inbox:inbox, myHtml:myHtml, formAsk:formAsk, formType:formType, formGo:formGo, relire:relire, sendOk:sendOk, edit:edit, editGo:editGo, sendNow:sendNow, cancelProg:cancelProg, crView:crView, n1Ask:n1Ask, n1No:n1No, n1Go:n1Go, waiting:waiting, decide:decide,
     tNew:tNew, tOpen:tOpen, tTog:tTog, tStepAdd:tStepAdd, tStepDel:tStepDel, overMin:overMin, tBack:tBack, tSave:tSave, tDel:tDel, render:render, list:function(){ return INT; }, types:function(){ return TYP; } };
 })();
