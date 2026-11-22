@@ -24477,7 +24477,7 @@ function wkMon(){ return JW || U.monday(U.today()); }
 function jwNav(n){ var m = U.addD(wkMon(), 7 * n), cur = U.monday(U.today()); JW = m > cur ? cur : m; renderJournee(); }
 function catName(id){ var c = ACT.data().CAT.filter(function(z){ return z.id === id; })[0]; return c ? c.nom : '—'; }
 function catsRapides(){ var C = ACT.data().CAT; return ['k8', 'k9', 'k7'].map(function(i){ return C.filter(function(c){ return c.id === i; })[0]; }).filter(Boolean); }
-function daySai(emp, d){ return ACT.data().SAI.filter(function(q){ return q.emp === emp && q.date === d; }); }
+function daySai(emp, d){ if(window.TempsPlan) TempsPlan.ensure(emp); return ACT.data().SAI.filter(function(q){ return q.emp === emp && q.date === d; }); }
 function jwState(emp, d){
   var r = RH.day(emp, d), t = U.today(), sai = daySai(emp, d), tot = sai.reduce(function(a, q){ return a + q.min; }, 0), pt = r.in != null || r.worked > 0, st;
   if(!r.pl && !pt && !r.ab && !sai.length) return null;
@@ -25552,6 +25552,27 @@ var TempsPlan = (function(){
     }
     var b = boss(emp);
     if(b){ var d2 = U.addD(t, d0(t) < 4 ? 1 : 0); add({ emp:emp, date:d2 > U.addD(m, 4) ? t : d2, titre:'Préparer la réunion de service', cat:'k2', plan:90, by:b, note:'À présenter à l’équipe.', urg:(h % 3 === 0 ? 'urgente' : 'haute') }); }
+    try { seedSai(emp); } catch(e){}
+  }
+  /* activités réellement réalisées : une saisie par tâche terminée, pour que « Mon temps réalisé » montre ce qui a été fait */
+  function seedSai(emp){
+    var D = ACT.data(); if(D.SAI.some(function(q){ return q.emp === emp; })) return;
+    var t = U.today(), m = U.monday(t), WKS = ACT.api.weekState(), byDay = {};
+    TASKS.filter(function(x){ return x.emp === emp && !x.pause && x.date < t && x.st === 'done'; }).forEach(function(x){ (byDay[x.date] = byDay[x.date] || []).push(x); });
+    var h = 0; String(emp).split('').forEach(function(c){ h = (h * 31 + c.charCodeAt(0)) | 0; }); h = Math.abs(h);
+    Object.keys(byDay).sort().forEach(function(d){
+      var L = byDay[d], r = RH.day(emp, d), worked = r.worked || 0, wk = U.monday(d), cur = wk === m, dw = U.dow(d), ratio = 0.97, k;
+      if(cur && dw === 4){ L.forEach(function(x){ x.st = 'todo'; x.real = 0; x.log = []; x.mv = null; }); return; }
+      if(cur && dw === 3) ratio = 0.62;
+      if(worked && cur && dw <= 2) while(L.length < 4){ var p = DEMO[(h + L.length * 3 + dw) % DEMO.length]; L.push(add({ emp:emp, date:d, titre:p[0], cat:p[1], plan:p[2], st:'done', real:p[2], log:[] })); }
+      if(worked){
+        var target = Math.max(15 * L.length, Math.round(worked * ratio / 15) * 15), sum = L.reduce(function(a, x){ return a + x.real; }, 0) || 1, left = target;
+        L.forEach(function(x, i){ x.real = i === L.length - 1 ? Math.max(15, left) : Math.max(15, Math.round(x.real * target / sum / 15) * 15); left -= x.real; });
+      }
+      var s0 = 510; L.forEach(function(x){ x.log = [{ k:'start', at:tsAt(d, s0) }, { k:'end', at:tsAt(d, s0 + x.real) }]; s0 += x.real + 10; });
+      L.forEach(function(x){ var id = 'sp' + (seq++); D.SAI.push({ id:id, emp:emp, date:d, projet:null, tache:ACT.api.taskFor(x.cat, null), min:x.real, note:x.titre, src:'manuel' }); x.sai = id; });
+      var key = emp + '|' + wk; if(!WKS[key]) WKS[key] = cur ? 'brouillon' : 'validee';
+    });
   }
   function d0(d){ var x = new Date(d + 'T12:00:00').getDay(); return x === 0 ? 6 : x - 1; }
   function mine(emp, from, to){ ensure(emp); return TASKS.filter(function(x){ return x.emp === emp && !x.pause && x.date >= from && x.date <= to; }).sort(function(a, b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : (rank(a) - rank(b) || ordOf(a) - ordOf(b)); }); }
@@ -25956,7 +25977,7 @@ var TempsPlan = (function(){
   function refresh(){ try { TempsPortal.renderAll(); } catch(e){} renderTeam(); drawPill(); }
   [].slice.call(document.querySelectorAll('.erh-portal-tab[data-erh-portal="erhp-taches"]')).forEach(function(b){ b.addEventListener('click', renderTeam); });
   var sh = $('portal-employes-shell'); if(sh && window.MutationObserver) new MutationObserver(drawPill).observe(sh, { attributes:true, attributeFilter:['class', 'style'] });
-  return { mvShow:mvShow, mvSave:mvSave, mvAllSet:mvAllSet, moveT:moveT, reprAsk:reprAsk, reprGo:reprGo, dayOpen:dayOpen, dayBack:dayBack, mvOk:mvOk, mvAll:mvAll, mvRefAsk:mvRefAsk, mvRefGo:mvRefGo, mine:mine, myHtml:myHtml, validateDay:validateDay, weekHtml:weekHtml, nToday:nToday, isMgr:isMgr, team:team, begin:begin, pause:pause, finishAsk:finishAsk, finish:finish, more:more, simulate:simulate, nav:nav, navT:navT, del:del, delT:delT, addAsk:addAsk, addGo:addGo, togDay:togDay, assignAsk:assignAsk, assignGo:assignGo, togAll:togAll, syncAll:syncAll, renderTeam:renderTeam, refresh:refresh, mineP:mineP, whoTog:whoTog, recToggle:recToggle, tplPick:tplPick, tplDel:tplDel, delGo:delGo, capOf:capOf, capLine:capLine, pauseAsk:pauseAsk, pauseGo:pauseGo, endPause:endPause, otherAsk:otherAsk, otherGo:otherGo, nextAsk:nextAsk, nextGo:nextGo, tasks:function(){ return TASKS; } };
+  return { mvShow:mvShow, mvSave:mvSave, mvAllSet:mvAllSet, moveT:moveT, reprAsk:reprAsk, reprGo:reprGo, dayOpen:dayOpen, dayBack:dayBack, mvOk:mvOk, mvAll:mvAll, mvRefAsk:mvRefAsk, mvRefGo:mvRefGo, mine:mine, myHtml:myHtml, validateDay:validateDay, weekHtml:weekHtml, nToday:nToday, isMgr:isMgr, team:team, begin:begin, pause:pause, finishAsk:finishAsk, finish:finish, more:more, simulate:simulate, nav:nav, navT:navT, del:del, delT:delT, addAsk:addAsk, addGo:addGo, togDay:togDay, assignAsk:assignAsk, assignGo:assignGo, togAll:togAll, syncAll:syncAll, renderTeam:renderTeam, refresh:refresh, ensure:ensure, mineP:mineP, whoTog:whoTog, recToggle:recToggle, tplPick:tplPick, tplDel:tplDel, delGo:delGo, capOf:capOf, capLine:capLine, pauseAsk:pauseAsk, pauseGo:pauseGo, endPause:endPause, otherAsk:otherAsk, otherGo:otherGo, nextAsk:nextAsk, nextGo:nextGo, tasks:function(){ return TASKS; } };
 })();
 try { TempsPortal.view('planning'); TempsPlan.refresh(); } catch(e){}
 
