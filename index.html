@@ -1235,6 +1235,10 @@ table[data-nokit] button[class*="ring-amber"]{ box-shadow:0 0 0 2px var(--gold-4
 .mj-side{ display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
 .mj-btn{ height:40px; min-height:40px !important; padding:0 16px !important; border:1px solid var(--navy-700) !important; border-radius:8px !important; background:var(--navy-700); color:#fff !important; font-weight:700; font-size:14px; white-space:nowrap; } .mj-btn:hover{ background:var(--navy-800); } .mj-btn.sec{ background:#fff; color:var(--n-700) !important; border-color:var(--n-200) !important; } .mj-btn.sec:hover{ background:var(--n-100); }
 .mj-link{ background:none; border:0 !important; padding:0 !important; min-height:0 !important; color:var(--navy-700) !important; font-weight:600; font-size:13px; } .mj-link:hover{ text-decoration:underline; }
+.mj-did em{ font-style:normal; font-size:11px; font-weight:700; margin-left:8px; opacity:.85; }
+.mj-did.v-brouillon{ background:#F1F5F9 !important; border-color:#CBD5E1 !important; color:#475569 !important; } .mj-did.v-envoye{ background:#E0ECFF !important; border-color:#9DB7F5 !important; color:#1E3A8A !important; } .mj-did.v-valide{ background:#DCFCE7 !important; border-color:#86EFAC !important; color:#166534 !important; } .mj-did.v-refuse{ background:#FEE2E2 !important; border-color:#F87171 !important; color:#B91C1C !important; }
+.mj-refs{ display:flex; flex-direction:column; gap:8px; margin-top:12px; } .mj-ref{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:10px 14px; border-radius:10px; background:#FEF2F2; border:1px solid #FECACA; } .mj-ref-t{ display:flex; flex-direction:column; gap:2px; min-width:0; } .mj-ref-t b{ font-size:13.5px; color:#991B1B; } .mj-ref-t span{ font-size:12.5px; color:#B91C1C; } .mj-ref-t i{ font-style:normal; font-size:12.5px; color:#475569; } .mj-ref-a{ display:flex; gap:8px; }
+.mj-day.refus{ border-color:#FCA5A5; box-shadow:0 0 0 2px rgba(239,68,68,.12); } .mj-side .mj-btn{ min-width:112px; justify-content:center; }
 .mj-foot{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-top:20px; padding:16px 20px; background:#fff; border:1px solid var(--n-200); border-radius:12px; } .mj-foot .pe-btn:disabled{ opacity:.45; cursor:not-allowed; }
 .mj-empty{ text-align:center; padding:40px 24px; background:#fff; border:1px dashed var(--n-300); border-radius:12px; color:var(--n-600); }
 .mj-le{ display:grid; grid-template-columns:1.2fr 90px 1.4fr 28px; gap:12px; align-items:end; margin-bottom:12px; } .mj-x{ color:var(--n-300); min-height:0 !important; padding:0 !important; border:0 !important; height:44px; } .mj-x:hover{ color:#BE123C; }
@@ -2641,6 +2645,7 @@ function selectEmailTemplate(key){
     document.getElementById('epconge-demande-info-wrap').classList.add('hidden');
   }
   if(key === 'temps-manager' && window.TempsLien) TempsLien.renderEmail();
+  if(key === 'temps-jour' && window.TempsPortal) TempsPortal.dvEmail();
 if(key === 'formulaire-distance'){
     document.getElementById('efd-etat-questions').classList.remove('hidden');
     document.getElementById('efd-etat-confirme').classList.add('hidden');
@@ -6381,6 +6386,11 @@ renderAppLauncher();
 <div class="text-[12.5px] text-slate-700 font-medium mb-0.5">⏱️ Demandes à valider (manager)</div>
 <div class="text-[11.5px] text-gray-400 truncate">Des demandes de votre équipe attendent votre validation...</div>
 </button>
+<button onclick="selectEmailTemplate('temps-jour')" class="email-item w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50" data-email="temps-jour">
+<div class="flex items-center justify-between mb-0.5"><span class="text-[12.5px] font-semibold text-slate-800">SoftTime</span><span class="text-[10.5px] text-gray-400">Interactif</span></div>
+<div class="text-[12.5px] text-slate-700 font-medium mb-0.5">✅ Activités du jour à valider (manager)</div>
+<div class="text-[11.5px] text-gray-400 truncate">Validez ou refusez chaque activité de la journée d’un salarié...</div>
+</button>
 <button onclick="selectEmailTemplate('document')" class="email-item w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50" data-email="document">
           <div class="flex items-center justify-between mb-0.5"><span class="text-[12.5px] font-semibold text-slate-800">SoftERH</span><span class="text-[10.5px] text-gray-400">Auto</span></div>
           <div class="text-[12.5px] text-slate-700 font-medium mb-0.5">📄 Document prêt (salarié)</div>
@@ -6475,7 +6485,18 @@ renderAppLauncher();
           </div>
         </div>
 
-        <div class="max-w-xl mx-auto py-8 px-6 hidden" id="email-preview-temps-manager">
+        <div class="max-w-xl mx-auto py-8 px-6 hidden" id="email-preview-temps-jour">
+<div class="text-[11px] text-gray-400 mb-3">SoftTime — envoyé au manager quand un salarié envoie les activités d’une journée : chaque activité se valide ou se refuse directement dans l’e-mail</div>
+<div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+<div class="px-5 py-4 text-[12.5px] text-gray-500 border-b border-gray-100">
+<div><span class="text-gray-400">De :</span> SoftTime &lt;noreply@softwell.mg&gt;</div>
+<div><span class="text-gray-400">À :</span> <span id="etj-to"></span></div>
+<div><span class="text-gray-400">Objet :</span> <span id="etj-obj"></span></div>
+</div>
+<div class="px-5 py-5" id="etj-body"></div>
+</div>
+</div>
+<div class="max-w-xl mx-auto py-8 px-6 hidden" id="email-preview-temps-manager">
 <div class="text-[11px] text-gray-400 mb-3">SoftTime — envoyé au manager quand une demande de son équipe attend sa validation (puis en relance)</div>
 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
 <div class="px-5 py-4 text-[12.5px] text-gray-500 border-b border-gray-100">
@@ -24497,13 +24518,114 @@ function jwStats(emp){
   for(var i = 0; i < 7; i++){ var d = U.addD(mon, i); if(d > U.today()) break; var X = jwState(emp, d); if(!X) continue; days++; if(X.need) todo++; work += X.r.worked; }
   return { todo:todo, work:work, days:days };
 }
+/* ---------- validation journalière des activités (envoi par le salarié, décision du manager) ---------- */
+function sv(q){ if(q.vs) return q.vs; var w = ACT.api.weekState()[q.emp + '|' + U.monday(q.date)]; return w === 'validee' ? 'valide' : w === 'soumise' ? 'envoye' : 'brouillon'; }
+function isDraft(q){ return sv(q) === 'brouillon'; }
+function dayV(emp, d){
+  var S = daySai(emp, d); if(!S.length) return 'vide'; var v = S.map(sv);
+  if(v.indexOf('refuse') > -1) return 'refuse'; if(v.indexOf('brouillon') > -1) return 'brouillon';
+  return v.every(function(x){ return x === 'valide'; }) ? 'valide' : 'envoye';
+}
+function weekDays(emp, mon){ var o = []; for(var i = 0; i < 7; i++){ var d = U.addD(mon, i); if(d > U.today()) break; o.push(d); } return o; }
+function weekBadge(emp, mon){
+  var D2 = weekDays(emp, mon), S = D2.map(function(d){ return dayV(emp, d); }), todo = D2.some(function(d){ var X = jwState(emp, d); return X && X.need; }), act = S.filter(function(x){ return x !== 'vide'; });
+  if(S.indexOf('refuse') > -1) return ['À corriger', 'b-er'];
+  if(act.length && !todo && act.every(function(x){ return x === 'valide'; })) return ['Validée', 'b-ok'];
+  if(act.indexOf('envoye') > -1 && act.indexOf('brouillon') < 0 && !todo) return ['En validation', 'b-in'];
+  return ['En cours', 'b-wn'];
+}
+function weekValid(emp, mon){ return weekDays(emp, mon).filter(function(d){ return dayV(emp, d) === 'valide'; }).length; }
+function bossId(emp){ try { return TempsPlan.boss(emp) || null; } catch(e){ return null; } }
+function bossName(emp){ var b = bossId(emp); return b ? U.nom(b) : 'Votre manager'; }
+function findSai(id){ return ACT.data().SAI.filter(function(q){ return q.id === id; })[0]; }
+function planOf(q){ try { return TempsPlan.tasks().filter(function(x){ return x.sai === q.id; })[0]; } catch(e){ return null; } }
+function taskTitle(q){ var tk = ACT.data().TAC.filter(function(z){ return z.id === q.tache; })[0]; return (tk ? catName(tk.cat) : 'Activité') + (q.note ? ' · ' + q.note : ''); }
+function dvSend(d){
+  var emp = me(), n = 0;
+  daySai(emp, d).forEach(function(q){ if(sv(q) === 'brouillon'){ q.vs = 'envoye'; q.vat = Date.now(); n++; var x = planOf(q); if(x) x.mv = null; } });
+  if(!n) return; try { TempsPlan.markDay(emp, d); } catch(e){}
+  A.toast('Journée du ' + dsh(d) + ' envoyée à ' + bossName(emp) + '.'); try { ACT.api.render(); } catch(e){} renderAll();
+}
+function dvApprove(id, by){
+  var q = findSai(id); if(!q) return; q.vs = 'valide'; q.vby = by || bossName(q.emp); q.vat = Date.now();
+  var x = planOf(q); if(x){ x.mv = 'ok'; x.mvMin = q.min; x.mvPartial = false; x.mvBy = bossId(q.emp) || me(); x.mvAt = Date.now(); }
+}
+function dvRefuse(id, motif, by){
+  var q = findSai(id); if(!q) return; q.vs = 'refuse'; q.vmotif = motif; q.vby = by || bossName(q.emp); q.vcom = ''; q.vat = Date.now();
+  var x = planOf(q); if(x){ x.mv = 'refused'; x.mvMotif = motif; x.mvBy = bossId(q.emp) || me(); }
+}
+function dvFix(id){
+  var q = findSai(id); if(!q) return; var tk = ACT.data().TAC.filter(function(z){ return z.id === q.tache; })[0], cur = tk ? tk.cat : 'k8';
+  A.modal('<div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-semibold text-slate-800">Corriger l’activité</h3><button onclick="Temps.closeM()" class="text-gray-400 text-xl leading-none">×</button></div><div style="font-size:12.5px;color:#B91C1C;margin-bottom:12px">Refusée par ' + esc(q.vby || 'votre manager') + ' : « ' + esc(q.vmotif || '') + ' »</div><div class="grid grid-cols-2 gap-4" style="align-items:end"><div>' + A.lab('Catégorie') + '<select id="dv-c" class="' + INP + '">' + ACT.data().CAT.filter(function(c){ return c.actif !== false; }).map(function(c){ return '<option value="' + c.id + '"' + (c.id === cur ? ' selected' : '') + '>' + esc(c.nom) + '</option>'; }).join('') + '</select></div><div>' + A.lab('Durée (h)') + '<input id="dv-h" type="number" min="0.25" step="0.25" value="' + (q.min / 60) + '" class="' + INP + '"></div></div><div class="mt-3">' + A.lab('Intitulé') + '<input id="dv-n" value="' + esc(q.note || '') + '" class="' + INP + '"></div><div id="dv-err" class="text-[12px] text-red-600 mt-2"></div><div class="flex justify-end gap-2 mt-5"><button onclick="Temps.closeM()" class="' + A.B2 + '">Annuler</button><button onclick="TempsPortal.dvFixGo(\'' + id + '\')" class="' + A.B1 + '">Enregistrer</button></div>', 480);
+}
+function dvFixGo(id){
+  var q = findSai(id); if(!q) return; var h = parseFloat($('dv-h').value); if(!h || h < 0.25){ $('dv-err').textContent = 'Indiquez au moins 0,25 h.'; return; }
+  var cat = $('dv-c').value; q.tache = ACT.api.taskFor(cat, null); q.min = Math.round(h * 4) * 15; q.note = $('dv-n').value.trim(); q.vs = 'brouillon';
+  var x = planOf(q); if(x){ x.real = q.min; x.cat = cat; x.mv = null; }
+  A.closeM(); try { ACT.api.render(); } catch(e){} renderAll(); A.toast('Corrigé : envoyez la journée pour la soumettre de nouveau.');
+}
+function dvCom(id){
+  var q = findSai(id); if(!q) return;
+  A.modal('<div class="flex items-center justify-between mb-2"><h3 class="text-[15px] font-semibold text-slate-800">Commenter</h3><button onclick="Temps.closeM()" class="text-gray-400 text-xl leading-none">×</button></div><div style="font-size:12.5px;color:#B91C1C;margin-bottom:12px">' + esc(taskTitle(q)) + ' · ' + fh(q.min) + ' — refusée : « ' + esc(q.vmotif || '') + ' »</div>' + A.lab('Votre commentaire pour ' + esc(q.vby || 'votre manager')) + '<textarea id="dv-t" rows="4" class="' + INP + '"></textarea><div id="dv-err" class="text-[12px] text-red-600 mt-2"></div><div class="flex justify-end gap-2 mt-5"><button onclick="Temps.closeM()" class="' + A.B2 + '">Annuler</button><button onclick="TempsPortal.dvComGo(\'' + id + '\')" class="' + A.B1 + '">Envoyer le commentaire</button></div>', 480);
+}
+function dvComGo(id){
+  var q = findSai(id); if(!q) return; var t = ($('dv-t').value || '').trim(); if(!t){ $('dv-err').textContent = 'Écrivez un commentaire.'; return; }
+  q.vcom = t; q.vs = 'envoye'; q.vat = Date.now(); var x = planOf(q); if(x) x.mv = null;
+  A.closeM(); try { ACT.api.render(); } catch(e){} renderAll(); A.toast('Commentaire envoyé à ' + bossName(q.emp) + '.');
+}
+/* modèle d'e-mail interactif : le manager valide ou refuse chaque activité du jour */
+var DE = { key:'', no:'' };
+function dvCands(){
+  var from = U.addD(U.today(), -21), g = {};
+  ACT.data().SAI.forEach(function(q){ if(!q.vs || q.date < from) return; var k = q.emp + '|' + q.date; g[k] = g[k] || { k:k, d:q.date, e:0 }; if(q.vs === 'envoye') g[k].e++; });
+  return Object.keys(g).map(function(k){ return g[k]; }).sort(function(a, b){ return (b.e ? 1 : 0) - (a.e ? 1 : 0) || (a.d < b.d ? 1 : -1); }).slice(0, 8).map(function(x){ return x.k; });
+}
+function dvEmailPick(k){ DE.key = k; DE.no = ''; dvEmail(); }
+function dvEmail(){
+  var host = $('etj-body'); if(!host) return; var C = dvCands();
+  if(!C.length){ $('etj-to').textContent = '—'; $('etj-obj').textContent = 'Aucune journée envoyée'; host.innerHTML = '<p class="text-[13px] text-gray-500">Aucune journée n’a été envoyée. Envoyez une journée depuis « Mon temps réalisé » du portail salarié.</p>'; return; }
+  if(!DE.key || C.indexOf(DE.key) < 0) DE.key = C[0];
+  var p = DE.key.split('|'), emp = p[0], d = p[1], S = daySai(emp, d).filter(function(q){ return q.vs; }), mg = bossName(emp), who = U.nom(emp), pend = S.filter(function(q){ return q.vs === 'envoye'; }), tot = S.reduce(function(a, q){ return a + q.min; }, 0);
+  $('etj-to').textContent = mg; $('etj-obj').textContent = 'Validation requise — activités du ' + dsh(d) + ' de ' + who;
+  var sel = '<select onchange="TempsPortal.dvEmailPick(this.value)" class="border border-gray-200 rounded-md px-2 py-1 text-[12px] text-gray-600 bg-white">' + C.map(function(k){ var a = k.split('|'); return '<option value="' + k + '"' + (k === DE.key ? ' selected' : '') + '>' + esc(U.nom(a[0])) + ' · ' + dsh(a[1]) + '</option>'; }).join('') + '</select>';
+  var rows = S.map(function(q){
+    var v = q.vs, right;
+    if(v === 'valide') right = '<span class="badge b-ok">✓ Validée</span>';
+    else if(v === 'refuse') right = '<span class="badge b-er">✕ Refusée</span>';
+    else right = '<button type="button" onclick="TempsPortal.dvEmailAskNo(\'' + q.id + '\')" class="border border-red-300 text-red-600 bg-white hover:bg-red-50 rounded-md px-3 py-1.5 text-[12.5px] font-medium">✕ Refuser</button><button type="button" onclick="TempsPortal.dvEmailOk(\'' + q.id + '\')" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md px-3 py-1.5 text-[12.5px] font-medium">✓ Valider</button>';
+    var extra = (v === 'refuse' ? '<div style="font-size:12px;color:#B91C1C;margin-top:4px">Motif : « ' + esc(q.vmotif || '') + ' »</div>' : '') + (q.vcom ? '<div style="font-size:12px;color:#475569;margin-top:4px">Commentaire de ' + esc(who) + ' : « ' + esc(q.vcom) + ' »</div>' : '') + (DE.no === q.id ? '<div style="display:flex;gap:8px;margin-top:8px"><input id="etj-m" placeholder="Motif du refus" class="flex-1 border border-gray-200 rounded-md px-3 py-1.5 text-[12.5px]"><button type="button" onclick="TempsPortal.dvEmailNo(\'' + q.id + '\')" class="bg-red-600 hover:bg-red-700 text-white rounded-md px-3 py-1.5 text-[12.5px] font-medium">Confirmer le refus</button></div><div id="etj-err" style="font-size:12px;color:#DC2626;margin-top:4px"></div>' : '');
+    return '<div style="padding:12px 0;border-top:1px solid #E5E7EB"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><div style="font-size:13px;font-weight:600;color:#0B1332">' + esc(taskTitle(q)) + '</div><div style="font-size:12px;color:#64748B">' + fh(q.min) + '</div></div><div style="display:flex;gap:8px;align-items:center">' + right + '</div></div>' + extra + '</div>';
+  }).join('');
+  host.innerHTML = '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;gap:8px;align-items:center"><span style="font-size:11px;color:#94A3B8">Aperçu de la démo</span>' + sel + '</div>' +
+    '<p class="text-[13px] text-gray-700 mb-3">Bonjour ' + esc(mg) + ',<br><br><b>' + esc(who) + '</b> a envoyé ses activités du <b>' + longDate(d) + '</b> (' + fh(tot) + ' au total). Validez ou refusez chaque activité :</p>' +
+    '<div class="bg-gray-50 border border-gray-200 rounded-md px-4 mb-4" style="padding-top:0;padding-bottom:0">' + rows + '</div>' +
+    (pend.length ? '<button type="button" onclick="TempsPortal.dvEmailAll()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-md py-2.5 text-[13px] font-medium">✓ Tout valider (' + pend.length + ')</button>' : '<div class="rounded-md border border-gray-200 bg-white text-gray-600 text-[12.5px] px-3 py-2">Toutes les activités de cette journée ont reçu une décision.</div>') +
+    '<p class="text-[11.5px] text-gray-400 mt-4">Ce lien est personnel et à usage unique, valable 72 h : aucune connexion n’est nécessaire. Un refus est signalé en rouge au salarié, qui corrige ou commente.</p>';
+}
+function longDate(d){ var x = new Date(d + 'T12:00:00'); return ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][x.getDay()] + ' ' + dsh(d); }
+function dvEmailOk(id){ dvApprove(id); DE.no = ''; dvEmail(); renderAll(); }
+function dvEmailAskNo(id){ DE.no = id; dvEmail(); var i = $('etj-m'); if(i) i.focus(); }
+function dvEmailNo(id){ var m = ($('etj-m').value || '').trim(); if(!m){ $('etj-err').textContent = 'Indiquez le motif du refus.'; return; } dvRefuse(id, m); DE.no = ''; dvEmail(); renderAll(); }
+function dvEmailAll(){ var p = DE.key.split('|'); daySai(p[0], p[1]).filter(function(q){ return q.vs === 'envoye'; }).forEach(function(q){ dvApprove(q.id); }); DE.no = ''; dvEmail(); renderAll(); }
+
 function jwRow(emp, d, X, locked){
   var r = X.r, t = U.today(), st = X.st, pl = r.pl, tt = '';
   var pointage = r.in != null ? '<b>' + U.hm(r.in) + '</b> → ' + (r.out != null ? '<b>' + U.hm(r.out) + '</b>' : '<span class="text-gray-400">…</span>') : '<span class="text-gray-400">Aucun pointage</span>';
   var sub = (pl ? 'Prévu ' + pl.debut + '–' + pl.fin : 'Hors planning') + (r.worked ? ' · ' + fh(r.worked) + ' travaillées' : '');
-  var chips = X.sai.length ? '<div class="mj-act">' + X.sai.map(function(q){ var tk = ACT.data().TAC.filter(function(z){ return z.id === q.tache; })[0]; return '<span class="mj-did">' + esc(tk ? catName(tk.cat) : 'Activité') + ' · ' + fh(q.min) + (q.note ? ' · ' + esc(q.note) : '') + '</span>'; }).join('') + '</div>' : '';
+  var chips = '';
+  if(X.sai.length){
+    var VL = { envoye:'Envoyée', valide:'Validée', refuse:'Refusée' };
+    chips = '<div class="mj-act">' + X.sai.map(function(q){ var v = sv(q); return '<span class="mj-did v-' + v + '" title="' + (VL[v] || 'Brouillon') + '">' + esc(taskTitle(q)) + ' · ' + fh(q.min) + (VL[v] ? '<em>' + VL[v] + '</em>' : '') + '</span>'; }).join('') + '</div>';
+    var RF = X.sai.filter(function(q){ return sv(q) === 'refuse'; });
+    if(RF.length) chips += '<div class="mj-refs">' + RF.map(function(q){ return '<div class="mj-ref"><div class="mj-ref-t"><b>' + esc(taskTitle(q)) + ' · ' + fh(q.min) + '</b><span>Refusée' + (q.vby ? ' par ' + esc(q.vby) : '') + ' : « ' + esc(q.vmotif || '') + ' »</span>' + (q.vcom ? '<i>Votre commentaire : ' + esc(q.vcom) + '</i>' : '') + '</div><div class="mj-ref-a"><button class="mj-btn sec" onclick="TempsPortal.dvCom(\'' + q.id + '\')">Commenter</button><button class="mj-btn" onclick="TempsPortal.dvFix(\'' + q.id + '\')">Corriger</button></div></div>'; }).join('') + '</div>';
+  }
+
   var badge = '', acts = '', line = '';
-  if(st === 'ok'){ badge = '<span class="badge b-ok">Complet</span>'; acts = locked ? '' : '<button class="mj-link" onclick="TempsPortal.jeOpen(\'' + d + '\')">Modifier</button>'; }
+  if(st === 'ok'){
+    var dvv = dayV(emp, d);
+    badge = { brouillon:'<span class="badge b-wn">À envoyer</span>', envoye:'<span class="badge b-in">Envoyée au manager</span>', valide:'<span class="badge b-ok">Validée</span>', refuse:'<span class="badge b-er">À corriger</span>' }[dvv];
+    acts = dvv === 'brouillon' && !locked ? '<button class="mj-btn sec" onclick="TempsPortal.jeOpen(\'' + d + '\')">Modifier</button><button class="mj-btn" onclick="TempsPortal.dvSend(\'' + d + '\')">Envoyer</button>' : '';
+  }
   else if(st === 'todo'){
     badge = '<span class="badge b-wn">À compléter</span>';
     line = '<div class="mj-ask">Qu’avez-vous fait ce jour-là ?</div><div class="mj-act">' + (locked ? '' : catsRapides().map(function(c){ return '<button class="mj-chip" onclick="TempsPortal.jwQuick(\'' + d + '\',\'' + c.id + '\')">' + esc(c.nom) + '</button>'; }).join('') + '<button class="mj-chip alt" onclick="TempsPortal.jeOpen(\'' + d + '\')">Autre…</button>') + '</div>';
@@ -24523,15 +24645,15 @@ function jwRow(emp, d, X, locked){
   else if(st === 'abs'){ badge = '<span class="badge b-in">' + esc(r.ab.type) + '</span>'; }
   else if(st === 'en_cours'){ badge = '<span class="badge b-nt">En cours</span>'; }
   else if(st === 'attendu'){ badge = '<span class="badge b-nt">Pas encore pointé</span>'; }
-  return '<div class="mj-day ' + (X.need ? 'need ' : '') + (d === t ? 'today' : '') + '"><div class="mj-date"><b>' + U.JN[U.dow(d) - 1].slice(0, 3) + '</b><span>' + dsh(d) + (d === t ? ' · aujourd’hui' : '') + '</span></div><div class="mj-main"><div class="mj-pt">' + pointage + '</div><div class="mj-sub">' + sub + '</div>' + chips + line + '</div><div class="mj-side">' + badge + acts + '</div></div>';
+  return '<div class="mj-day ' + (dayV(emp, d) === 'refuse' ? 'refus ' : '') + (X.need ? 'need ' : '') + (d === t ? 'today' : '') + '"><div class="mj-date"><b>' + U.JN[U.dow(d) - 1].slice(0, 3) + '</b><span>' + dsh(d) + (d === t ? ' · aujourd’hui' : '') + '</span></div><div class="mj-main"><div class="mj-pt">' + pointage + '</div><div class="mj-sub">' + sub + '</div>' + chips + line + '</div><div class="mj-side">' + badge + acts + '</div></div>';
 }
 function jwWeek(emp){
   var mon = wkMon(), cur = U.monday(U.today()), ws = ACT.api.weekState()[emp + '|' + mon] || 'brouillon', locked = ws !== 'brouillon', rows = '', todo = 0, ok = 0, work = 0, n = 0;
   for(var i = 0; i < 7; i++){ var d = U.addD(mon, i); if(d > U.today()) break; var X = jwState(emp, d); if(!X) continue; n++; if(X.need) todo++; else if(X.st === 'ok' || X.st === 'abs') ok++; work += X.r.worked; rows += jwRow(emp, d, X, locked); }
-  var st = { brouillon:['À valider', 'b-wn'], soumise:['Envoyée au manager', 'b-in'], validee:['Validée', 'b-ok'] }[ws], pct = n ? Math.round(100 * (n - todo) / n) : 100;
+  var st = weekBadge(emp, mon), nval = weekValid(emp, mon), pct = n ? Math.round(100 * (n - todo) / n) : 100;
   var nav = '<div class="mj-nav"><button class="mj-arr" onclick="TempsPortal.jwNav(-1)" aria-label="Semaine précédente">‹</button><div class="mj-wk"><b>Semaine du ' + dsh(mon) + ' au ' + dsh(U.addD(mon, 6)) + '</b><span>' + (mon === cur ? 'Cette semaine' : 'Semaine passée') + '</span></div><button class="mj-arr" ' + (mon >= cur ? 'disabled' : '') + ' onclick="TempsPortal.jwNav(1)" aria-label="Semaine suivante">›</button></div>';
-  var bar = '<div class="mj-sum"><div class="mj-sum-t"><div><b>' + (todo ? todo + ' jour' + (todo > 1 ? 's' : '') + ' à compléter' : 'Tout est à jour') + '</b><span>' + fh(work) + ' pointées · ' + (n - todo) + ' jour' + ((n - todo) > 1 ? 's' : '') + ' sur ' + n + ' complets</span></div><span class="badge ' + st[1] + '">' + st[0] + '</span></div><div class="mj-prog"><i style="width:' + pct + '%"></i></div></div>';
-  var foot = locked ? '' : '<div class="mj-foot"><div class="text-[13px] text-gray-500">' + (todo ? 'Complétez les jours signalés pour pouvoir valider votre semaine.' : 'Votre semaine est complète : vous pouvez la valider.') + '</div><button class="pe-btn" ' + (todo || !n ? 'disabled' : '') + ' onclick="TempsPortal.jwSubmit()">Valider ma semaine</button></div>';
+  var bar = '<div class="mj-sum"><div class="mj-sum-t"><div><b>' + (todo ? todo + ' jour' + (todo > 1 ? 's' : '') + ' à compléter' : 'Tout est à jour') + '</b><span>' + fh(work) + ' pointées · ' + nval + ' jour' + (nval > 1 ? 's' : '') + ' validé' + (nval > 1 ? 's' : '') + ' sur ' + n + '</span></div><span class="badge ' + st[1] + '">' + st[0] + '</span></div><div class="mj-prog"><i style="width:' + pct + '%"></i></div></div>';
+  var foot = '';
   return '<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="pe-btn" onclick="TempsPortal.sheet()">Exporter ma feuille de temps</button></div>' + nav + bar + '<div class="mj-week">' + (rows || '<div class="mj-empty">Aucun jour de travail cette semaine.</div>') + '</div>' + foot;
 }
 function jwQuick(d, cat){
@@ -24541,7 +24663,7 @@ function jwQuick(d, cat){
 /* modifier « ce que j'ai fait » : une ou plusieurs lignes (catégorie, durée, commentaire) */
 function jeOpen(d){
   var emp = me(), X = jwState(emp, d), r = X ? X.r : RH.day(emp, d), T = ACT.data().TAC;
-  var lines = X && X.sai.length ? X.sai.map(function(q){ var t = T.filter(function(z){ return z.id === q.tache; })[0]; return { cat:t ? t.cat : 'k8', h:q.min / 60, note:q.note || '' }; }) : [{ cat:(catsRapides()[0] || { id:'k1' }).id, h:Math.max(0.25, Math.round(r.worked / 15) / 4), note:'' }];
+  var DR = X ? X.sai.filter(isDraft) : [], lines = DR.length ? DR.map(function(q){ var t = T.filter(function(z){ return z.id === q.tache; })[0]; return { cat:t ? t.cat : 'k8', h:q.min / 60, note:q.note || '' }; }) : [{ cat:(catsRapides()[0] || { id:'k1' }).id, h:Math.max(0.25, Math.round(r.worked / 15) / 4), note:'' }];
   JE = { date:d, lines:lines, pt:r.worked }; jeDraw();
 }
 function jeSync(){ if(!JE) return; JE.lines.forEach(function(l, i){ var c = $('je-c-' + i); if(c){ l.cat = c.value; l.h = parseFloat($('je-h-' + i).value) || 0; l.note = $('je-n-' + i).value; } }); }
@@ -24558,7 +24680,7 @@ function jeSave(){
   jeSync(); var emp = me(), err = $('je-err');
   if(JE.lines.some(function(l){ return !l.cat || l.h <= 0; })){ err.textContent = 'Indiquez une activité et une durée pour chaque ligne.'; return; }
   if(!ACT.api.editable(emp, JE.date)){ err.textContent = 'La semaine est déjà envoyée : elle ne peut plus être modifiée.'; return; }
-  daySai(emp, JE.date).forEach(function(q){ ACT.api.del(emp, q.id); });
+  daySai(emp, JE.date).filter(isDraft).forEach(function(q){ ACT.api.del(emp, q.id); });
   JE.lines.forEach(function(l){ ACT.api.add(emp, { date:JE.date, projet:null, tache:ACT.api.taskFor(l.cat, null), min:Math.round(l.h * 4) * 15, note:l.note, src:'manuel' }); });
   A.closeM(); ACT.api.render(); renderAll(); A.toast('Enregistré.');
 }
@@ -24684,7 +24806,7 @@ var t = DEM.absDate || U.today(); DEM.absDate = null;
   (function(){ var ss = window.showShell; if(typeof ss === 'function') window.showShell = function(id){ var r = ss.apply(this, arguments); if(id === 'portal-employes-shell') renderAll(); return r; }; })();
   renderAll();
   function sheet(w){ if(typeof TempsActInd === 'undefined') return; TempsActInd.sheet(me(), w || wkMon()); }
-  return { sheet:sheet, jv:function(){ return JV; }, jwNav:jwNav,jwQuick:jwQuick, jeOpen:jeOpen, jeAdd:jeAdd, jeDel:jeDel, jeTotal:jeTotal, jeSave:jeSave, jwWorked:jwWorked, jwWorkedGo:jwWorkedGo, jwAbsent:jwAbsent, jwSubmit:jwSubmit, jwSubmitGo:jwSubmitGo, ctx:ctx, me:me, injectDemandes:injectDemandes, view:view, manuelAsk:manuelAsk, manuelProj:manuelProj, manuelGo:manuelGo, delSai:delSai, demAsk:demAsk, demTab:demTab, demGo:demGo, quickAdd:quickAdd, quickStart:quickStart, quickCorr:quickCorr, validerAsk:validerAsk, validerGo:validerGo, setMe:setMe, go:go, chStop:chStop, chSave:chSave, chDiscard:chDiscard, corrAsk:corrAsk, corrType:corrType, corrGo:corrGo, absGo:absGo, hsGo:hsGo, feuilleView:feuilleView, feuilleAsk:feuilleAsk, feuilleGo:feuilleGo, renderAll:renderAll, me:me, chrono:function(){ return CH; } };
+  return { sheet:sheet, jv:function(){ return JV; }, dvSend:dvSend, dvFix:dvFix, dvFixGo:dvFixGo, dvCom:dvCom, dvComGo:dvComGo, dvApprove:dvApprove, dvRefuse:dvRefuse, dvEmail:dvEmail, dvEmailPick:dvEmailPick, dvEmailAskNo:dvEmailAskNo, dvEmailNo:dvEmailNo, dvEmailOk:dvEmailOk, dvEmailAll:dvEmailAll, jwNav:jwNav,jwQuick:jwQuick, jeOpen:jeOpen, jeAdd:jeAdd, jeDel:jeDel, jeTotal:jeTotal, jeSave:jeSave, jwWorked:jwWorked, jwWorkedGo:jwWorkedGo, jwAbsent:jwAbsent, jwSubmit:jwSubmit, jwSubmitGo:jwSubmitGo, ctx:ctx, me:me, injectDemandes:injectDemandes, view:view, manuelAsk:manuelAsk, manuelProj:manuelProj, manuelGo:manuelGo, delSai:delSai, demAsk:demAsk, demTab:demTab, demGo:demGo, quickAdd:quickAdd, quickStart:quickStart, quickCorr:quickCorr, validerAsk:validerAsk, validerGo:validerGo, setMe:setMe, go:go, chStop:chStop, chSave:chSave, chDiscard:chDiscard, corrAsk:corrAsk, corrType:corrType, corrGo:corrGo, absGo:absGo, hsGo:hsGo, feuilleView:feuilleView, feuilleAsk:feuilleAsk, feuilleGo:feuilleGo, renderAll:renderAll, me:me, chrono:function(){ return CH; } };
 })();
 
 
@@ -25570,10 +25692,24 @@ var TempsPlan = (function(){
         L.forEach(function(x, i){ x.real = i === L.length - 1 ? Math.max(15, left) : Math.max(15, Math.round(x.real * target / sum / 15) * 15); left -= x.real; });
       }
       var s0 = 510; L.forEach(function(x){ x.log = [{ k:'start', at:tsAt(d, s0) }, { k:'end', at:tsAt(d, s0 + x.real) }]; s0 += x.real + 10; });
-      L.forEach(function(x){ var id = 'sp' + (seq++); D.SAI.push({ id:id, emp:emp, date:d, projet:null, tache:ACT.api.taskFor(x.cat, null), min:x.real, note:x.titre, src:'manuel' }); x.sai = id; });
+      var bn = boss(emp) ? nom(boss(emp)) : 'Votre manager';
+      L.forEach(function(x, i){
+        var id = 'sp' + (seq++), q = { id:id, emp:emp, date:d, projet:null, tache:ACT.api.taskFor(x.cat, null), min:x.real, note:x.titre, src:'manuel' }; D.SAI.push(q); x.sai = id;
+        if(cur && dw <= 3){
+          var v = dw === 1 ? 'valide' : dw === 2 ? 'envoye' : (i === L.length - 1 ? 'refuse' : 'valide'); q.vs = v; q.vat = Date.now() - 3600000 * (5 - dw);
+          if(v === 'valide'){ q.vby = bn; x.mv = 'ok'; x.mvMin = x.real; x.mvBy = boss(emp) || emp; x.mvAt = q.vat; }
+          if(v === 'refuse'){ q.vby = bn; q.vmotif = 'Durée trop longue pour ce dossier : précisez ce qui a été fait ou corrigez le temps.'; q.vcom = ''; x.mv = 'refused'; x.mvMotif = q.vmotif; x.mvBy = boss(emp) || emp; }
+        }
+      });
+      if(cur && dw <= 3) DAYV[emp + '|' + d] = Date.now();
       var key = emp + '|' + wk; if(!WKS[key]) WKS[key] = cur ? 'brouillon' : 'validee';
     });
   }
+  function saiV(x, v, m){
+    var e = x.sai ? ACT.data().SAI.filter(function(z){ return z.id === x.sai; })[0] : null;
+    if(e){ e.vs = v; e.vby = nom(me()); e.vat = Date.now(); if(m != null){ e.vmotif = m; e.vcom = ''; } }
+  }
+  function markDay(emp, d){ DAYV[emp + '|' + d] = Date.now(); }
   function d0(d){ var x = new Date(d + 'T12:00:00').getDay(); return x === 0 ? 6 : x - 1; }
   function mine(emp, from, to){ ensure(emp); return TASKS.filter(function(x){ return x.emp === emp && !x.pause && x.date >= from && x.date <= to; }).sort(function(a, b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : (rank(a) - rank(b) || ordOf(a) - ordOf(b)); }); }
   function byId(id){ return TASKS.filter(function(x){ return x.id === id; })[0]; }
@@ -25720,7 +25856,7 @@ var TempsPlan = (function(){
   }
   function taskRow(x, emp, n){
     var c = catOf(x.cat), left = planned(x) * 60 - spentS(x), run = x.st === 'run';
-    var mvb = x.mv === 'ok' && x.st === 'done' ? '<span class="badge b-ok">' + mvLabel(x) + '</span>' : (x.mv === 'refused' && x.st !== 'done' ? '<span class="badge b-wn">À corriger : ' + esc(x.mvMotif || '') + '</span>' : '');
+    var mvb = x.mv === 'ok' && x.st === 'done' ? '<span class="badge b-ok">' + mvLabel(x) + '</span>' : (x.mv === 'refused' ? '<span class="badge b-er">Refusée : ' + esc(x.mvMotif || '') + '</span>' : '');
     var org = (x.pause ? '<span class="pl-or-t">Pause prévue</span>' : x.by ? '<span class="badge b-in">Attribuée par ' + esc(nom(x.by)) + '</span>' : '<span class="pl-or-t">Personnelle</span>') + urgBadge(x) + movedBadge(x, true) + mvb;
     var meta = '<span class="pl-dot pl-' + c.coul + '"></span>' + esc(c.nom) + ' · prévu ' + fmin(planned(x)) + (x.rec ? ' · récurrente' : '') + (x.note ? ' · ' + esc(x.note) : '');
     var prim, extra = '';
@@ -25881,13 +26017,13 @@ var TempsPlan = (function(){
   function pbtn(path, title, fn, primary, dis){ return '<button type="button" ' + (dis ? 'disabled ' : '') + 'style="height:28px;padding:0 10px;gap:5px;white-space:nowrap;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;' + (primary ? 'background:var(--navy-700,#2E427B);color:#fff;border:1px solid var(--navy-700,#2E427B)' : 'background:#fff;color:#475569;border:1px solid #CBD5E1') + (dis ? ';opacity:.4;cursor:default' : '') + '" title="' + title + '" aria-label="' + title + '" onclick="' + fn + '"><svg viewBox="0 0 24 24" style="width:16px;height:16px;flex:none;display:block" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>' + title + '</button>'; }
   function mvLabel(x){ return x.mvPartial ? 'Validée partiellement : ' + fmin(x.mvMin) + ' sur ' + fmin(x.real) : 'Validée par ' + esc(nom(x.mvBy)); }
   function dayOpen(emp, d){
-    var L = mine(emp, d, d), t = U.today(), dd = dayDone(emp, d), todo = L.filter(function(x){ return x.st === 'done' && x.mv !== 'ok'; }), K = { start:'début', pause:'pause', resume:'reprise', end:'fin', ok:'validée', refus:'refusée' };
+    var L = mine(emp, d, d), t = U.today(), dd = dayDone(emp, d), todo = L.filter(function(x){ return x.st === 'done' && x.mv !== 'ok' && x.mv !== 'refused'; }), K = { start:'début', pause:'pause', resume:'reprise', end:'fin', ok:'validée', refus:'refusée' };
     var rows = L.map(function(x){
       var c = catOf(x.cat), late = x.st === 'todo' && x.date < t, chrono = (x.log || []).map(function(e){ return hm(e.at) + ' ' + (K[e.k] || ''); }).join(' · '), st, ctl = '';
-      if(x.st === 'done') st = x.mv === 'ok' ? '<span class="badge b-ok">' + mvLabel(x) + '</span>' : '<span class="badge b-in">Terminée · à valider</span>';
+      if(x.st === 'done') st = x.mv === 'ok' ? '<span class="badge b-ok">' + mvLabel(x) + '</span>' : x.mv === 'refused' ? '<span class="badge b-er">Refusée · en attente du salarié</span>' : '<span class="badge b-in">Terminée · à valider</span>';
       else if(x.st === 'run') st = '<span class="badge b-in">En cours</span>'; else if(x.st === 'pause') st = '<span class="badge b-wn">En pause</span>';
       else st = x.mv === 'refused' ? '<span class="badge b-wn">À corriger : ' + esc(x.mvMotif || '') + '</span>' : (late ? '<span class="badge b-wn">Non faite</span>' : '<span class="badge b-nt">À faire</span>');
-      if(x.st === 'done' && x.mv !== 'ok'){
+      if(x.st === 'done' && x.mv !== 'ok' && x.mv !== 'refused'){
         var rh = Math.round(x.real / 15) / 4 || 0.25, nm = 'mvd_' + x.id, rd = function(v, l, on){ return '<label class="text-[12.5px] text-slate-700" style="display:inline-flex;align-items:center;gap:5px;margin-right:14px"><input type="radio" name="' + nm + '" value="' + v + '"' + (on ? ' checked' : '') + ' onchange="TempsPlan.mvShow(\'' + x.id + '\')"> ' + l + '</label>'; };
         ctl = '<div style="margin-top:8px">' + rd('ok', 'Valider') + rd('ko', 'Refuser') + rd('wait', 'Laisser en attente', true) + '</div><div id="mvo_' + x.id + '" style="display:none;margin-top:8px"><span class="text-[12px] text-gray-500">Durée validée (h)</span> <input id="mvh_' + x.id + '" type="number" min="0.25" max="' + (x.real / 60) + '" step="0.25" value="' + rh + '" class="' + INP + '" style="width:90px;display:inline-block;padding-top:4px;padding-bottom:4px"> <span class="text-[12px] text-gray-400">sur ' + fmin(x.real) + ' réalisées</span></div><div id="mvk_' + x.id + '" style="display:none;margin-top:8px"><input id="mvm_' + x.id + '" maxlength="120" placeholder="Motif du refus" class="' + INP + '" style="padding-top:5px;padding-bottom:5px"></div>';
       }
@@ -25900,7 +26036,7 @@ var TempsPlan = (function(){
   function mvShow(id){ var v = mvVal(id); $('mvo_' + id).style.display = v === 'ok' ? 'block' : 'none'; $('mvk_' + id).style.display = v === 'ko' ? 'block' : 'none'; }
   function mvAllSet(){ [].slice.call(document.querySelectorAll('input[type=radio][name^="mvd_"][value="ok"]')).forEach(function(r){ r.checked = true; mvShow(r.name.slice(4)); }); }
   function mvSave(emp, d){
-    var L = mine(emp, d, d).filter(function(x){ return x.st === 'done' && x.mv !== 'ok'; }), err = $('mv-err'), plan = [];
+    var L = mine(emp, d, d).filter(function(x){ return x.st === 'done' && x.mv !== 'ok' && x.mv !== 'refused'; }), err = $('mv-err'), plan = [];
     for(var i = 0; i < L.length; i++){
       var x = L[i], v = mvVal(x.id);
       if(v === 'ok'){ var hh = parseFloat($('mvh_' + x.id).value); if(!hh || hh < 0.25 || hh * 60 > x.real + 0.5){ err.textContent = 'Durée validée invalide pour « ' + x.titre + ' » (entre 0,25 h et ' + fmin(x.real) + ').'; return; } plan.push({ x:x, v:v, min:Math.round(hh * 60) }); }
@@ -25910,8 +26046,8 @@ var TempsPlan = (function(){
     var ok = 0, ko = 0, S = ACT.data().SAI;
     plan.forEach(function(p){
       var x = p.x, e = S.filter(function(z){ return z.id === x.sai; })[0];
-      if(p.v === 'ok'){ x.mv = 'ok'; x.mvMin = Math.min(p.min, x.real); x.mvPartial = x.mvMin < x.real; x.mvBy = me(); x.mvAt = Date.now(); if(e) e.min = x.mvMin; logEv(x, 'ok'); ok++; }
-      else { if(e) S.splice(S.indexOf(e), 1); logEv(x, 'refus'); x.st = 'todo'; x.real = 0; x.spent = 0; x.t0 = 0; x.mv = 'refused'; x.mvMotif = p.motif; x.mvBy = me(); x.sai = null; x.mvPartial = false; delete DAYV[x.emp + '|' + x.date]; ko++; }
+      if(p.v === 'ok'){ x.mv = 'ok'; x.mvMin = Math.min(p.min, x.real); x.mvPartial = x.mvMin < x.real; x.mvBy = me(); x.mvAt = Date.now(); if(e){ e.min = x.mvMin; e.vs = 'valide'; e.vby = nom(me()); e.vat = Date.now(); } logEv(x, 'ok'); ok++; }
+      else { if(e){ e.vs = 'refuse'; e.vmotif = p.motif; e.vcom = ''; e.vby = nom(me()); e.vat = Date.now(); } logEv(x, 'refus'); x.mv = 'refused'; x.mvMotif = p.motif; x.mvBy = me(); x.mvPartial = false; ko++; }
     });
     A.closeM(); try { ACT.api.render(); } catch(e2){} refresh();
     A.toast(ok + ' tâche' + (ok > 1 ? 's' : '') + ' validée' + (ok > 1 ? 's' : '') + (ko ? ', ' + ko + ' refusée' + (ko > 1 ? 's' : '') : '') + '.');
@@ -25919,30 +26055,29 @@ var TempsPlan = (function(){
   function dayBack(){ TD = { emp:null, date:null }; renderTeam(); }
   var SVG_OK = '<svg viewBox="0 0 24 24" width="18" height="18" style="width:18px;height:18px;flex:none;display:block" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>', SVG_KO = '<svg viewBox="0 0 24 24" width="18" height="18" style="width:18px;height:18px;flex:none;display:block" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', IBS = 'height:34px;padding:0 12px;gap:6px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;font-size:13px';
   function dayHtml(){
-    var emp = TD.emp, d = TD.date, t = U.today(), L = mine(emp, d, d), tot = L.reduce(function(a, x){ return a + planned(x); }, 0), real = L.reduce(function(a, x){ return a + (x.st === 'done' ? x.real : 0); }, 0), nd = L.filter(function(x){ return x.st === 'done'; }).length, pend = L.filter(function(x){ return x.st === 'done' && x.mv !== 'ok'; }), dd = dayDone(emp, d);
+    var emp = TD.emp, d = TD.date, t = U.today(), L = mine(emp, d, d), tot = L.reduce(function(a, x){ return a + planned(x); }, 0), real = L.reduce(function(a, x){ return a + (x.st === 'done' ? x.real : 0); }, 0), nd = L.filter(function(x){ return x.st === 'done'; }).length, pend = L.filter(function(x){ return x.st === 'done' && x.mv !== 'ok' && x.mv !== 'refused'; }), dd = dayDone(emp, d);
     var h = '<div class="pl-sect"><div><h2>Journée de ' + esc(nom(emp)) + '</h2><span>' + longDay(d) + '</span></div><div style="display:flex;gap:8px;align-items:center"><button class="pe-btn" style="background:#fff;color:#334155;border:1px solid #CBD5E1" onclick="TempsPlan.dayBack()">‹ Équipe</button><button class="pe-btn" ' + (pend.length && dd ? '' : 'disabled title="Disponible quand la journée est validée par le salarié et qu’il reste des tâches à valider"') + ' onclick="TempsPlan.mvAll()">Valider toutes les tâches terminées</button></div></div>';
     h += '<div class="pl-sum"><b>' + nd + ' tâche' + (nd > 1 ? 's' : '') + ' terminée' + (nd > 1 ? 's' : '') + ' sur ' + L.length + '</b><span>' + fmin(real) + ' réalisées sur ' + fmin(tot) + ' prévues · ' + (dd ? 'journée validée par le salarié' : 'journée pas encore validée par le salarié') + '</span></div>';
     h += '<div class="pl-list" style="margin-top:16px">' + (L.map(function(x){
       var c = catOf(x.cat), late = x.st === 'todo' && x.date < t, st, act = '';
-      if(x.st === 'done') st = x.mv === 'ok' ? '<span class="badge b-ok">Validée par ' + esc(nom(x.mvBy)) + '</span>' : '<span class="badge b-in">Terminée · à valider</span>';
+      if(x.st === 'done') st = x.mv === 'ok' ? '<span class="badge b-ok">Validée par ' + esc(nom(x.mvBy)) + '</span>' : x.mv === 'refused' ? '<span class="badge b-er">Refusée · en attente du salarié</span>' : '<span class="badge b-in">Terminée · à valider</span>';
       else if(x.st === 'run') st = '<span class="badge b-in">En cours</span>'; else if(x.st === 'pause') st = '<span class="badge b-wn">En pause</span>';
       else st = x.mv === 'refused' ? '<span class="badge b-wn">À corriger : ' + esc(x.mvMotif || '') + '</span>' : (late ? '<span class="badge b-wn">Non faite</span>' : '<span class="badge b-nt">À faire</span>');
-      if(x.st === 'done' && x.mv !== 'ok') act = '<button class="pe-btn" style="' + IBS + ';background:#fff;border:1px solid #FCA5A5" title="Refuser" aria-label="Refuser" onclick="TempsPlan.mvRefAsk(\'' + x.id + '\')">' + SVG_KO + '<span style="color:#DC2626">Refuser</span></button><button class="pe-btn" style="' + IBS + '" title="Valider" aria-label="Valider" onclick="TempsPlan.mvOk(\'' + x.id + '\')">' + SVG_OK + '<span>Valider</span></button>';
+      if(x.st === 'done' && x.mv !== 'ok' && x.mv !== 'refused') act = '<button class="pe-btn" style="' + IBS + ';background:#fff;border:1px solid #FCA5A5" title="Refuser" aria-label="Refuser" onclick="TempsPlan.mvRefAsk(\'' + x.id + '\')">' + SVG_KO + '<span style="color:#DC2626">Refuser</span></button><button class="pe-btn" style="' + IBS + '" title="Valider" aria-label="Valider" onclick="TempsPlan.mvOk(\'' + x.id + '\')">' + SVG_OK + '<span>Valider</span></button>';
       return '<div class="pl-task' + (x.st === 'done' ? ' done' : '') + '"><div class="pl-task-h"><div class="pl-task-t"><b>' + esc(x.titre) + '</b><span><span class="pl-dot pl-' + c.coul + '"></span>' + esc(c.nom) + ' · prévu ' + fmin(planned(x)) + (x.st === 'done' ? ' · réel ' + fmin(x.real) : '') + (x.by ? ' · attribuée par ' + esc(nom(x.by)) : '') + '</span></div><div class="pl-task-a">' + urgBadge(x) + movedBadge(x, false) + st + act + '</div></div>' + logHtml(x) + '</div>';
     }).join('') || '<div class="pl-empty"><b>Aucune tâche ce jour-là</b></div>') + '</div>';
     return h;
   }
-  function mvOk(id){ var x = byId(id); if(!x) return; x.mv = 'ok'; x.mvBy = me(); x.mvAt = Date.now(); logEv(x, 'ok'); refresh(); A.toast('Tâche validée.'); }
-  function mvAll(){ var L = mine(TD.emp, TD.date, TD.date).filter(function(x){ return x.st === 'done' && x.mv !== 'ok'; }); L.forEach(function(x){ x.mv = 'ok'; x.mvBy = me(); x.mvAt = Date.now(); logEv(x, 'ok'); }); refresh(); A.toast(L.length + ' tâche' + (L.length > 1 ? 's validées' : ' validée') + '.'); }
+  function mvOk(id){ var x = byId(id); if(!x) return; x.mv = 'ok'; x.mvBy = me(); x.mvAt = Date.now(); saiV(x, 'valide'); logEv(x, 'ok'); refresh(); A.toast('Tâche validée.'); }
+  function mvAll(){ var L = mine(TD.emp, TD.date, TD.date).filter(function(x){ return x.st === 'done' && x.mv !== 'ok' && x.mv !== 'refused'; }); L.forEach(function(x){ x.mv = 'ok'; x.mvBy = me(); x.mvAt = Date.now(); saiV(x, 'valide'); logEv(x, 'ok'); }); refresh(); A.toast(L.length + ' tâche' + (L.length > 1 ? 's validées' : ' validée') + '.'); }
   function mvRefAsk(id){
     var x = byId(id); if(!x) return;
     A.modal('<h3 class="text-[15px] font-semibold text-slate-800 mb-1">Refuser la tâche</h3><div class="text-[12px] text-gray-400 mb-4">' + esc(x.titre) + ' · ' + esc(nom(x.emp)) + ' · réel ' + fmin(x.real) + '</div>' + A.lab('Motif du refus') + '<textarea id="mv-motif" rows="3" class="' + INP + '"></textarea><div class="text-[12px] text-gray-500 mt-2">La tâche repasse chez le salarié « à corriger » et son temps n’est plus compté tant qu’elle n’est pas refaite.</div><div id="mv-err" class="text-[12px] text-red-600 mt-1"></div><div class="flex justify-end gap-2 mt-5"><button onclick="Temps.closeM()" class="' + A.B2 + '">Annuler</button><button onclick="TempsPlan.mvRefGo(\'' + id + '\')" class="' + A.B1 + '">Refuser</button></div>', 460);
   }
   function mvRefGo(id){
     var x = byId(id), m = ($('mv-motif').value || '').trim(); if(!x) return; if(!m){ $('mv-err').textContent = 'Indiquez un motif.'; return; }
-    var S = ACT.data().SAI, e = S.filter(function(z){ return z.id === x.sai; })[0]; if(e) S.splice(S.indexOf(e), 1);
-    logEv(x, 'refus'); x.st = 'todo'; x.real = 0; x.spent = 0; x.t0 = 0; x.mv = 'refused'; x.mvMotif = m; x.mvBy = me(); x.sai = null; delete DAYV[x.emp + '|' + x.date];
-    A.closeM(); try { ACT.api.render(); } catch(e2){} refresh(); A.toast('Tâche refusée : elle repasse à corriger chez le salarié.');
+    logEv(x, 'refus'); x.mv = 'refused'; x.mvMotif = m; x.mvBy = me(); saiV(x, 'refuse', m);
+    A.closeM(); try { ACT.api.render(); } catch(e2){} refresh(); A.toast('Tâche refusée : le salarié doit la corriger ou la commenter.');
   }
   /* priorité, urgence et report */
   function ordOf(x){ return x.ord != null ? x.ord : (parseInt(String(x.id).slice(2), 10) || 0); }
@@ -25977,7 +26112,7 @@ var TempsPlan = (function(){
   function refresh(){ try { TempsPortal.renderAll(); } catch(e){} renderTeam(); drawPill(); }
   [].slice.call(document.querySelectorAll('.erh-portal-tab[data-erh-portal="erhp-taches"]')).forEach(function(b){ b.addEventListener('click', renderTeam); });
   var sh = $('portal-employes-shell'); if(sh && window.MutationObserver) new MutationObserver(drawPill).observe(sh, { attributes:true, attributeFilter:['class', 'style'] });
-  return { mvShow:mvShow, mvSave:mvSave, mvAllSet:mvAllSet, moveT:moveT, reprAsk:reprAsk, reprGo:reprGo, dayOpen:dayOpen, dayBack:dayBack, mvOk:mvOk, mvAll:mvAll, mvRefAsk:mvRefAsk, mvRefGo:mvRefGo, mine:mine, myHtml:myHtml, validateDay:validateDay, weekHtml:weekHtml, nToday:nToday, isMgr:isMgr, team:team, begin:begin, pause:pause, finishAsk:finishAsk, finish:finish, more:more, simulate:simulate, nav:nav, navT:navT, del:del, delT:delT, addAsk:addAsk, addGo:addGo, togDay:togDay, assignAsk:assignAsk, assignGo:assignGo, togAll:togAll, syncAll:syncAll, renderTeam:renderTeam, refresh:refresh, ensure:ensure, mineP:mineP, whoTog:whoTog, recToggle:recToggle, tplPick:tplPick, tplDel:tplDel, delGo:delGo, capOf:capOf, capLine:capLine, pauseAsk:pauseAsk, pauseGo:pauseGo, endPause:endPause, otherAsk:otherAsk, otherGo:otherGo, nextAsk:nextAsk, nextGo:nextGo, tasks:function(){ return TASKS; } };
+  return { mvShow:mvShow, mvSave:mvSave, mvAllSet:mvAllSet, moveT:moveT, reprAsk:reprAsk, reprGo:reprGo, dayOpen:dayOpen, dayBack:dayBack, mvOk:mvOk, mvAll:mvAll, mvRefAsk:mvRefAsk, mvRefGo:mvRefGo, mine:mine, myHtml:myHtml, validateDay:validateDay, weekHtml:weekHtml, nToday:nToday, isMgr:isMgr, team:team, begin:begin, pause:pause, finishAsk:finishAsk, finish:finish, more:more, simulate:simulate, nav:nav, navT:navT, del:del, delT:delT, addAsk:addAsk, addGo:addGo, togDay:togDay, assignAsk:assignAsk, assignGo:assignGo, togAll:togAll, syncAll:syncAll, renderTeam:renderTeam, refresh:refresh, ensure:ensure, markDay:markDay, boss:boss, mineP:mineP, whoTog:whoTog, recToggle:recToggle, tplPick:tplPick, tplDel:tplDel, delGo:delGo, capOf:capOf, capLine:capLine, pauseAsk:pauseAsk, pauseGo:pauseGo, endPause:endPause, otherAsk:otherAsk, otherGo:otherGo, nextAsk:nextAsk, nextGo:nextGo, tasks:function(){ return TASKS; } };
 })();
 try { TempsPortal.view('planning'); TempsPlan.refresh(); } catch(e){}
 
