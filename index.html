@@ -23467,13 +23467,23 @@ function mineAdd(emp, o){ if(!wkEditable(emp, o.date)) return { ok:false, msg:'L
   function locked(emp, date){ return WK[emp + '|' + U.monday(date)] === 'validee'; }
   var WKL = { brouillon:['Brouillon', 'bg-gray-100 text-gray-600'], soumise:['Soumise', 'bg-amber-100 text-amber-700'], validee:['Validée', 'bg-emerald-100 text-emerald-700'] };
   function renderSuEmp(h){
-    var id = V.su.emp, pe = periodOf(), es = saiIn(pe.from, pe.to, id).sort(function(a, b){ return a.date < b.date ? 1 : a.date === b.date ? 0 : -1; }), tot = es.reduce(function(a, q){ return a + q.min; }, 0), pt = pointe(id, pe.from, pe.to);
-    var rows = es.map(function(q){
-      var tk = byId(TAC, q.tache), ct = tk ? byId(CAT, tk.cat) : null, lk = locked(id, q.date), st = WKL[WK[id + '|' + U.monday(q.date)] || 'brouillon'];
-      return '<tr class="border-t border-gray-100"><td class="px-4 py-2 text-[12.5px] text-slate-800">' + U.JN[U.dow(q.date) - 1] + ' ' + dfr(q.date) + '</td><td class="px-3 py-2 text-[12.5px]">' + (ct ? pill(esc(ct.nom), COUL[ct.coul][0]) : '—') + '</td><td class="px-3 py-2 text-[12.5px]">' + (tk ? esc(tk.nom) : '—') + '</td><td class="px-3 py-2 text-[12.5px] font-medium text-slate-800">' + fm(q.min) + '</td><td class="px-3 py-2 text-[12px] text-gray-500">' + (q.motif ? '<span title="' + esc(q.motif) + '">Saisie RH</span>' : q.src === 'chrono' ? 'Chronomètre' : q.src === 'intervention' ? 'Intervention' : q.src === 'prerempli' ? 'Pré-rempli' : 'Saisie') + '</td><td class="px-3 py-2">' + pill(st[0], st[1]) + '</td><td class="px-4 py-2 text-right whitespace-nowrap">' + (lk ? '<span class="text-gray-300 text-[12px]" title="Feuille validée">🔒</span>' : '<button onclick="TempsAct.saiAsk(\'' + id + '\',\'' + q.id + '\')" class="text-blue-600 text-[12px] mr-2">Modifier</button><button onclick="TempsAct.saiDel(\'' + q.id + '\')" class="text-gray-300 hover:text-red-500">✕</button>') + '</td></tr>';
-    }).join('');
-    h.innerHTML = A.back('TempsAct.suBack()', Dp.active() ? 'Retour' : 'Réalisation') + head(esc(nom(id)), suIcons(id)) + '<div class="text-[12.5px] text-gray-400 mb-3 -mt-2">' + pe.label + ' · saisi ' + fm(tot) + ' sur ' + fm(pt) + ' pointées</div>' +
-      '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Jour</th><th class="px-3 py-2.5 font-medium">Catégorie</th><th class="px-3 py-2.5 font-medium">Tâche</th><th class="px-3 py-2.5 font-medium">Durée</th><th class="px-3 py-2.5 font-medium">Origine</th><th class="px-3 py-2.5 font-medium">Feuille</th><th></th></tr></thead><tbody>' + (rows || '<tr><td colspan="7" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucune saisie sur la période.</td></tr>') + '</tbody></table></div>';
+    var id = V.su.emp, pe = periodOf(), t = T0(), es = saiIn(pe.from, pe.to, id), tot = es.reduce(function(a, q){ return a + q.min; }, 0), pt = pointe(id, pe.from, pe.to), rows = '', st = {}, d, k;
+    var SRC = function(q){ return q.motif ? 'Saisie RH · ' + q.motif : q.src === 'chrono' ? 'Chronomètre' : q.src === 'intervention' ? 'Intervention' : q.src === 'prerempli' ? 'Pré-rempli' : 'Saisie'; };
+    for(d = pe.from; d <= pe.to; d = U.addD(d, 1)){
+      var r = RH.day(id, d), L = es.filter(function(q){ return q.date === d; }), sa = L.reduce(function(a, q){ return a + q.min; }, 0);
+      if(!r.pl && !r.worked && !L.length) continue; if(d > t && !L.length) continue;
+      var wk = WK[id + '|' + U.monday(d)] || 'brouillon', lk = wk === 'validee', full = r.worked ? sa >= 0.9 * r.worked : sa > 0; st[wk] = 1;
+      var pointage = r.in != null ? '<b>' + U.hm(r.in) + '</b> → ' + (r.out != null ? '<b>' + U.hm(r.out) + '</b>' : '<span class="text-gray-400">…</span>') : '<span class="text-gray-400">Aucun pointage</span>';
+      var sub = (r.pl ? 'Prévu ' + r.pl.debut + '–' + r.pl.fin : 'Hors planning') + (r.worked ? ' · ' + U.fh(r.worked) + ' travaillées' : '') + (sa ? ' · ' + U.fh(sa) + ' saisies' : '');
+      var chips = L.length ? '<div class="mj-act">' + L.map(function(q){ var tk = byId(TAC, q.tache), ct = tk ? byId(CAT, tk.cat) : null; return '<span class="mj-did"' + (lk ? '' : ' style="cursor:pointer" onclick="TempsAct.saiAsk(\'' + id + '\',\'' + q.id + '\')"') + ' title="' + esc(SRC(q)) + (lk ? '' : ' — cliquer pour modifier') + '">' + esc(ct ? ct.nom : (tk ? tk.nom : 'Activité')) + ' · ' + U.fh(q.min) + (lk ? '' : '<b onclick="event.stopPropagation();TempsAct.saiDel(\'' + q.id + '\')" title="Supprimer" style="margin-left:10px;color:#94A3B8;font-weight:500">✕</b>') + '</span>'; }).join('') + '</div>' : '';
+      var ask = !L.length && r.worked ? '<div class="mj-ask">Aucun temps saisi ce jour-là.</div>' : '';
+      var badge = full ? '<span class="badge b-ok">Complet</span>' : '<span class="badge b-wn">À compléter</span>', wl = WKL[wk];
+      rows += '<div class="mj-day ' + (full ? '' : 'need ') + (d === t ? 'today' : '') + '"><div class="mj-date"><b>' + U.JN[U.dow(d) - 1].slice(0, 3) + '</b><span>' + dfr(d).slice(0, 5) + (d === t ? ' · aujourd’hui' : '') + '</span></div><div class="mj-main"><div class="mj-pt">' + pointage + '</div><div class="mj-sub">' + sub + '</div>' + chips + ask + '</div><div class="mj-side">' + badge + '<span class="text-[11.5px] text-gray-400">Feuille ' + wl[0].toLowerCase() + '</span></div></div>';
+    }
+    var ks = Object.keys(st), state = ks.length && ks.every(function(x){ return x === 'validee'; }) ? ['Validée', 'b-ok'] : ks.indexOf('soumise') > -1 ? ['Soumise', 'b-in'] : ['Brouillon', 'b-wn'], pct = pt ? Math.min(100, Math.round(100 * tot / pt)) : (tot ? 100 : 0);
+    h.innerHTML = A.back('TempsAct.suBack()', Dp.active() ? 'Retour' : 'Réalisation') + head(esc(nom(id)), suIcons(id)) +
+      '<div class="mj-sum" style="margin-bottom:12px"><div class="mj-sum-t"><div><b>' + pe.label + '</b><span>' + U.fh(tot) + ' saisies sur ' + U.fh(pt) + ' pointées</span></div><span class="badge ' + state[1] + '">' + state[0] + '</span></div><div class="mj-prog"><i style="width:' + pct + '%"></i></div></div>' +
+      '<div class="mj-week">' + (rows || '<div class="mj-empty">Aucun jour à afficher sur la période.</div>') + '</div>';
   }
   function taskOpts(pid, cur){ return TAC.filter(function(t){ return t.actif && (pid ? t.projet === pid : !t.projet); }).map(function(t){ return '<option value="' + t.id + '"' + (cur === t.id ? ' selected' : '') + '>' + esc(t.nom) + '</option>'; }).join(''); }
   function saiAsk(emp, sid){
@@ -26063,7 +26073,7 @@ window.absSyncBtn = function(){
 };
 var TempsActPlan = (function(){
   var A = Temps.api(), RH = TempsRH, U = RH.util, esc = A.esc, pill = A.pill, INP = A.INP, TH = A.TH, B1 = A.B1, B2 = A.B2, $ = function(id){ return document.getElementById(id); };
-  var ST = { week:null, q:'' };
+  var ST = { week:null, q:'', m:null, emp:null };
   function wk(){ return ST.week || (ST.week = U.monday(U.today())); }
   function dsh(x){ return x.slice(8) + '/' + x.slice(5, 7); }
   function saisi(id, d){ return TempsAct.data().SAI.filter(function(e){ return e.emp === id && e.date === d; }).reduce(function(a, e){ return a + e.min; }, 0); }
@@ -26081,35 +26091,57 @@ var TempsActPlan = (function(){
     var F = forms(id, a, b), E = evals(id, a, b), st = !T.length && !F.length && !E.length ? 0 : (T.length && prevu && plan < 0.3 * prevu ? 1 : 2);
     return { T:T, F:F, E:E, plan:plan, prevu:prevu, st:st };
   }
-  var STL = [['Non planifié', 'text-red-600'], ['Partiel', 'text-amber-600'], ['', '']];
-  function render(){
-    var h = $('ta-h-plan'); if(!h) return; var m = wk(), cur = U.monday(U.today());
-    var L = RH.assigned().filter(function(x){ return !ST.q || x.nomComplet.toLowerCase().indexOf(ST.q.toLowerCase()) > -1; }).map(function(x){ return { x:x, d:data(x.id, m) }; }).sort(function(a, b){ return a.d.st - b.d.st || (a.x.nomComplet < b.x.nomComplet ? -1 : 1); });
-    var rows = L.map(function(o){
-      var fe = (o.d.F.length ? pill(o.d.F.length + ' formation' + (o.d.F.length > 1 ? 's' : ''), 'bg-sky-100 text-sky-700') : '') + (o.d.F.length && o.d.E.length ? ' ' : '') + (o.d.E.length ? pill(o.d.E.length + ' évaluation' + (o.d.E.length > 1 ? 's' : ''), 'bg-violet-100 text-violet-700') : '');
-      return '<tr class="border-t border-gray-100 cursor-pointer hover:bg-blue-50/30" onclick="TempsActPlan.open(\'' + o.x.id + '\')"><td class="px-4 py-2.5"><div class="text-[13px] text-slate-800 font-medium">' + esc(o.x.nomComplet) + '</div><div class="text-[11px] text-gray-400">' + esc(((window.Plan && Plan.get(o.x.id)) || {}).poste || '') + (STL[o.d.st][0] ? ' · <span class="' + STL[o.d.st][1] + '">' + STL[o.d.st][0] + '</span>' : '') + '</div></td><td class="px-3 py-2.5 text-[12.5px]">' + (o.d.T.length || '<span class="text-gray-300">—</span>') + '</td><td class="px-3 py-2.5">' + (fe || '<span class="text-gray-300">—</span>') + '</td><td class="px-3 py-2.5 text-[12.5px] text-slate-800 font-medium">' + (o.d.plan ? U.fh1(o.d.plan) : '<span class="text-gray-300">—</span>') + '</td></tr>'; }).join('');
-    var nav = '<div class="inline-flex items-center gap-1"><button onclick="TempsActPlan.go(-1)" class="' + B2 + '" style="padding:5px 10px">‹</button><span class="px-3 text-[13px] text-slate-700 font-medium" style="min-width:210px;text-align:center">Semaine du ' + U.dfr(m) + '</span><button onclick="TempsActPlan.go(1)" class="' + B2 + '" style="padding:5px 10px">›</button>' + (m === cur ? '' : '<button onclick="TempsActPlan.go(0)" class="text-blue-600 text-[12.5px] ml-2">Aujourd’hui</button>') + '</div>';
-    h.innerHTML = A.head('Planning', '<button onclick="TempsActPlan.csv()" class="' + B2 + '">Exporter</button>') + '<div class="flex items-center gap-3 mb-3">' + nav + '<input value="' + esc(ST.q) + '" onchange="TempsActPlan.q(this.value)" placeholder="🔍 Collaborateur" class="' + INP + '" style="width:220px"></div>' +
-      '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Collaborateur</th><th class="px-3 py-2.5 font-medium">Tâches</th><th class="px-3 py-2.5 font-medium">Formations et évaluations</th><th class="px-3 py-2.5 font-medium">Heures planifiées</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucun collaborateur.</td></tr>') + '</tbody></table></div>';
+  var MS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'], DF = 420, EV = 60;
+  function mo(){ return ST.m || (ST.m = U.today().slice(0, 7)); }
+  function mlabel(){ var m = mo(); return MS[+m.slice(5) - 1] + ' ' + m.slice(0, 4); }
+  function mdays(){ var m = mo(), n = new Date(+m.slice(0, 4), +m.slice(5), 0).getDate(), o = []; for(var i = 1; i <= n; i++) o.push(m + '-' + (i < 10 ? '0' : '') + i); return o; }
+  function hh(m){ var h = Math.floor(m / 60), r = Math.round(m % 60); return h + 'h' + (r ? (r < 10 ? '0' : '') + r : ''); }
+  function month(id){
+    var D = mdays(), a = D[0], b = D[D.length - 1], T = TempsPlan.mine(id, a, b), F = forms(id, a, b), E = evals(id, a, b), M = {}, tp = 0, tv = 0;
+    D.forEach(function(d){
+      var t = T.filter(function(x){ return x.date === d; }), f = F.filter(function(x){ return x.date === d; }), e = E.filter(function(x){ return x.date === d; }), r = RH.day(id, d);
+      var p = t.reduce(function(s, x){ return s + x.plan + (x.extra || 0); }, 0) + f.length * DF + e.length * EV; tp += p; tv += r.planned || 0;
+      M[d] = { T:t, F:f, E:e, plan:p, prevu:r.planned || 0, pl:r.pl };
+    });
+    return { M:M, plan:tp, prevu:tv, nT:T.length, nF:F.length, nE:E.length };
   }
-  function go(n){ ST.week = n === 0 ? U.monday(U.today()) : U.addD(wk(), 7 * n); render(); }
-  function q(v){ ST.q = v; render(); }
-  function open(id){
-    var m = wk(), d = data(id, m), ev = d.F.concat(d.E), body = days(m, 7).filter(function(day){ return U.dow(day) < 6 || ev.some(function(e){ return e.date === day; }); }).map(function(day){
-      var T = d.T.filter(function(x){ return x.date === day; }), X = ev.filter(function(e){ return e.date === day; }), p = T.reduce(function(a, x){ return a + x.plan + (x.extra || 0); }, 0), s = saisi(id, day);
-      return '<div class="py-2 border-t border-gray-100 first:border-t-0"><div class="flex items-center justify-between text-[13px]"><b class="text-slate-800">' + U.JN[U.dow(day) - 1] + ' ' + dsh(day) + '</b><span class="text-gray-500">Planifié ' + (p ? U.fh1(p) : '—') + ' · Saisi ' + (s ? U.fh1(s) : '—') + '</span></div>' +
-        X.map(function(e){ return '<div class="flex items-center gap-2 text-[12.5px] text-slate-700 pl-3 py-0.5">' + (e.kind === 'f' ? pill('Formation', 'bg-sky-100 text-sky-700') : pill('Évaluation', 'bg-violet-100 text-violet-700')) + '<span>' + esc(e.titre) + '</span><span class="text-gray-400">' + esc(e.sub) + '</span></div>'; }).join('') +
-        (T.map(function(x){ return '<div class="flex items-center justify-between text-[12.5px] text-gray-600 pl-3 py-0.5"><span>' + esc(x.titre) + (x.by ? ' <span class="text-gray-400">· attribuée</span>' : '') + '</span><span class="text-gray-400">' + U.fh1(x.plan + (x.extra || 0)) + '</span></div>'; }).join('') || (X.length ? '' : '<div class="text-[12px] text-gray-300 pl-3 py-0.5">Rien de prévu</div>')) + '</div>';
+  function cellCls(c){ if(!c.plan) return c.prevu ? 'text-red-300' : 'text-gray-300'; var r = c.prevu ? c.plan / c.prevu : 1; return r >= 0.9 ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'; }
+  function icx(){ return '<button type="button" onclick="TempsActPlan.csv()" title="Exporter" aria-label="Exporter" class="' + B2 + '" style="padding:0 12px;gap:6px;white-space:nowrap;height:34px;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18" style="flex:none" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/></svg><span>Exporter</span></button>'; }
+  function render(){
+    var h = $('ta-h-plan'); if(!h) return; if(ST.emp) return detail(h);
+    var D = mdays(), L = RH.assigned().filter(function(x){ return !ST.q || x.nomComplet.toLowerCase().indexOf(ST.q.toLowerCase()) > -1; });
+    var rows = L.map(function(x){
+      var o = month(x.id);
+      return '<tr class="border-t border-gray-100"><td class="px-3 py-1.5 text-[12.5px] text-slate-800 whitespace-nowrap sticky left-0 bg-white"><a href="#" onclick="TempsActPlan.open(\'' + x.id + '\');return false" class="hover:text-blue-600">' + esc(x.nomComplet) + '</a></td>' + D.map(function(d){ var c = o.M[d], wkd = U.dow(d) >= 6; return '<td class="p-0.5 text-center ' + (wkd ? 'bg-gray-50' : '') + '"><button onclick="TempsActPlan.open(\'' + x.id + '\')" title="' + (c.plan ? hh(c.plan) + ' planifiées' + (c.prevu ? ' sur ' + hh(c.prevu) + ' prévues' : '') : c.prevu ? 'Rien de planifié' : 'Repos') + '" class="h-6 rounded text-[10.5px] ' + cellCls(c) + '" style="min-width:34px;padding:0 3px">' + (c.plan ? hh(c.plan) : '·') + '</button></td>'; }).join('') + '<td class="px-3 py-1.5 text-[12.5px] text-slate-800 font-medium whitespace-nowrap text-right">' + (o.plan ? hh(o.plan) : '—') + '<div class="text-[10.5px] text-gray-400 font-normal">sur ' + hh(o.prevu) + '</div></td></tr>';
     }).join('');
-    A.modal('<div class="flex items-center justify-between mb-1"><h3 class="text-[15px] font-semibold text-slate-800">' + esc(U.nom(id)) + '</h3><button onclick="Temps.closeM()" class="text-gray-400 text-xl leading-none">×</button></div><div class="text-[12px] text-gray-400 mb-3">Semaine du ' + U.dfr(m) + '</div>' + body + '<div class="flex justify-end mt-4"><button onclick="Temps.closeM()" class="' + B1 + '">Fermer</button></div>', 560);
+    var nav = '<button onclick="TempsActPlan.go(-1)" class="px-2.5 py-1.5 rounded-md border border-gray-200 bg-white">‹</button><div class="text-[13px] font-medium text-slate-800" style="min-width:120px;text-align:center">' + mlabel() + '</div><button onclick="TempsActPlan.go(1)" class="px-2.5 py-1.5 rounded-md border border-gray-200 bg-white">›</button>';
+    var leg = '<span><span class="inline-block w-5 h-4 rounded align-middle mr-1 bg-emerald-600"></span>planifié (90 % du prévu ou plus)</span><span><span class="inline-block w-5 h-4 rounded align-middle mr-1 bg-amber-500"></span>partiel</span><span><span class="inline-block w-5 h-4 rounded align-middle mr-1 bg-red-100"></span>rien de planifié</span>';
+    h.innerHTML = A.head('Planning', icx()) + '<div class="flex items-center gap-3 mb-3">' + nav + '<input value="' + esc(ST.q) + '" onchange="TempsActPlan.q(this.value)" placeholder="🔍 Collaborateur" class="' + INP + '" style="width:200px"><div class="ml-auto text-[11.5px] text-gray-500 flex items-center gap-3">' + leg + '</div></div>' +
+      '<div class="border border-gray-200 rounded-xl bg-white" style="overflow-x:auto"><table data-nokit class="text-left" style="min-width:100%"><thead><tr class="' + TH + '"><th class="px-3 py-2 font-medium sticky left-0" style="background:inherit">Collaborateur</th>' + D.map(function(d){ var w = U.dow(d); return '<th class="px-0.5 py-2 text-center font-medium" style="min-width:36px">' + (+d.slice(8)) + '<div class="text-[9px] font-normal opacity-70">' + ['L', 'M', 'M', 'J', 'V', 'S', 'D'][w - 1] + '</div></th>'; }).join('') + '<th class="px-3 py-2 font-medium text-right">Total</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+  function go(n){ var m = mo(), d = new Date(+m.slice(0, 4), +m.slice(5) - 1 + n, 1); ST.m = d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1); render(); }
+  function q(v){ ST.q = v; render(); }
+  function open(id){ ST.emp = id; render(); }
+  function back(){ ST.emp = null; render(); }
+  function detail(h){
+    var id = ST.emp, o = month(id), pct = o.prevu ? Math.min(100, Math.round(100 * o.plan / o.prevu)) : (o.plan ? 100 : 0), t = U.today(), rows = '';
+    mdays().forEach(function(d){
+      var c = o.M[d]; if(!c.plan && !c.T.length && !c.F.length && !c.E.length && !(c.prevu && d <= t)) return;
+      var ok = c.plan && (!c.prevu || c.plan >= 0.9 * c.prevu);
+      var chips = c.T.map(function(x){ return '<span class="mj-did" title="' + (x.by ? 'Attribuée' : 'Planifiée') + '">' + (x.urg === 'urgente' ? '! ' : '') + esc(x.titre) + ' · ' + hh(x.plan + (x.extra || 0)) + '</span>'; }).join('') + c.F.map(function(e){ return '<span class="mj-did" style="background:#E0F2FE;border-color:#BAE6FD;color:#075985">Formation · ' + esc(e.titre) + ' · ' + hh(DF) + '</span>'; }).join('') + c.E.map(function(e){ return '<span class="mj-did" style="background:#EDE9FE;border-color:#DDD6FE;color:#5B21B6">Évaluation · ' + esc(e.titre) + ' · ' + hh(EV) + '</span>'; }).join('');
+      rows += '<div class="mj-day ' + (ok ? '' : 'need ') + (d === t ? 'today' : '') + '"><div class="mj-date"><b>' + U.JN[U.dow(d) - 1].slice(0, 3) + '</b><span>' + dsh(d) + (d === t ? ' · aujourd’hui' : '') + '</span></div><div class="mj-main"><div class="mj-pt"><b>' + (c.plan ? hh(c.plan) : '0h') + '</b> planifiées</div><div class="mj-sub">' + (c.pl ? 'Prévu ' + c.pl.debut + '–' + c.pl.fin : 'Hors planning') + (c.prevu ? ' · ' + hh(c.prevu) + ' de travail' : '') + '</div>' + (chips ? '<div class="mj-act">' + chips + '</div>' : '<div class="mj-ask">Rien de planifié ce jour-là.</div>') + '</div><div class="mj-side">' + (ok ? '<span class="badge b-ok">Planifié</span>' : c.plan ? '<span class="badge b-wn">Partiel</span>' : '<span class="badge b-er">Non planifié</span>') + '</div></div>';
+    });
+    h.innerHTML = A.back('TempsActPlan.back()', 'Retour') + A.head(esc(U.nom(id)), icx()) + '<div class="mj-sum" style="margin-bottom:12px"><div class="mj-sum-t"><div><b>' + mlabel() + '</b><span>' + hh(o.plan) + ' planifiées sur ' + hh(o.prevu) + ' prévues · ' + o.nT + ' tâche' + (o.nT > 1 ? 's' : '') + ' · ' + o.nF + ' formation' + (o.nF > 1 ? 's' : '') + ' · ' + o.nE + ' évaluation' + (o.nE > 1 ? 's' : '') + '</span></div><span class="badge ' + (pct >= 90 ? 'b-ok' : 'b-wn') + '">' + pct + ' %</span></div><div class="mj-prog"><i style="width:' + pct + '%"></i></div></div><div class="mj-week">' + (rows || '<div class="mj-empty">Rien à afficher sur ce mois.</div>') + '</div>';
   }
   function csv(){
-    var m = wk(), lines = ['Collaborateur;Tâches;Formations;Évaluations;Heures planifiées'];
-    RH.assigned().forEach(function(x){ var d = data(x.id, m), f = function(v){ return (Math.round(v / 6) / 10).toString().replace('.', ','); }; lines.push([x.nomComplet, d.T.length, d.F.length, d.E.length, f(d.plan)].join(';')); });
-    Exp.ask(lines, 'planning_activites_' + m + '.csv');
+    var lines, f = function(m){ return (Math.round(m / 6) / 10).toString().replace('.', ','); };
+    if(ST.emp){ var o = month(ST.emp); lines = ['Date;Tâches;Formations;Évaluations;Heures planifiées;Heures prévues']; mdays().forEach(function(d){ var c = o.M[d]; if(!c.plan && !c.prevu) return; lines.push([d, c.T.map(function(x){ return x.titre; }).join(' / '), c.F.map(function(x){ return x.titre; }).join(' / '), c.E.map(function(x){ return x.titre; }).join(' / '), f(c.plan), f(c.prevu)].join(';')); }); lines.push(['Total', '', '', '', f(o.plan), f(o.prevu)].join(';')); Exp.ask(lines, 'planning_activites_' + U.nom(ST.emp).replace(/\s+/g, '_') + '_' + mo() + '.csv'); return; }
+    lines = ['Collaborateur;Tâches;Formations;Évaluations;Heures planifiées;Heures prévues'];
+    RH.assigned().forEach(function(x){ var d = month(x.id); lines.push([x.nomComplet, d.nT, d.nF, d.nE, f(d.plan), f(d.prevu)].join(';')); });
+    Exp.ask(lines, 'planning_activites_' + mo() + '.csv');
   }
-  (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ var r = sp.apply(this, arguments); if(id === 'tp-act-plan') render(); return r; }; })();
-  return { render:render, go:go, q:q, open:open, csv:csv };
+  (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-act-plan') ST.emp = null; var r = sp.apply(this, arguments); if(id === 'tp-act-plan') render(); return r; }; })();
+  return { render:render, go:go, q:q, open:open, back:back, csv:csv };
 })();
 /* ===== SoftTime Activités : Individuel (situation de chaque collaborateur) ===== */
 var TempsActInd = (function(){
