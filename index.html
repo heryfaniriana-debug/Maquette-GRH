@@ -21968,6 +21968,7 @@ var Exp = (function(){
   }
   function close(){ var m = document.getElementById('exp-modal'); if(m) m.style.display = 'none'; }
   function go(fmt){
+    if(ST && ST.ext && ST.ext.sections) return go2(fmt);
     close(); if(!ST) return; var R = ST.rows, M = Object.assign({}, ST.meta), k = ST.k, e = ST.ext;
     if(e && e.title) M.title = e.title;
     if(fmt === 'pdf' && e && e.pdf){ var w = null; try { w = window.open('', '_blank'); } catch(x){} M.base = M.base + '_feuille'; e.pdf(function(b){ pdfDoc(M, b.body, true, null, w); }); return; }
@@ -21980,10 +21981,31 @@ var Exp = (function(){
     if(fmt === 'pdf') pdfDoc(M, tablePdf(R), R[0].length > 6, cnt(R)); else { var tb = tableXls(R, M); if(e && e.pre) tb.rows = e.pre(tb.n) + tb.rows; xlsDoc(M, tb); }
   }
   function cnt(R){ return R.filter(function(r){ return !isTot(r); }).length - 1; }
+  function paint2(){
+    var m = document.getElementById('exp-modal'), M = ST.meta, e = ST.ext, R = ST.rows;
+    var lab = function(t){ return '<div style="font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px">' + t + '</div>'; };
+    var seg = e.periods.map(function(p){ var on = ST.per === p[0]; return '<button type="button" onclick="Exp.pickPer(\'' + p[0] + '\')" style="flex:1;padding:10px 8px;border:2px solid ' + (on ? '#2E427B' : '#E2E8F0') + ';border-radius:10px;background:' + (on ? '#F4F7FE' : '#fff') + ';cursor:pointer;text-align:center"><b style="display:block;font-size:13px;color:#0B1332">' + p[1] + '</b><span style="font-size:11px;color:#64748B">' + esc(p[2]) + '</span></button>'; }).join('');
+    var chk = e.sections.map(function(s){ var on = !!ST.sel[s[0]]; return '<label style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1px solid ' + (on ? '#2E427B' : '#E2E8F0') + ';border-radius:10px;background:' + (on ? '#F4F7FE' : '#fff') + ';cursor:pointer"><input type="checkbox" ' + (on ? 'checked ' : '') + 'onchange="Exp.tog(\'' + s[0] + '\')" style="margin-top:3px"><span><b style="display:block;font-size:12.5px;color:#0B1332">' + esc(s[1]) + '</b><span style="font-size:11px;color:#64748B">' + esc(s[2]) + '</span></span></label>'; }).join('');
+    var fcard = function(k, l, d){ return '<button type="button" onclick="Exp.go(\'' + k + '\')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 12px;border:1px solid #CBD5E1;border-radius:10px;background:#fff;cursor:pointer" onmouseover="this.style.borderColor=\'#2E427B\';this.style.background=\'#F4F7FE\'" onmouseout="this.style.borderColor=\'#CBD5E1\';this.style.background=\'#fff\'">' + svg(IC[k]) + '<b style="font-size:14px;color:#0B1332">' + l + '</b><span style="font-size:12px;color:#64748B;text-align:center">' + d + '</span></button>'; };
+    m.innerHTML = '<div style="background:#fff;border-radius:12px;padding:22px;width:600px;max-width:94vw;max-height:92vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.3)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><h3 style="font-size:15px;font-weight:600;color:#1E293B;margin:0">Exporter · ' + esc(M.title) + '</h3><button type="button" onclick="Exp.close()" style="font-size:22px;line-height:1;color:#94A3B8;background:none;border:0;cursor:pointer">×</button></div><div style="font-size:12px;color:#94A3B8;margin-bottom:16px">' + (M.period ? esc(M.period) + ' · ' : '') + cnt(R) + ' ligne' + (cnt(R) > 1 ? 's' : '') + '</div>' +
+      lab('Période') + '<div style="display:flex;gap:10px;margin-bottom:16px">' + seg + '</div>' + lab('Contenu à éditer') + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">' + chk + '</div>' + lab('Format du fichier') + '<div style="display:flex;gap:12px">' + fcard('xls', 'Excel', 'Un fichier par contenu coché') + fcard('pdf', 'PDF', 'Un seul document') + '</div></div>';
+    m.style.display = 'flex';
+  }
+  function pickPer(k){ if(!ST || !ST.ext) return; ST.per = k; var b = ST.ext.rebuild(k), M = meta(b.name); if(b.title) M.title = b.title; ST.rows = rowsOf(b.lines); ST.meta = M; paint(); }
+  function tog(k){ if(ST){ ST.sel[k] = !ST.sel[k]; paint(); } }
+  function go2(fmt){
+    var e = ST.ext, per = ST.per, sel = e.sections.filter(function(s){ return ST.sel[s[0]]; }).map(function(s){ return s[0]; });
+    if(!sel.length){ toast('Cochez au moins un contenu.'); return; }
+    close(); var M = Object.assign({}, ST.meta);
+    if(fmt === 'pdf'){ var w = null; try { w = window.open('', '_blank'); } catch(x){} M.base = M.base + '_' + per; e.pdf(per, sel, function(b){ pdfDoc(M, b.body, b.land !== false, null, w); }); return; }
+    var n = 0; sel.forEach(function(k){ var b = e.xls(per, k); if(!b) return; n++; var l = e.sections.filter(function(s){ return s[0] === k; })[0][1]; xlsDoc(Object.assign({}, M, { title:M.title + (sel.length > 1 ? ' — ' + l : ''), base:M.base + '_' + per + (sel.length > 1 ? '_' + k : '') }), b); });
+    if(!n) toast('Ces contenus n’existent pas en Excel : choisissez PDF.');
+  }
   function pick(k){ if(ST){ ST.k = k; paint(); } }
   var IC = { xls:'<path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13l4 5M13 13l-4 5"/>', pdf:'<path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M8 13h8M8 17h5"/>', tab:'<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M9 5v14"/>', edt:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16M15 4v16M4 9h16"/>', gra:'<path d="M5 20V10M11 20V4M17 20v-7"/>' };
   function svg(p, c){ return '<svg viewBox="0 0 24 24" style="width:' + (c || 28) + 'px;height:' + (c || 28) + 'px;flex:none;display:block;color:#2E427B" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; }
   function paint(){
+    if(ST.ext && ST.ext.sections) return paint2();
     var m = document.getElementById('exp-modal'), M = ST.meta, R = ST.rows, e = ST.ext;
     var fcard = function(k, lab, d){ return '<button type="button" onclick="Exp.go(\'' + k + '\')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 12px;border:1px solid #CBD5E1;border-radius:10px;background:#fff;cursor:pointer" onmouseover="this.style.borderColor=\'#2E427B\';this.style.background=\'#F4F7FE\'" onmouseout="this.style.borderColor=\'#CBD5E1\';this.style.background=\'#fff\'">' + svg(IC[k]) + '<b style="font-size:14px;color:#0B1332">' + lab + '</b><span style="font-size:12px;color:#64748B">' + d + '</span></button>'; };
     var ccard = function(z){ var on = ST.k === z[0]; return '<button type="button" onclick="Exp.pick(\'' + z[0] + '\')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border:2px solid ' + (on ? '#2E427B' : '#E2E8F0') + ';border-radius:10px;background:' + (on ? '#F4F7FE' : '#fff') + ';cursor:pointer">' + svg(IC[z[0]], 24) + '<b style="font-size:13px;color:#0B1332">' + z[1] + '</b><span style="font-size:11px;color:#64748B;text-align:center">' + z[2] + '</span></button>'; };
@@ -21994,13 +22016,14 @@ var Exp = (function(){
   }
   function ask(lines, name, title, sub, ext){
     var R = rowsOf(lines), M = meta(name); if(title) M.title = title; if(sub != null) M.period = sub;
-    if(!R.length) R = [['Aucune donnée']]; ST = { rows:R, meta:M, ext:ext || null, k:'tab' };
+    if(!R.length) R = [['Aucune donnée']]; ST = { rows:R, meta:M, ext:ext || null, k:'tab', per:'sem', sel:{} };
+    if(ext && ext.sections) ext.sections.forEach(function(s){ ST.sel[s[0]] = s[3] !== false; });
     if(ext && !ext.items && !ext.pdf) ext.items = [['tab', 'Tableau', 'Détail jour par jour'], ['edt', 'Emploi du temps', 'Agenda de la semaine'], ['gra', 'Graphe', 'Barres par jour']];
     var m = document.getElementById('exp-modal');
     if(!m){ m = document.createElement('div'); m.id = 'exp-modal'; m.style.cssText = 'position:fixed;inset:0;z-index:96;background:rgba(11,19,50,.5);align-items:center;justify-content:center'; m.onclick = function(e){ if(e.target === m) close(); }; document.body.appendChild(m); }
     paint();
   }
-  return { ask:ask, go:go, pick:pick, close:close };
+  return { ask:ask, go:go, pick:pick, pickPer:pickPer, tog:tog, close:close, tbl:{ xls:function(R){ return tableXls(R, {}); }, pdf:tablePdf, rows:rowsOf } };
 })();
 window.Exp = Exp;
 
@@ -22119,7 +22142,7 @@ var TTL = (function(){
     for(var v = 0; v <= mx; v += step){ var y = T + ph - ph * v / mx; s += '<line x1="' + L + '" x2="' + (W - 10) + '" y1="' + y + '" y2="' + y + '" stroke="#E2E8F0"/><text x="' + (L - 8) + '" y="' + (y + 4) + '" font-size="11" fill="#64748B" text-anchor="end">' + dur(v) + '</text>'; }
     G.forEach(function(x, gi){
       var nb = x.bars.length, bw = Math.min(34, (gw - 16) / nb), x0 = L + gi * gw + (gw - bw * nb) / 2;
-      x.bars.forEach(function(y, bi){ var h = ph * y.v / mx, bx = x0 + bi * bw; s += '<rect x="' + bx + '" y="' + (T + ph - h) + '" width="' + (bw - 3) + '" height="' + Math.max(0, h) + '" rx="3" fill="' + y.c + '"/>' + (y.v ? '<text x="' + (bx + (bw - 3) / 2) + '" y="' + (T + ph - h - 4) + '" font-size="9" fill="#334155" text-anchor="middle">' + dur(y.v) + '</text>' : ''); });
+      x.bars.forEach(function(y, bi){ var h = ph * y.v / mx, bx = x0 + bi * bw; s += '<rect x="' + bx + '" y="' + (T + ph - h) + '" width="' + (bw - 3) + '" height="' + Math.max(0, h) + '" rx="3" fill="' + y.c + '"/>' + (y.v && bw >= 16 ? '<text x="' + (bx + (bw - 3) / 2) + '" y="' + (T + ph - h - 4) + '" font-size="9" fill="#334155" text-anchor="middle">' + dur(y.v) + '</text>' : ''); });
       s += '<text x="' + (L + gi * gw + gw / 2) + '" y="' + (Ht - B + 18) + '" font-size="' + (gw < 70 ? 10 : 12) + '" fill="#1E293B" text-anchor="middle" font-weight="bold"><title>' + esc(x.label) + '</title>' + esc(x.label.length > Math.max(6, Math.floor(gw / (gw < 70 ? 5.6 : 6.8))) ? x.label.slice(0, Math.max(6, Math.floor(gw / (gw < 70 ? 5.6 : 6.8))) - 1) + '…' : x.label) + '</text>' + (x.sub ? '<text x="' + (L + gi * gw + gw / 2) + '" y="' + (Ht - B + 33) + '" font-size="10" fill="#64748B" text-anchor="middle">' + esc(x.sub) + '</text>' : '');
     });
     s += '</svg>';
@@ -22145,9 +22168,9 @@ var Verif = (function(){
   function b64(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
   function unb64(s){ s = s.replace(/-/g, '+').replace(/_/g, '/'); while(s.length % 4) s += '='; return JSON.parse(decodeURIComponent(escape(atob(s)))); }
   function isoWeek(d){ var x = new Date(d + 'T12:00:00'), day = (x.getDay() + 6) % 7; x.setDate(x.getDate() - day + 3); var y = x.getFullYear(), f = new Date(y, 0, 4); return { y:y, w:1 + Math.round(((x - f) / 86400000 - 3 + ((f.getDay() + 6) % 7)) / 7) }; }
-  function core(o){ return [o.n, o.e, o.f, o.t, o.s, o.p, o.c, o.st, o.g].join('|'); }
+  function core(o){ return [o.n, o.e, o.f, o.t, o.s, o.p, o.c, o.st, o.g, o.k || ''].join('|'); }
   function make(o){
-    var h = hash(core(o)), w = isoWeek(o.f), ref = 'SGRH-' + w.y + 'S' + (w.w < 10 ? '0' : '') + w.w + '-' + String(o.e).replace(/[^A-Za-z0-9]/g, '').slice(-6).toUpperCase() + '-' + h.slice(0, 4);
+    var h = hash(core(o)), w = isoWeek(o.f), ref = 'SGRH-' + (o.k === 'm' ? o.f.slice(0, 4) + 'M' + o.f.slice(5, 7) : w.y + 'S' + (w.w < 10 ? '0' : '') + w.w) + '-' + String(o.e).replace(/[^A-Za-z0-9]/g, '').slice(-6).toUpperCase() + '-' + h.slice(0, 4);
     var p = Object.assign({}, o, { h:h, r:ref }), base = location.href.split('#')[0].split('?')[0];
     return { ref:ref, h:h, url:base + '?verif=' + b64(p) };
   }
@@ -23377,28 +23400,53 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
   function vwEmp(v){ indOpen(v); }
   function vwOpen(id){ if(VW.mode === 'jour') dayOpen(id, vwRange('jour').from, true); else indOpen(id); }
   function expInd(id, pr){
-    var t = today(), D = sumHs(id, pr.from, pr.to).days.filter(function(r){ return r.pl || r.ps.length || r.ab || r.fer; }), L = ['Jour;Entrée;Sortie;Pause;Travaillé;Retard;HS;Présence;Observations'], tw = 0, tr = 0, th = 0, hm = TTL.hm, i;
+    var t = today(), MM = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'], hm = TTL.hm, i;
     var PRES = { present:'Présent', retard:'Présent', en_cours:'En cours', absent:'Absent', incomplet:'Sortie manquante', non_pointe:'Non pointé', attendu:'Attendu', ferie:'Férié', repos:'Repos', futur:'À venir' };
-    D.forEach(function(r){
-      var pz = (r.pp || []).reduce(function(a, z){ return a + Math.max(0, z.b - z.a); }, 0), obs = [];
-      if(r.retard > 0) obs.push('Retard ' + r.retard + ' min');
-      if(r.hs > 0){ var hv = hsOk(id, r.date, r.hs); obs.push('HS ' + fh(r.hs) + ' (' + (hv.ok ? 'validées' : hv.label.toLowerCase()) + ')'); }
-      if(r.nuit > 0) obs.push('Nuit ' + fh(r.nuit)); if(r.depAnt > 0) obs.push('Départ anticipé ' + r.depAnt + ' min'); if(r.worked > 0 && (r.fer || dow(r.date) === 7)) obs.push(r.fer ? 'Férié travaillé' : 'Dimanche travaillé');
-      tw += r.worked || 0; tr += r.retard || 0; th += r.hs || 0;
-      L.push([JN[dow(r.date) - 1] + ' ' + dfr(r.date), r.in != null ? hm(r.in) : '', r.out != null ? hm(r.out) : '', pz ? fh(pz) : '', r.worked ? fh(r.worked) : '', r.retard ? r.retard + ' min' : '', r.hs ? fh(r.hs) : '', r.ab ? r.ab.type : (PRES[r.statut] || ''), obs.join(' · ')].join(';'));
-    });
-    L.push(['Total', '', '', '', fh(tw), tr ? tr + ' min' : '', th ? fh(th) : '', '', ''].join(';'));
-    var ext = { items:[['tab', 'Tableau', 'Détail jour par jour'], ['edt', 'Emploi du temps', 'Agenda de la semaine'], ['gra', 'Graphe', 'Barres par jour']], build:function(k, fmt){
-      var D7 = [], HD = {}, n;
-      for(i = 0; i < 7; i++) D7.push(ttDay(id, addD(pr.from, i), t, HD));
-      n = 7;
-      if(k === 'edt'){ var cfg = { days:D7.slice(0, n), before:ttDay(id, addD(pr.from, -1), t, HD), hide:HD, leg:TLEG.filter(function(z){ return z[0] !== 'absent' || true; }), tg:'', today:t, print:true, heightPx:470 }; var rg = TTL.range(cfg, 60); cfg.lo = rg[0]; cfg.hi = rg[1]; return fmt === 'pdf' ? { body:TTL.html(cfg), land:true } : TTL.xls(cfg); }
-      var G = []; for(i = 0; i < n; i++){ var d = addD(pr.from, i), r = day(id, d), hv = r.hs > 0 ? hsOk(id, d, r.hs) : { ok:true };
-        G.push({ label:JN[dow(d) - 1] + ' ' + d.slice(8) + '/' + d.slice(5, 7), sub:r.ab ? r.ab.type : (PRES[r.statut] || ''), bars:[{ v:r.ab ? 0 : (r.planned || 0), c:'#CBD5E1', lab:'Prévu' }, { v:r.worked || 0, c:'#2E427B', lab:'Travaillé' }, { v:r.retard || 0, c:'#F59E0B', lab:'Retard' }, { v:r.hs || 0, c:hv.ok ? '#14B8A6' : '#EC4899', lab:hv.ok ? 'HS validées' : 'HS à valider' }] }); }
-      var leg = [['#CBD5E1', 'Prévu'], ['#2E427B', 'Travaillé'], ['#F59E0B', 'Retard'], ['#14B8A6', 'HS validées'], ['#EC4899', 'HS à valider']];
-      return fmt === 'pdf' ? { body:TTL.bars({ groups:G, legend:leg }), land:true } : TTL.barsXls({ groups:G });
-    } };
-    Exp.ask(L, 'individuel_' + pr.from + '_' + pr.to + '.csv', 'Situation individuelle · ' + nom(id), null, ext);
+    var mo = addD(pr.from, 3).slice(0, 7), mlab = MM[+mo.slice(5) - 1] + ' ' + mo.slice(0, 4);
+    function rng(per){ if(per !== 'mois') return { from:pr.from, to:pr.to }; var n = new Date(+mo.slice(0, 4), +mo.slice(5), 0).getDate(); return { from:mo + '-01', to:mo + '-' + pad(n) }; }
+    function weeks(R){ var o = []; for(var w = monday(R.from); w <= R.to; w = addD(w, 7)) o.push(w); return o; }
+    function lines(R){
+      var D = sumHs(id, R.from, R.to).days.filter(function(r){ return r.pl || r.ps.length || r.ab || r.fer; }), L = ['Jour;Entrée;Sortie;Pause;Travaillé;Retard;HS;Présence;Observations'], tw = 0, tr = 0, th = 0;
+      D.forEach(function(r){
+        var pz = (r.pp || []).reduce(function(a, z){ return a + Math.max(0, z.b - z.a); }, 0), obs = [];
+        if(r.retard > 0) obs.push('Retard ' + r.retard + ' min');
+        if(r.hs > 0){ var hv = hsOk(id, r.date, r.hs); obs.push('HS ' + fh(r.hs) + ' (' + (hv.ok ? 'validées' : hv.label.toLowerCase()) + ')'); }
+        if(r.nuit > 0) obs.push('Nuit ' + fh(r.nuit)); if(r.depAnt > 0) obs.push('Départ anticipé ' + r.depAnt + ' min'); if(r.worked > 0 && (r.fer || dow(r.date) === 7)) obs.push(r.fer ? 'Férié travaillé' : 'Dimanche travaillé');
+        tw += r.worked || 0; tr += r.retard || 0; th += r.hs || 0;
+        L.push([JN[dow(r.date) - 1] + ' ' + dfr(r.date), r.in != null ? hm(r.in) : '', r.out != null ? hm(r.out) : '', pz ? fh(pz) : '', r.worked ? fh(r.worked) : '', r.retard ? r.retard + ' min' : '', r.hs ? fh(r.hs) : '', r.ab ? r.ab.type : (PRES[r.statut] || ''), obs.join(' · ')].join(';'));
+      });
+      L.push(['Total', '', '', '', fh(tw), tr ? tr + ' min' : '', th ? fh(th) : '', '', ''].join(';')); return L;
+    }
+    function cfgWeek(w, hgt){ var D7 = [], HD = {}; for(i = 0; i < 7; i++) D7.push(ttDay(id, addD(w, i), t, HD)); var cfg = { days:D7, before:ttDay(id, addD(w, -1), t, HD), hide:HD, leg:TLEG, tg:'', today:t, print:true, heightPx:hgt || 470 }; var rg = TTL.range(cfg, 60); cfg.lo = rg[0]; cfg.hi = rg[1]; return cfg; }
+    function groups(R){
+      var G = [], month = R.from !== pr.from || R.to !== pr.to; for(var d = R.from; d <= R.to; d = addD(d, 1)){ var r = day(id, d), hv = r.hs > 0 ? hsOk(id, d, r.hs) : { ok:true };
+        if(!month || r.pl || r.worked || r.ab) G.push({ label:month ? d.slice(8) : JN[dow(d) - 1] + ' ' + d.slice(8) + '/' + d.slice(5, 7), sub:month ? JN[dow(d) - 1].slice(0, 1) : (r.ab ? r.ab.type : (PRES[r.statut] || '')), bars:[{ v:r.ab ? 0 : (r.planned || 0), c:'#CBD5E1', lab:'Prévu' }, { v:r.worked || 0, c:'#2E427B', lab:'Travaillé' }, { v:r.retard || 0, c:'#F59E0B', lab:'Retard' }, { v:r.hs || 0, c:hv.ok ? '#14B8A6' : '#EC4899', lab:hv.ok ? 'HS validées' : 'HS à valider' }] }); }
+      return G;
+    }
+    var LEGB = [['#CBD5E1', 'Prévu'], ['#2E427B', 'Travaillé'], ['#F59E0B', 'Retard'], ['#14B8A6', 'HS validées'], ['#EC4899', 'HS à valider']];
+    var ext = {
+      periods:[['sem', 'Semaine', dfr(pr.from).slice(0, 5) + ' au ' + dfr(pr.to).slice(0, 5)], ['mois', 'Mois', mlab]],
+      sections:[['tab', 'Tableau', 'Détail jour par jour.'], ['edt', 'Emploi du temps', 'Agenda (une page par semaine).', false], ['gra', 'Graphe', 'Barres par jour.', false]],
+      rebuild:function(per){ var R = rng(per); return { lines:lines(R), name:'individuel_' + R.from + '_' + R.to + '.csv', title:'Situation individuelle · ' + nom(id) }; },
+      pdf:function(per, sel, cb){
+        var R = rng(per), month = per === 'mois', parts = [], TT = { tab:['Tableau', 'Détail jour par jour : horaires pointés, pause, temps travaillé, retard, heures supplémentaires, présence et observations.'], edt:['Emploi du temps', 'Prévu (bande grise), pointé (bande bleue), pauses en jaune, retards, heures supplémentaires et absences.'], gra:['Graphe', 'Comparaison, jour par jour, du prévu, du travaillé, des retards et des heures supplémentaires.'] };
+        sel.forEach(function(k, n){
+          var inner = '';
+          if(k === 'tab') inner = Exp.tbl.pdf(Exp.tbl.rows(lines(R)));
+          else if(k === 'edt') inner = weeks(R).map(function(w, q){ return (q ? '<div style="page-break-before:always"></div>' : '') + (month ? '<p style="font-weight:700;margin:6px 0;color:#0B1332">Semaine du ' + dfr(w).slice(0, 5) + ' au ' + dfr(addD(w, 6)).slice(0, 5) + '</p>' : '') + TTL.html(cfgWeek(w, month ? 440 : 470)); }).join('');
+          else inner = TTL.bars({ groups:groups(R), legend:LEGB, w:1000, h:month ? 300 : 340 });
+          parts.push('<div' + (n ? ' style="page-break-before:always"' : '') + '><h2 style="font-size:13pt;color:#2E427B;margin:0 0 2px">' + TT[k][0] + '</h2><p style="font-size:9pt;color:#64748B;margin:0 0 8px">' + TT[k][1] + '</p>' + inner + '</div>');
+        });
+        cb({ body:parts.join(''), land:true });
+      },
+      xls:function(per, key){
+        var R = rng(per);
+        if(key === 'tab') return Exp.tbl.xls(Exp.tbl.rows(lines(R)));
+        if(key === 'edt'){ var out = '', first = null; weeks(R).forEach(function(w){ var g = TTL.xls(cfgWeek(w)); if(!first) first = g; out += '<tr><td colspan="' + g.n + '" style="border:none;font-weight:bold;color:#2E427B;height:26px">Semaine du ' + dfr(w) + ' au ' + dfr(addD(w, 6)) + '</td></tr>' + g.rows + '<tr><td colspan="' + g.n + '" style="border:none;height:12px"></td></tr>'; }); return { rows:out, n:first.n, cols:first.cols }; }
+        return TTL.barsXls({ groups:groups(R) });
+      }
+    };
+    var b = ext.rebuild('sem'); Exp.ask(b.lines, b.name, b.title, null, ext);
   }
   function vwCsv(){
     var m = VW.mode === 'ind' ? 'mois' : VW.mode, pr = (VW.mode === 'ind' && VW.emp) ? { from:(VW.wk || wkDef()), to:addD(VW.wk || wkDef(), 6) } : vwRange(m), f = function(x){ return (Math.round(x / 6) / 10).toString().replace('.', ','); }, lines;
@@ -26705,74 +26753,145 @@ var TempsActInd = (function(){
       weekHtml(id);
   }
   function render(){ var h = $('ta-h-ind'); if(!h) return; if(ST.emp) detail(h); else grid(h); }
+  function mrange(){ var w = wrange().from, m = U.addD(w, 3).slice(0, 7), y = +m.slice(0, 4), mo = +m.slice(5), n = new Date(y, mo, 0).getDate(); return { from:m + '-01', to:m + '-' + pad(n), kind:'m', label:MOIS[mo - 1].charAt(0).toUpperCase() + MOIS[mo - 1].slice(1) + ' ' + y }; }
+  function prange(per){ if(per === 'mois') return mrange(); var r = wrange(); return { from:r.from, to:r.to, kind:'s', label:r.label }; }
+  function weeksOf(R){ var o = []; for(var w = U.monday(R.from); w <= R.to; w = U.addD(w, 7)) o.push(w); return o; }
+  var FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
   function fsCtx(id, R){
     var x = people().filter(function(p){ return p.id === id; })[0] || { id:id, nomComplet:U.nom(id) }, info = A.pinfo(x) || {}, rows = [], num = {}, n = 0, tot = 0, byCat = {}, d;
     for(d = R.from; d <= R.to; d = U.addD(d, 1)) place(id, d).forEach(function(p){
       var tk = D().TAC.filter(function(z){ return z.id === p.q.tache; })[0], ct = tk ? D().CAT.filter(function(z){ return z.id === tk.cat; })[0] : null;
       n++; num[p.q.id] = n; rows.push({ n:n, d:d, p:p, tk:tk, ct:ct }); tot += p.q.min; var k = ct ? ct.nom : 'Autre'; byCat[k] = (byCat[k] || 0) + p.q.min;
     });
-    var po = pointe(id, R.from, R.to), ws = shState(id, R.from, 1), val = null, SL = { brouillon:'Brouillon', soumise:'Soumise', validee:'Validée' };
-    if(ws === 'validee'){ try { var rq = TempsVal.data().REQ.filter(function(z){ return z.type === 'feuille' && z.emp === id && z.p.week === R.from && z.statut === 'validee'; })[0]; if(rq){ var h = rq.hist[rq.hist.length - 1]; val = { by:h.by, at:h.at }; } } catch(e){} }
+    var po = pointe(id, R.from, R.to), SL = { brouillon:'Brouillon', soumise:'Soumise', validee:'Validée' };
+    var WKS = weeksOf(R).map(function(w){
+      var a = w < R.from ? R.from : w, b = U.addD(w, 6) > R.to ? R.to : U.addD(w, 6), ne = entries(id, a, b).length, sa = sum(entries(id, a, b)), pw = pointe(id, a, b), st = shState(id, w, ne || pw ? 1 : 0), val = null;
+      if(st === 'validee'){ try { var rq = TempsVal.data().REQ.filter(function(z){ return z.type === 'feuille' && z.emp === id && z.p.week === w && z.statut === 'validee'; })[0]; if(rq){ var h = rq.hist[rq.hist.length - 1]; val = { by:h.by, at:h.at }; } } catch(e){} }
+      return { w:w, a:a, b:b, st:st, n:ne, sa:sa, po:pw, val:val };
+    });
+    var cons = WKS.filter(function(z){ return z.n || z.po; }), nv = cons.filter(function(z){ return z.st === 'validee'; }).length, ok = cons.length > 0 && nv === cons.length, ws, stText;
+    if(R.kind === 's'){ ws = WKS[0].st; stText = (SL[ws] || ws) + (WKS[0].val ? ' · validée par ' + WKS[0].val.by + ' le ' + WKS[0].val.at : ''); }
+    else { ws = ok ? 'validee' : (cons.some(function(z){ return z.st === 'soumise'; }) ? 'soumise' : 'brouillon'); stText = nv + ' semaine' + (nv > 1 ? 's' : '') + ' sur ' + cons.length + ' validée' + (nv > 1 ? 's' : ''); }
     var dn = new Date(), p2 = function(v){ return (v < 10 ? '0' : '') + v; }, g = dn.getFullYear() + '-' + p2(dn.getMonth() + 1) + '-' + p2(dn.getDate()) + ' ' + p2(dn.getHours()) + ':' + p2(dn.getMinutes());
-    var pack = Verif.make({ n:x.nomComplet, e:id, f:R.from, t:R.to, s:tot, p:po, c:n, st:SL[ws] || ws, g:g });
-    var ident = [['Salarié', x.nomComplet], ['Matricule', info.matricule || info.mat || x.matricule || id], ['Poste', poste(x) || '—'], ['Service', svcOf(x)], ['Période', U.dfr(R.from) + ' au ' + U.dfr(R.to) + ' (semaine ' + Verif.isoWeek(R.from).w + ')'], ['État de la feuille', (SL[ws] || ws) + (val ? ' · validée par ' + val.by + ' le ' + val.at : '')], ['Document édité le', g.slice(8, 10) + '/' + g.slice(5, 7) + '/' + g.slice(0, 4) + ' à ' + g.slice(11)], ['Référence', pack.ref]];
-    return { id:id, R:R, x:x, rows:rows, num:num, tot:tot, po:po, byCat:byCat, ws:ws, val:val, pack:pack, ident:ident, n:n, name:x.nomComplet };
+    var pack = Verif.make({ n:x.nomComplet, e:id, f:R.from, t:R.to, s:tot, p:po, c:n, st:R.kind === 's' ? (SL[ws] || ws) : stText, g:g, k:R.kind });
+    var per = R.kind === 's' ? U.dfr(R.from) + ' au ' + U.dfr(R.to) + ' (semaine ' + Verif.isoWeek(R.from).w + ')' : R.label + ' (du ' + U.dfr(R.from) + ' au ' + U.dfr(R.to) + ')';
+    var ident = [['Salarié', x.nomComplet], ['Matricule', info.matricule || info.mat || x.matricule || id], ['Poste', poste(x) || '—'], ['Service', svcOf(x)], ['Période', per], ['État de la feuille', stText], ['Document édité le', g.slice(8, 10) + '/' + g.slice(5, 7) + '/' + g.slice(0, 4) + ' à ' + g.slice(11)], ['Référence', pack.ref]];
+    return { id:id, R:R, x:x, rows:rows, num:num, tot:tot, po:po, byCat:byCat, weeks:WKS, cons:cons, nv:nv, ok:ok, ws:ws, pack:pack, ident:ident, n:n, name:x.nomComplet };
   }
-  function fsDoc(C, done){
-    var R = C.R, id = C.id, t = U.today(), i, e2 = esc, FULL = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  function fsLines(C){
+    var L = ['N°;Jour;Début;Fin;Catégorie;Tâche;Durée;Commentaire'];
+    C.rows.forEach(function(r){ L.push([r.n, U.JN[U.dow(r.d) - 1] + ' ' + U.dfr(r.d), TTL.hm(r.p.s), TTL.hm(r.p.e), r.ct ? r.ct.nom : '', r.tk ? r.tk.nom : '', U.fh(r.p.q.min), r.p.q.note || ''].join(';')); });
+    L.push(['Total', '', '', '', '', '', U.fh(C.tot), ''].join(';')); return L;
+  }
+  function fsStats(C){
+    var R = C.R, id = C.id, DS = [], nDays = 0, busy = null, low = null, high = null, retN = 0, retM = 0, hsM = 0, hsOk = true, night = false, d;
+    for(d = R.from; d <= R.to; d = U.addD(d, 1)){ var r = RH.day(id, d), sa = sum(entries(id, d, d)), o = { d:d, sa:sa, po:r.worked || 0, ret:r.retard || 0, hs:r.hs || 0 };
+      DS.push(o); if(sa > 0) nDays++; if(!busy || sa > busy.sa) busy = o; if(o.po > 0 && sa > 0){ o.cv = Math.round(100 * sa / o.po); if(!low || o.cv < low.cv) low = o; if(!high || o.cv > high.cv) high = o; }
+      if(o.ret > 0){ retN++; retM += o.ret; } if(o.hs > 0){ hsM += o.hs; if(!RH.hsOk(id, d, o.hs).ok) hsOk = false; } }
+    C.rows.forEach(function(r){ if(r.p.s < 360 || r.p.e > 1320) night = true; });
+    return { DS:DS, nDays:nDays, busy:busy, low:low, high:high, retN:retN, retM:retM, hsM:hsM, hsOk:hsOk, night:night };
+  }
+  function fsDoc(C, sel, done){
+    var R = C.R, id = C.id, t = U.today(), i, e2 = esc, month = R.kind === 'm', has = function(k){ return sel.indexOf(k) > -1; };
     Verif.loadQR(function(){
-      var qr = Verif.qrSvg(C.pack.url), cov = C.po ? Math.round(100 * C.tot / C.po) : 0, cats = Object.keys(C.byCat).sort(function(a, b){ return C.byCat[b] - C.byCat[a]; }), main = cats[0];
+      var qr = Verif.qrSvg(C.pack.url), cov = C.po ? Math.round(100 * C.tot / C.po) : 0, cats = Object.keys(C.byCat).sort(function(a, b){ return C.byCat[b] - C.byCat[a]; }), main = cats[0], S = fsStats(C);
       var qrBox = function(sz){ return qr ? '<div style="width:' + sz + 'px;height:' + sz + 'px;flex:none">' + qr.replace('<svg', '<svg style="width:100%;height:100%"') + '</div>' : '<div style="width:' + sz + 'px;height:' + sz + 'px;flex:none;border:1px dashed #CBD5E1;font-size:8pt;color:#94A3B8;display:flex;align-items:center;text-align:center;padding:4px">QR indisponible hors ligne</div>'; };
-      /* statistiques de la semaine */
-      var DS = [], nDays = 0, busy = null, low = null, high = null, retN = 0, retM = 0, hsM = 0, hsOk = true, night = false;
-      for(i = 0; i < 7; i++){ var d = U.addD(R.from, i), r = RH.day(id, d), sa = entries(id, d, d).reduce(function(a, x){ return a + x.min; }, 0), o = { d:d, sa:sa, po:r.worked || 0, ret:r.retard || 0, hs:r.hs || 0 };
-        DS.push(o); if(sa > 0) nDays++; if(!busy || sa > busy.sa) busy = o; if(o.po > 0 && sa > 0){ o.cv = Math.round(100 * sa / o.po); if(!low || o.cv < low.cv) low = o; if(!high || o.cv > high.cv) high = o; }
-        if(o.ret > 0){ retN++; retM += o.ret; } if(o.hs > 0){ hsM += o.hs; if(!RH.hsOk(id, d, o.hs).ok) hsOk = false; } }
-      C.rows.forEach(function(r){ if(r.p.s < 360 || r.p.e > 1320) night = true; });
-      var dn = function(d){ return FULL[U.dow(d) - 1].toLowerCase(); };
-      var tx1 = '<b>' + e2(C.name) + '</b> a déclaré <b>' + U.fh(C.tot) + '</b> d’activité pour <b>' + U.fh(C.po) + '</b> pointées, soit une couverture de <b>' + cov + ' %</b>, répartie sur ' + C.n + ' tâche' + (C.n > 1 ? 's' : '') + ' en ' + nDays + ' jour' + (nDays > 1 ? 's' : '') + '. ' + (cov >= 90 ? 'La couverture est conforme (90 % ou plus).' : 'La couverture est inférieure à 90 % : il reste <b>' + U.fh(Math.max(0, C.po - C.tot)) + '</b> à justifier.');
-      var tx2 = (busy && busy.sa ? 'Le jour le plus chargé est le <b>' + dn(busy.d) + '</b> (' + U.fh(busy.sa) + ' saisies). ' : '') + (retN ? retN + ' jour' + (retN > 1 ? 's' : '') + ' avec retard (' + retM + ' min au total). ' : 'Aucun retard. ') + (hsM ? 'Heures supplémentaires : <b>' + U.fh(hsM) + '</b> (' + (hsOk ? 'validées' : 'à valider') + '). ' : 'Aucune heure supplémentaire. ') + (night ? 'Du travail en horaires de nuit est présent sur la semaine.' : '');
-      var tx3a = (low && high && low !== high ? 'La couverture est la plus faible le <b>' + dn(low.d) + '</b> (' + low.cv + ' %) et la plus élevée le <b>' + dn(high.d) + '</b> (' + high.cv + ' %).' : low ? 'La couverture du <b>' + dn(low.d) + '</b> est de ' + low.cv + ' %.' : 'Aucune comparaison possible sur la période.') + (low && low.cv < 90 ? ' Une couverture inférieure à 90 % mérite d’être complétée.' : '');
+      var dn = function(d){ return FULL[U.dow(d) - 1].toLowerCase(); }, per = month ? 'du mois' : 'de la semaine';
+      var tx1 = '<b>' + e2(C.name) + '</b> a déclaré <b>' + U.fh(C.tot) + '</b> d’activité pour <b>' + U.fh(C.po) + '</b> pointées, soit une couverture de <b>' + cov + ' %</b>, répartie sur ' + C.n + ' tâche' + (C.n > 1 ? 's' : '') + ' en ' + S.nDays + ' jour' + (S.nDays > 1 ? 's' : '') + '. ' + (cov >= 90 ? 'La couverture est conforme (90 % ou plus).' : 'La couverture est inférieure à 90 % : il reste <b>' + U.fh(Math.max(0, C.po - C.tot)) + '</b> à justifier.');
+      var tx2 = (S.busy && S.busy.sa ? 'Le jour le plus chargé ' + per + ' est le <b>' + dn(S.busy.d) + ' ' + U.dfr(S.busy.d).slice(0, 5) + '</b> (' + U.fh(S.busy.sa) + ' saisies). ' : '') + (S.retN ? S.retN + ' jour' + (S.retN > 1 ? 's' : '') + ' avec retard (' + S.retM + ' min au total). ' : 'Aucun retard. ') + (S.hsM ? 'Heures supplémentaires : <b>' + U.fh(S.hsM) + '</b> (' + (S.hsOk ? 'validées' : 'à valider') + '). ' : 'Aucune heure supplémentaire. ') + (S.night ? 'Du travail en horaires de nuit est présent.' : '');
+      var tx3a = (S.low && S.high && S.low !== S.high ? 'La couverture est la plus faible le <b>' + dn(S.low.d) + ' ' + U.dfr(S.low.d).slice(0, 5) + '</b> (' + S.low.cv + ' %) et la plus élevée le <b>' + dn(S.high.d) + ' ' + U.dfr(S.high.d).slice(0, 5) + '</b> (' + S.high.cv + ' %).' : S.low ? 'La couverture du <b>' + U.dfr(S.low.d).slice(0, 5) + '</b> est de ' + S.low.cv + ' %.' : 'Aucune comparaison possible sur la période.') + (S.low && S.low.cv < 90 ? ' Une couverture inférieure à 90 % mérite d’être complétée.' : '');
       var tx3b = main ? '<b>' + e2(main) + '</b> représente <b>' + Math.round(100 * C.byCat[main] / Math.max(1, C.tot)) + ' %</b> du temps saisi' + (cats[1] ? ', devant ' + e2(cats[1]) + ' (' + Math.round(100 * C.byCat[cats[1]] / Math.max(1, C.tot)) + ' %).' : '.') : 'Aucune saisie sur la période.';
       var auto = function(h){ return '<div class="auto"><b>Lecture automatique</b>' + h + '</div>'; };
-      var sec = function(n, title, desc, inner, br){ return '<div class="sec' + (br ? ' pb' : '') + '"><div class="sh"><span class="num">' + n + '</span><div><h2>' + title + '</h2><p class="d">' + desc + '</p></div></div>' + inner + '</div>'; };
-      var css = '<style>.hd,.pt,.sub{display:none}.fs{font-size:9.5pt;color:#1E293B}.fs *{box-sizing:border-box}.cv{border:1px solid #CBD5E1;border-radius:14px;overflow:hidden;page-break-after:always}.cv-band{background:#2E427B;color:#fff;padding:12px 22px;display:flex;align-items:center;gap:14px}.cv-band img{height:36px;width:auto;background:#fff;border-radius:8px;padding:3px}.cv-band b{font-size:16pt;letter-spacing:.6px}.cv-band span{margin-left:auto;font-size:9pt;opacity:.85}.cv-in{padding:16px 22px 14px}.cv-t{font-size:25pt;font-weight:800;color:#0B1332;margin:0;line-height:1.1}.cv-n{font-size:15pt;color:#2E427B;font-weight:700;margin-top:2px}.cv-p{color:#64748B;margin:2px 0 12px}.cv-grid{display:flex;gap:16px;align-items:stretch}.box{border:1px solid #E2E8F0;border-radius:10px;padding:10px 14px}.fs-id{width:100%;border-collapse:collapse;table-layout:fixed}.fs-id td{border:0 !important;padding:2px 8px 2px 0;font-size:9.5pt;background:none !important;overflow-wrap:anywhere}.fs-id td:first-child{color:#64748B;width:128px}.som{margin:14px 0 0;padding:0}.som li{list-style:none;display:flex;gap:12px;align-items:flex-start;padding:7px 0;border-top:1px solid #E2E8F0}.som .n{width:24px;height:24px;border-radius:7px;background:#E3EBFE;color:#2E427B;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;font-size:10pt}.som b{display:block;font-size:10.5pt}.som span{color:#64748B;font-size:8.8pt}.sec{border:1px solid #E2E8F0;border-radius:12px;padding:12px 16px;margin-bottom:12px;overflow:hidden}.sh{display:flex;gap:12px;align-items:flex-start;border-bottom:2px solid #2E427B;padding-bottom:8px;margin-bottom:10px}.sh .num{width:28px;height:28px;border-radius:8px;background:#2E427B;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}.sh h2{font-size:13pt;margin:0;color:#0B1332}.sh p.d{font-size:8.8pt;color:#64748B;margin:2px 0 0;line-height:1.35}.kp{display:flex;gap:10px;margin:0 0 10px}.kp div{flex:1;min-width:0;border:1px solid #E2E8F0;border-radius:8px;padding:7px 10px}.kp b{display:block;font-size:14pt;color:#2E427B;overflow-wrap:anywhere}.kp span{font-size:8.5pt;color:#64748B}.auto{margin:10px 0 0;padding:8px 12px;border-left:3px solid #2E427B;background:#F4F7FE;border-radius:0 8px 8px 0;font-size:9pt;color:#334155;line-height:1.45}.auto b:first-child{color:#2E427B;text-transform:uppercase;font-size:7.5pt;letter-spacing:.06em;display:block;margin-bottom:2px}.fs-t{table-layout:fixed}.fs-t td,.fs-t th{overflow-wrap:anywhere;word-break:break-word;vertical-align:top}.fs-t tr{page-break-inside:avoid}tr.sub td{background:#F1F5F9 !important;font-weight:600}.catbar{height:8px;border-radius:4px;background:#E3EBFE;overflow:hidden}.catbar i{display:block;height:8px;background:#3B82F6}.two{display:flex;gap:12px;align-items:flex-start}.two>div{min-width:0}.ct{font-size:10pt;font-weight:700;color:#0B1332;margin:0 0 6px}.sig{display:flex;gap:18px;margin:14px 0}.sig div{flex:1;border:1px solid #CBD5E1;border-radius:8px;height:110px;padding:10px;font-size:9pt;color:#64748B}.pb{page-break-before:always}</style>';
-      var ok = C.ws === 'validee', banner = '<div style="padding:8px 12px;border-radius:8px;margin:12px 0 0;font-size:9.5pt;background:' + (ok ? '#D1FAE5' : '#FEF3C7') + ';color:' + (ok ? '#065F46' : '#92400E') + ';border:1px solid ' + (ok ? '#10B981' : '#F59E0B') + '">' + (ok ? '<b>Feuille validée</b> — ce document fait foi du temps d’activité déclaré et validé sur la période.' : '<b>Feuille non validée</b> (' + e2(C.ident[5][1]) + ') — ce document n’a pas valeur de preuve tant que la feuille n’est pas validée.') + '</div>';
-      var lg = document.querySelector('.entity-badge img');
-      var idt = '<table class="fs-id">' + C.ident.map(function(r){ return '<tr><td>' + r[0] + '</td><td><b>' + e2(r[1]) + '</b></td></tr>'; }).join('') + '</table>';
-      var SOM = [['Synthèse', 'Chiffres clés de la période et répartition du temps par catégorie.'], ['Détail des tâches', 'Liste complète des tâches déclarées, avec heures de début et de fin et commentaires.'], ['Emploi du temps', 'Vue de la semaine : horaire prévu, temps pointé, pauses et tâches réalisées.'], ['Graphes', 'Temps pointé et saisi par jour, puis répartition par catégorie.'], ['Validation et vérification', 'Signatures, référence du document et QR code d’authenticité.']];
-      var cover = '<div class="cv"><div class="cv-band">' + (lg ? '<img src="' + lg.src + '" alt="">' : '') + '<b>SOFTGRH</b><span>Suivi du temps d’activité</span></div><div class="cv-in"><h1 class="cv-t">Feuille de temps</h1><div class="cv-n">' + e2(C.name) + '</div><div class="cv-p">' + U.dfr(R.from) + ' au ' + U.dfr(R.to) + ' · semaine ' + Verif.isoWeek(R.from).w + ' · réf. ' + e2(C.pack.ref) + '</div><div class="cv-grid"><div class="box" style="flex:1;min-width:0">' + idt + '</div><div class="box" style="width:250px;flex:none;display:flex;gap:10px;align-items:center">' + qrBox(96) + '<div style="font-size:8.5pt;color:#475569;line-height:1.4"><b>Vérifier ce document</b><br>Scannez le QR code ou saisissez la référence :<br><b style="font-size:8pt;overflow-wrap:anywhere">' + e2(C.pack.ref) + '</b></div></div></div>' + banner +
-        '<ul class="som">' + SOM.map(function(s, k){ return '<li><span class="n">' + (k + 1) + '</span><div><b>' + s[0] + '</b><span>' + s[1] + '</span></div></li>'; }).join('') + '</ul></div></div>';
-      var kp = '<div class="kp"><div><b>' + U.fh(C.po) + '</b><span>Temps pointé</span></div><div><b>' + U.fh(C.tot) + '</b><span>Temps saisi</span></div><div><b>' + cov + ' %</b><span>Couverture (saisi / pointé)</span></div><div><b>' + C.n + '</b><span>Tâches déclarées</span></div><div><b style="font-size:11pt">' + e2(main || '—') + '</b><span>Catégorie principale</span></div></div>';
-      var catT = '<table class="fs-t" style="width:100%;border-collapse:collapse"><colgroup><col style="width:34%"><col style="width:14%"><col style="width:12%"><col style="width:40%"></colgroup><thead><tr><th class="l">Catégorie</th><th class="r">Durée</th><th class="r">Part</th><th class="l">Répartition</th></tr></thead><tbody>' + (cats.map(function(k){ var p = Math.round(100 * C.byCat[k] / Math.max(1, C.tot)); return '<tr><td>' + e2(k) + '</td><td class="r">' + U.fh(C.byCat[k]) + '</td><td class="r">' + p + ' %</td><td><div class="catbar"><i style="width:' + p + '%"></i></div></td></tr>'; }).join('') || '<tr><td colspan="4" style="text-align:center;color:#94A3B8;padding:12px">Aucune saisie.</td></tr>') + '</tbody></table>';
-      var body = '', last = null, dsum = 0;
-      var flush = function(){ if(last){ body += '<tr class="sub"><td colspan="6">Total ' + FULL[U.dow(last) - 1] + ' ' + U.dfr(last) + '</td><td class="r">' + U.fh(dsum) + '</td><td>sur ' + U.fh(pointe(id, last, last)) + ' pointées</td></tr>'; } };
-      C.rows.forEach(function(r){ if(last !== null && r.d !== last){ flush(); dsum = 0; } last = r.d; dsum += r.p.q.min;
-        body += '<tr><td class="c">' + r.n + '</td><td>' + U.JN[U.dow(r.d) - 1] + ' ' + U.dfr(r.d) + '</td><td class="c">' + TTL.hm(r.p.s) + '</td><td class="c">' + TTL.hm(r.p.e) + '</td><td>' + e2(r.ct ? r.ct.nom : '') + '</td><td>' + e2(r.tk ? r.tk.nom : '') + '</td><td class="r">' + U.fh(r.p.q.min) + '</td><td>' + e2(r.p.q.note || '') + '</td></tr>'; });
-      flush(); body += '<tr class="tot"><td colspan="6">Total de la semaine</td><td class="r">' + U.fh(C.tot) + '</td><td></td></tr>';
-      if(!C.rows.length) body = '<tr><td colspan="8" style="text-align:center;color:#94A3B8;padding:16px">Aucune tâche saisie sur la période.</td></tr>';
-      var tab = '<table class="fs-t" style="width:100%;border-collapse:collapse"><colgroup><col style="width:5%"><col style="width:13%"><col style="width:7%"><col style="width:7%"><col style="width:15%"><col style="width:22%"><col style="width:8%"><col style="width:23%"></colgroup><thead><tr><th class="c">N°</th><th class="l">Jour</th><th class="c">Début</th><th class="c">Fin</th><th class="l">Catégorie</th><th class="l">Tâche</th><th class="r">Durée</th><th class="l">Commentaire</th></tr></thead><tbody>' + body + '</tbody></table>';
-      var D7 = [], HD = {}; for(i = 0; i < 7; i++) D7.push(wDay(id, U.addD(R.from, i), t, HD, C.num));
-      var cfg0 = { days:D7, before:wDay(id, U.addD(R.from, -1), t, HD, C.num), hide:HD, leg:LEG, tg:'', today:t, print:true }, rg = TTL.range(cfg0, 60); cfg0.lo = rg[0]; cfg0.hi = rg[1]; cfg0.heightPx = 400;
-      var G = [], G2 = [];
-      DS.forEach(function(o){ G.push({ label:U.JN[U.dow(o.d) - 1] + ' ' + o.d.slice(8) + '/' + o.d.slice(5, 7), sub:o.cv ? o.cv + ' %' : '', bars:[{ v:o.po, c:'#2E427B', lab:'Pointé' }, { v:o.sa, c:'#10B981', lab:'Saisi' }] }); });
-      cats.forEach(function(k){ G2.push({ label:k, bars:[{ v:C.byCat[k], c:'#3B82F6', lab:'Temps saisi' }] }); });
-      var sig = '<div class="sig"><div>Le salarié<br><br>Nom, date et signature</div><div>Le responsable hiérarchique<br><br>Nom, date et signature</div></div>';
-      var ver = '<div class="two"><div style="flex:1">' + sig + '<p style="font-size:9pt;color:#475569;line-height:1.5;margin:0">Ce document a été généré par SOFTGRH le <b>' + e2(C.ident[6][1]) + '</b>. Il peut être vérifié en scannant le QR code ci-contre, ou en saisissant la référence sur la page de vérification. Toute modification du contenu entraîne un écart d’empreinte détecté lors de la vérification.</p></div><div class="box" style="width:230px;text-align:center">' + qrBox(150) + '<div style="margin-top:8px;font-size:8.5pt;color:#475569">Référence<br><b style="overflow-wrap:anywhere">' + e2(C.pack.ref) + '</b></div></div></div>';
-      done({ body:css + '<div class="fs">' + cover +
-        sec(1, 'Synthèse', 'Chiffres clés de la période et répartition du temps saisi par catégorie d’activité.', kp + catT + auto(tx1), false) +
-        sec(2, 'Détail des tâches', 'Liste complète des tâches déclarées par le salarié : heure de début et de fin, catégorie, durée et commentaire éventuel. Chaque numéro renvoie au bloc correspondant de l’emploi du temps.', tab, true) +
-        sec(3, 'Emploi du temps', 'Vue de la semaine : la bande grise indique l’horaire prévu, la bande bleue le temps pointé, les pauses sont en jaune et chaque bloc coloré est une tâche numérotée (la couleur donne l’état de la feuille).', TTL.html(cfg0) + auto(tx2), true) +
-        sec(4, 'Graphes', 'Comparaison du temps pointé et du temps saisi par jour (le pourcentage sous le jour est la couverture), puis répartition du temps saisi par catégorie.', '<div class="two"><div style="flex:1.7"><p class="ct">Pointé et saisi par jour</p>' + TTL.bars({ groups:G, legend:[['#2E427B', 'Pointé'], ['#10B981', 'Saisi']], w:640, h:300 }) + auto(tx3a) + '</div><div style="flex:1"><p class="ct">Répartition par catégorie</p>' + (G2.length ? TTL.bars({ groups:G2, legend:[['#3B82F6', 'Temps saisi']], w:400, h:300 }) : '<div class="box" style="color:#94A3B8;text-align:center">Aucune saisie.</div>') + auto(tx3b) + '</div></div>', true) +
-        sec(5, 'Validation et vérification', 'Signatures des parties et éléments permettant de contrôler l’authenticité du document.', ver, true) + '</div>', land:true });
+      var ORDER = [['synth', 'Synthèse', 'Chiffres clés ' + per + ' et répartition du temps par catégorie.'], ['detail', 'Détail des tâches', 'Liste complète des tâches déclarées, avec heures de début et de fin et commentaires.'], ['edt', 'Emploi du temps', month ? 'Une page par semaine : horaire prévu, temps pointé, pauses et tâches réalisées.' : 'Vue de la semaine : horaire prévu, temps pointé, pauses et tâches réalisées.'], ['gra', 'Graphes', 'Temps pointé et saisi par jour, puis répartition par catégorie.'], ['valid', 'Validation et vérification', 'Signatures, référence du document et QR code d’authenticité.']].filter(function(s){ return has(s[0]); });
+      var NUM = {}; ORDER.forEach(function(s, k){ NUM[s[0]] = k + 1; });
+      var sec = function(k, desc, inner, br, title){ var s = ORDER.filter(function(z){ return z[0] === k; })[0]; return '<div class="sec' + (br ? ' pb' : '') + '"><div class="sh"><span class="num">' + NUM[k] + '</span><div><h2>' + (title || s[1]) + '</h2><p class="d">' + desc + '</p></div></div>' + inner + '</div>'; };
+      var first = true, br = function(){ var b = !first; first = false; return b; };
+      var css = '<style>.hd,.pt,.sub{display:none}.fs{font-size:9.5pt;color:#1E293B}.fs *{box-sizing:border-box}.cv{border:1px solid #CBD5E1;border-radius:14px;overflow:hidden;margin-bottom:12px}.cv.full{page-break-after:always}.cv-band{background:#2E427B;color:#fff;padding:12px 22px;display:flex;align-items:center;gap:14px}.cv-band img{height:36px;width:auto;background:#fff;border-radius:8px;padding:3px}.cv-band b{font-size:16pt;letter-spacing:.6px}.cv-band span{margin-left:auto;font-size:9pt;opacity:.85}.cv-in{padding:16px 22px 14px}.cv-t{font-size:25pt;font-weight:800;color:#0B1332;margin:0;line-height:1.1}.cv-n{font-size:15pt;color:#2E427B;font-weight:700;margin-top:2px}.cv-p{color:#64748B;margin:2px 0 12px}.cv-grid{display:flex;gap:16px;align-items:stretch}.box{border:1px solid #E2E8F0;border-radius:10px;padding:10px 14px}.fs-id{width:100%;border-collapse:collapse;table-layout:fixed}.fs-id td{border:0 !important;padding:2px 8px 2px 0;font-size:9.5pt;background:none !important;overflow-wrap:anywhere}.fs-id td:first-child{color:#64748B;width:128px}.som{margin:14px 0 0;padding:0}.som li{list-style:none;display:flex;gap:12px;align-items:flex-start;padding:7px 0;border-top:1px solid #E2E8F0}.som .n{width:24px;height:24px;border-radius:7px;background:#E3EBFE;color:#2E427B;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;font-size:10pt}.som b{display:block;font-size:10.5pt}.som span{color:#64748B;font-size:8.8pt}.sec{border:1px solid #E2E8F0;border-radius:12px;padding:12px 16px;margin-bottom:12px;overflow:hidden}.sh{display:flex;gap:12px;align-items:flex-start;border-bottom:2px solid #2E427B;padding-bottom:8px;margin-bottom:10px}.sh .num{width:28px;height:28px;border-radius:8px;background:#2E427B;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}.sh h2{font-size:13pt;margin:0;color:#0B1332}.sh p.d{font-size:8.8pt;color:#64748B;margin:2px 0 0;line-height:1.35}.kp{display:flex;gap:10px;margin:0 0 10px}.kp div{flex:1;min-width:0;border:1px solid #E2E8F0;border-radius:8px;padding:7px 10px}.kp b{display:block;font-size:14pt;color:#2E427B;overflow-wrap:anywhere}.kp span{font-size:8.5pt;color:#64748B}.auto{margin:10px 0 0;padding:8px 12px;border-left:3px solid #2E427B;background:#F4F7FE;border-radius:0 8px 8px 0;font-size:9pt;color:#334155;line-height:1.45}.auto b:first-child{color:#2E427B;text-transform:uppercase;font-size:7.5pt;letter-spacing:.06em;display:block;margin-bottom:2px}.fs-t{table-layout:fixed;width:100%;border-collapse:collapse}.fs-t td,.fs-t th{overflow-wrap:anywhere;word-break:break-word;vertical-align:top}.fs-t tr{page-break-inside:avoid}tr.sub td{background:#F1F5F9 !important;font-weight:600}tr.wk td{background:#E3EBFE !important;font-weight:700;color:#2E427B}.catbar{height:8px;border-radius:4px;background:#E3EBFE;overflow:hidden}.catbar i{display:block;height:8px;background:#3B82F6}.two{display:flex;gap:12px;align-items:flex-start}.two>div{min-width:0}.ct{font-size:10pt;font-weight:700;color:#0B1332;margin:0 0 6px}.sig{display:flex;gap:18px;margin:14px 0}.sig div{flex:1;border:1px solid #CBD5E1;border-radius:8px;height:110px;padding:10px;font-size:9pt;color:#64748B}.pb{page-break-before:always}</style>';
+      var ok = C.ok, banner = '<div style="padding:8px 12px;border-radius:8px;margin:12px 0 0;font-size:9.5pt;background:' + (ok ? '#D1FAE5' : '#FEF3C7') + ';color:' + (ok ? '#065F46' : '#92400E') + ';border:1px solid ' + (ok ? '#10B981' : '#F59E0B') + '">' + (ok ? '<b>' + (month ? 'Feuilles validées' : 'Feuille validée') + '</b> — ce document fait foi du temps d’activité déclaré et validé sur la période.' : '<b>' + (month ? 'Feuilles non toutes validées' : 'Feuille non validée') + '</b> (' + e2(C.ident[5][1]) + ') — ce document n’a pas valeur de preuve tant que la validation n’est pas complète.') + '</div>';
+      var lg = document.querySelector('.entity-badge img'), idt = '<table class="fs-id">' + C.ident.map(function(r){ return '<tr><td>' + r[0] + '</td><td><b>' + e2(r[1]) + '</b></td></tr>'; }).join('') + '</table>';
+      var perTxt = month ? e2(R.label) : U.dfr(R.from) + ' au ' + U.dfr(R.to) + ' · semaine ' + Verif.isoWeek(R.from).w, title = month ? 'Feuille de temps mensuelle' : 'Feuille de temps';
+      var band = '<div class="cv-band">' + (lg ? '<img src="' + lg.src + '" alt="">' : '') + '<b>SOFTGRH</b><span>Suivi du temps d’activité</span></div>', out = '';
+      if(has('cover')){
+        out += '<div class="cv full">' + band + '<div class="cv-in"><h1 class="cv-t">' + title + '</h1><div class="cv-n">' + e2(C.name) + '</div><div class="cv-p">' + perTxt + ' · réf. ' + e2(C.pack.ref) + '</div><div class="cv-grid"><div class="box" style="flex:1;min-width:0">' + idt + '</div><div class="box" style="width:250px;flex:none;display:flex;gap:10px;align-items:center">' + qrBox(96) + '<div style="font-size:8.5pt;color:#475569;line-height:1.4"><b>Vérifier ce document</b><br>Scannez le QR code ou saisissez la référence :<br><b style="font-size:8pt;overflow-wrap:anywhere">' + e2(C.pack.ref) + '</b></div></div></div>' + banner + '<ul class="som">' + ORDER.map(function(s, k){ return '<li><span class="n">' + (k + 1) + '</span><div><b>' + s[1] + '</b><span>' + s[2] + '</span></div></li>'; }).join('') + '</ul></div></div>'; first = false;
+      } else {
+        out += '<div class="cv">' + band + '<div class="cv-in" style="display:flex;gap:16px;align-items:center"><div style="flex:1;min-width:0"><div style="font-size:18pt;font-weight:800;color:#0B1332;line-height:1.1">' + title + '</div><div style="color:#2E427B;font-weight:700;font-size:12pt">' + e2(C.name) + '</div><div style="color:#64748B;font-size:9pt">' + perTxt + ' · réf. ' + e2(C.pack.ref) + '</div>' + banner + '</div>' + qrBox(80) + '</div></div>'; first = false;
+      }
+      if(has('synth')){
+        var kp = '<div class="kp"><div><b>' + U.fh(C.po) + '</b><span>Temps pointé</span></div><div><b>' + U.fh(C.tot) + '</b><span>Temps saisi</span></div><div><b>' + cov + ' %</b><span>Couverture (saisi / pointé)</span></div><div><b>' + C.n + '</b><span>Tâches déclarées</span></div><div><b style="font-size:11pt">' + e2(main || '—') + '</b><span>Catégorie principale</span></div></div>';
+        var catT = '<table class="fs-t"><colgroup><col style="width:34%"><col style="width:14%"><col style="width:12%"><col style="width:40%"></colgroup><thead><tr><th class="l">Catégorie</th><th class="r">Durée</th><th class="r">Part</th><th class="l">Répartition</th></tr></thead><tbody>' + (cats.map(function(k){ var p = Math.round(100 * C.byCat[k] / Math.max(1, C.tot)); return '<tr><td>' + e2(k) + '</td><td class="r">' + U.fh(C.byCat[k]) + '</td><td class="r">' + p + ' %</td><td><div class="catbar"><i style="width:' + p + '%"></i></div></td></tr>'; }).join('') || '<tr><td colspan="4" style="text-align:center;color:#94A3B8;padding:12px">Aucune saisie.</td></tr>') + '</tbody></table>';
+        var wkT = month ? '<p class="ct" style="margin-top:12px">Détail par semaine</p><table class="fs-t"><colgroup><col style="width:34%"><col style="width:16%"><col style="width:16%"><col style="width:14%"><col style="width:20%"></colgroup><thead><tr><th class="l">Semaine</th><th class="r">Pointé</th><th class="r">Saisi</th><th class="r">Couverture</th><th class="l">État</th></tr></thead><tbody>' + C.weeks.map(function(w){ return '<tr><td>Du ' + U.dfr(w.a).slice(0, 5) + ' au ' + U.dfr(w.b).slice(0, 5) + '</td><td class="r">' + U.fh(w.po) + '</td><td class="r">' + U.fh(w.sa) + '</td><td class="r">' + (w.po ? Math.round(100 * w.sa / w.po) + ' %' : '—') + '</td><td>' + ({ brouillon:'Brouillon', soumise:'Soumise', validee:'Validée', none:'—' }[w.st] || w.st) + '</td></tr>'; }).join('') + '</tbody></table>' : '';
+        out += sec('synth', 'Chiffres clés ' + per + ' et répartition du temps saisi par catégorie d’activité.', kp + catT + wkT + auto(tx1), br());
+      }
+      if(has('detail')){
+        var body = '', lastD = null, lastW = null, dsum = 0, wsum = 0;
+        var flushD = function(){ if(lastD){ body += '<tr class="sub"><td colspan="6">Total ' + FULL[U.dow(lastD) - 1] + ' ' + U.dfr(lastD) + '</td><td class="r">' + U.fh(dsum) + '</td><td>sur ' + U.fh(pointe(id, lastD, lastD)) + ' pointées</td></tr>'; } };
+        var flushW = function(){ if(month && lastW){ body += '<tr class="wk"><td colspan="6">Total semaine du ' + U.dfr(lastW).slice(0, 5) + '</td><td class="r">' + U.fh(wsum) + '</td><td></td></tr>'; } };
+        C.rows.forEach(function(r){ var wk = U.monday(r.d); if(lastD !== null && r.d !== lastD){ flushD(); dsum = 0; } if(lastW !== null && wk !== lastW){ flushW(); wsum = 0; } lastD = r.d; lastW = wk; dsum += r.p.q.min; wsum += r.p.q.min;
+          body += '<tr><td class="c">' + r.n + '</td><td>' + U.JN[U.dow(r.d) - 1] + ' ' + U.dfr(r.d) + '</td><td class="c">' + TTL.hm(r.p.s) + '</td><td class="c">' + TTL.hm(r.p.e) + '</td><td>' + e2(r.ct ? r.ct.nom : '') + '</td><td>' + e2(r.tk ? r.tk.nom : '') + '</td><td class="r">' + U.fh(r.p.q.min) + '</td><td>' + e2(r.p.q.note || '') + '</td></tr>'; });
+        flushD(); flushW(); body += '<tr class="tot"><td colspan="6">Total ' + per + '</td><td class="r">' + U.fh(C.tot) + '</td><td></td></tr>';
+        if(!C.rows.length) body = '<tr><td colspan="8" style="text-align:center;color:#94A3B8;padding:16px">Aucune tâche saisie sur la période.</td></tr>';
+        out += sec('detail', 'Liste complète des tâches déclarées par le salarié : heure de début et de fin, catégorie, durée et commentaire éventuel. Chaque numéro renvoie au bloc correspondant de l’emploi du temps.', '<table class="fs-t"><colgroup><col style="width:5%"><col style="width:13%"><col style="width:7%"><col style="width:7%"><col style="width:15%"><col style="width:22%"><col style="width:8%"><col style="width:23%"></colgroup><thead><tr><th class="c">N°</th><th class="l">Jour</th><th class="c">Début</th><th class="c">Fin</th><th class="l">Catégorie</th><th class="l">Tâche</th><th class="r">Durée</th><th class="l">Commentaire</th></tr></thead><tbody>' + body + '</tbody></table>', br());
+      }
+      if(has('edt')){
+        var WL = C.weeks.filter(function(w){ return !month || w.n || w.po; }); if(!WL.length) WL = C.weeks.slice(0, 1);
+        WL.forEach(function(w, k){
+          var D7 = [], HD = {}; for(i = 0; i < 7; i++) D7.push(wDay(id, U.addD(w.w, i), t, HD, C.num));
+          var cfg0 = { days:D7, before:wDay(id, U.addD(w.w, -1), t, HD, C.num), hide:HD, leg:LEG, tg:'', today:t, print:true }, rg = TTL.range(cfg0, 60); cfg0.lo = rg[0]; cfg0.hi = rg[1]; cfg0.heightPx = month ? 380 : 400;
+          out += (k === 0 ? sec('edt', 'La bande grise indique l’horaire prévu, la bande bleue le temps pointé, les pauses sont en jaune et chaque bloc coloré est une tâche numérotée (la couleur donne l’état de la feuille).' + (month ? ' Une page est consacrée à chaque semaine.' : ''), (month ? '<p class="ct">Semaine du ' + U.dfr(w.w).slice(0, 5) + ' au ' + U.dfr(U.addD(w.w, 6)).slice(0, 5) + '</p>' : '') + TTL.html(cfg0) + (k === WL.length - 1 ? auto(tx2) : ''), br()) :
+            '<div class="sec pb"><div class="sh"><span class="num">' + NUM.edt + '</span><div><h2>Emploi du temps</h2><p class="d">Semaine du ' + U.dfr(w.w).slice(0, 5) + ' au ' + U.dfr(U.addD(w.w, 6)).slice(0, 5) + '</p></div></div>' + TTL.html(cfg0) + (k === WL.length - 1 ? auto(tx2) : '') + '</div>');
+        });
+      }
+      if(has('gra')){
+        var G = [], G2 = [];
+        S.DS.forEach(function(o){ G.push({ label:month ? o.d.slice(8) : U.JN[U.dow(o.d) - 1] + ' ' + o.d.slice(8) + '/' + o.d.slice(5, 7), sub:month ? U.JN[U.dow(o.d) - 1].slice(0, 1) : (o.cv ? o.cv + ' %' : ''), bars:[{ v:o.po, c:'#2E427B', lab:'Pointé' }, { v:o.sa, c:'#10B981', lab:'Saisi' }] }); });
+        cats.forEach(function(k){ G2.push({ label:k, bars:[{ v:C.byCat[k], c:'#3B82F6', lab:'Temps saisi' }] }); });
+        var c1 = TTL.bars({ groups:G, legend:[['#2E427B', 'Pointé'], ['#10B981', 'Saisi']], w:month ? 1000 : 640, h:month ? 230 : 300 }), c2 = G2.length ? TTL.bars({ groups:G2, legend:[['#3B82F6', 'Temps saisi']], w:month ? 1000 : 400, h:month ? 200 : 300 }) : '<div class="box" style="color:#94A3B8;text-align:center">Aucune saisie.</div>';
+        out += sec('gra', 'Comparaison du temps pointé et du temps saisi par jour' + (month ? ' (la lettre sous le jour est son initiale)' : ' (le pourcentage sous le jour est la couverture)') + ', puis répartition du temps saisi par catégorie.', month ? '<p class="ct">Pointé et saisi par jour</p>' + c1 + auto(tx3a) + '<p class="ct" style="margin-top:10px">Répartition par catégorie</p>' + c2 + auto(tx3b) : '<div class="two"><div style="flex:1.7"><p class="ct">Pointé et saisi par jour</p>' + c1 + auto(tx3a) + '</div><div style="flex:1"><p class="ct">Répartition par catégorie</p>' + c2 + auto(tx3b) + '</div></div>', br());
+      }
+      if(has('valid')){
+        var sig = '<div class="sig"><div>Le salarié<br><br>Nom, date et signature</div><div>Le responsable hiérarchique<br><br>Nom, date et signature</div></div>';
+        var vw = month ? '<table class="fs-t" style="margin-bottom:10px"><colgroup><col style="width:30%"><col style="width:20%"><col style="width:30%"><col style="width:20%"></colgroup><thead><tr><th class="l">Semaine</th><th class="l">État</th><th class="l">Validée par</th><th class="l">Le</th></tr></thead><tbody>' + C.weeks.map(function(w){ return '<tr><td>Du ' + U.dfr(w.a).slice(0, 5) + ' au ' + U.dfr(w.b).slice(0, 5) + '</td><td>' + ({ brouillon:'Brouillon', soumise:'Soumise', validee:'Validée', none:'—' }[w.st] || w.st) + '</td><td>' + (w.val ? e2(w.val.by) : '—') + '</td><td>' + (w.val ? e2(w.val.at) : '—') + '</td></tr>'; }).join('') + '</tbody></table>' : '';
+        out += sec('valid', 'Signatures des parties et éléments permettant de contrôler l’authenticité du document.', '<div class="two"><div style="flex:1">' + vw + sig + '<p style="font-size:9pt;color:#475569;line-height:1.5;margin:0">Ce document a été généré par SOFTGRH le <b>' + e2(C.ident[6][1]) + '</b>. Il peut être vérifié en scannant le QR code ci-contre, ou en saisissant la référence sur la page de vérification. Toute modification du contenu entraîne un écart d’empreinte détecté lors de la vérification.</p></div><div class="box" style="width:230px;text-align:center">' + qrBox(150) + '<div style="margin-top:8px;font-size:8.5pt;color:#475569">Référence<br><b style="overflow-wrap:anywhere">' + e2(C.pack.ref) + '</b></div></div></div>', br());
+      }
+      done({ body:css + '<div class="fs">' + out + '</div>', land:true });
     });
   }
+  function fsXls(C, key){
+    var R = C.R, id = C.id, t = U.today(), i, month = R.kind === 'm', S;
+    if(key === 'detail'){ var tb = Exp.tbl.xls(Exp.tbl.rows(fsLines(C))); tb.rows = C.ident.map(function(r){ return '<tr><td colspan="' + tb.n + '" style="border:none"><b>' + esc(r[0]) + '</b> : ' + esc(r[1]) + '</td></tr>'; }).join('') + '<tr><td colspan="' + tb.n + '" style="border:none;height:8px"></td></tr>' + tb.rows; return tb; }
+    if(key === 'synth'){
+      var cats = Object.keys(C.byCat).sort(function(a, b){ return C.byCat[b] - C.byCat[a]; }), cov = C.po ? Math.round(100 * C.tot / C.po) : 0, rows = '<tr><th class="h">Indicateur</th><th class="h" style="text-align:right">Valeur</th><th class="h"></th></tr>';
+      [['Temps pointé', U.fh(C.po)], ['Temps saisi', U.fh(C.tot)], ['Couverture', cov + ' %'], ['Tâches déclarées', C.n]].forEach(function(r){ rows += '<tr><td>' + r[0] + '</td><td style="text-align:right">' + r[1] + '</td><td></td></tr>'; });
+      rows += '<tr><td colspan="3" style="border:none;height:8px"></td></tr><tr><th class="h">Catégorie</th><th class="h" style="text-align:right">Durée</th><th class="h" style="text-align:right">Part</th></tr>';
+      cats.forEach(function(k){ rows += '<tr><td>' + esc(k) + '</td><td style="text-align:right">' + U.fh(C.byCat[k]) + '</td><td style="text-align:right">' + Math.round(100 * C.byCat[k] / Math.max(1, C.tot)) + ' %</td></tr>'; });
+      return { rows:rows, n:3, cols:'<col width="200"><col width="90"><col width="90">' };
+    }
+    if(key === 'edt'){
+      var WL = C.weeks.filter(function(w){ return !month || w.n || w.po; }), out = '', first = null; if(!WL.length) WL = C.weeks.slice(0, 1);
+      WL.forEach(function(w){ var D7 = [], HD = {}; for(i = 0; i < 7; i++) D7.push(wDay(id, U.addD(w.w, i), t, HD, C.num)); var g = TTL.xls({ days:D7, before:wDay(id, U.addD(w.w, -1), t, HD, C.num), hide:HD, leg:LEG, tg:'', today:t }); if(!first) first = g; out += '<tr><td colspan="' + g.n + '" style="border:none;font-weight:bold;color:#2E427B;height:26px">Semaine du ' + U.dfr(w.w) + ' au ' + U.dfr(U.addD(w.w, 6)) + '</td></tr>' + g.rows + '<tr><td colspan="' + g.n + '" style="border:none;height:12px"></td></tr>'; });
+      return { rows:out, n:first.n, cols:first.cols };
+    }
+    if(key === 'gra'){
+      S = fsStats(C); var G = [], G2 = [];
+      S.DS.forEach(function(o){ G.push({ label:U.JN[U.dow(o.d) - 1] + ' ' + o.d.slice(8) + '/' + o.d.slice(5, 7), bars:[{ v:o.po, c:'#2E427B', lab:'Pointé' }, { v:o.sa, c:'#10B981', lab:'Saisi' }] }); });
+      Object.keys(C.byCat).sort(function(a, b){ return C.byCat[b] - C.byCat[a]; }).forEach(function(k){ G2.push({ label:k, bars:[{ v:C.byCat[k], c:'#3B82F6', lab:'Temps saisi' }] }); });
+      var a = TTL.barsXls({ groups:G }), b2 = G2.length ? TTL.barsXls({ groups:G2 }) : { rows:'', n:0 };
+      return { rows:a.rows + '<tr><td style="border:none;height:10px"></td></tr>' + b2.rows, n:Math.max(a.n, b2.n), cols:a.cols };
+    }
+    return null;
+  }
   function csv(){
-    var id = ST.emp, R = wrange(), C = fsCtx(id, R), L = ['N°;Jour;Début;Fin;Catégorie;Tâche;Durée;Commentaire'];
-    C.rows.forEach(function(r){ L.push([r.n, U.JN[U.dow(r.d) - 1] + ' ' + U.dfr(r.d), TTL.hm(r.p.s), TTL.hm(r.p.e), r.ct ? r.ct.nom : '', r.tk ? r.tk.nom : '', U.fh(r.p.q.min), r.p.q.note || ''].join(';')); });
-    L.push(['Total', '', '', '', '', '', U.fh(C.tot), ''].join(';'));
-    var ext = { title:'Feuille de temps · ' + C.name, pdf:function(done){ fsDoc(C, done); }, pre:function(n){ return C.ident.map(function(r){ return '<tr><td colspan="' + n + '" style="border:none"><b>' + esc(r[0]) + '</b> : ' + esc(r[1]) + '</td></tr>'; }).join('') + '<tr><td colspan="' + n + '" style="border:none;height:8px"></td></tr>'; } };
-    Exp.ask(L, 'activites_' + U.nom(id).replace(/\s+/g, '_') + '_' + R.from + '_' + R.to + '.csv', 'Feuille de temps · ' + C.name, null, ext);
+    var id = ST.emp, R0 = prange('sem'), C0 = fsCtx(id, R0), cache = {};
+    var ctx = function(per){ return cache[per] || (cache[per] = fsCtx(id, prange(per))); };
+    var mlab = mrange().label;
+    var ext = {
+      periods:[['sem', 'Semaine', R0.label.replace('Semaine du ', '')], ['mois', 'Mois', mlab]],
+      sections:[['cover', 'Page de garde et sommaire', 'En-tête, identité, QR code et sommaire.'], ['synth', 'Synthèse', 'Chiffres clés et répartition par catégorie.'], ['detail', 'Détail des tâches', 'Toutes les tâches avec début, fin et commentaire.'], ['edt', 'Emploi du temps', 'Agenda : prévu, pointé, pauses, tâches.'], ['gra', 'Graphes', 'Pointé et saisi par jour, catégories.'], ['valid', 'Validation et vérification', 'Signatures, référence et QR code.']],
+      rebuild:function(per){ var C = ctx(per); return { lines:fsLines(C), name:'activites_' + U.nom(id).replace(/\s+/g, '_') + '_' + C.R.from + '_' + C.R.to + '.csv', title:(per === 'mois' ? 'Feuille de temps mensuelle' : 'Feuille de temps') + ' · ' + C.name }; },
+      pdf:function(per, sel, cb){ fsDoc(ctx(per), sel, cb); },
+      xls:function(per, key){ return fsXls(ctx(per), key); }
+    };
+    var b = ext.rebuild('sem'); Exp.ask(b.lines, b.name, b.title, null, ext);
   }
   (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-act-ind'){ if(ST.keep) ST.keep = false; else ST.emp = null; } var r = sp.apply(this, arguments); if(id === 'tp-act-ind') render(); return r; }; })();
   return { render:render, q:function(v){ ST.q = v; render(); }, open:function(id){ ST.emp = id; ST.wk = null; render(); }, back:function(){ ST.emp = null; render(); }, span:function(v){ ST.span = v; render(); }, go:function(n){ var d = new Date(ref() + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() + n); ST.ref = U.iso(d); ST.wk = null; var R0 = range(), t0 = U.today(); if(!(t0 >= R0.from && t0 <= R0.to)) ST.wk = U.monday(R0.from); render(); }, wgo:wgo, startOf:startOf, place:place, tg:tg, nuitTg:nuitTg, csv:csv, edit:function(){ AC.openEmpMonth(ST.emp, range().from); }, show:function(id){ ST.emp = id; ST.keep = true; showPanel('tp-act-ind'); } };
