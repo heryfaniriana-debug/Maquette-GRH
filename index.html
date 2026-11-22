@@ -3194,6 +3194,10 @@ renderAppLauncher();
               <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
               Modèles d'e-mail
             </button>
+            <button class="portal-choice w-full text-left px-3 py-2 text-[13px] hover:bg-amber-50 flex items-center gap-2 text-amber-700" data-shell="demo-qr-shell">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>
+              Aperçu QR code
+            </button>
           </div>
         </div>
 
@@ -6314,6 +6318,17 @@ renderAppLauncher();
 </div>
 
 <!-- ======================= DÉMO : GALERIE DE TOUS LES MODÈLES D'E-MAIL ======================= -->
+<div id="demo-qr-shell" class="shell h-screen w-screen overflow-y-auto bg-gray-50 flex-col">
+  <div class="h-14 border-b border-gray-200 flex items-center gap-3 px-4 shrink-0 bg-white">
+    <button onclick="showShell('admin-shell'); switchModule('temps'); showPanel('tp-traiter')" class="flex items-center gap-1.5 text-[12.5px] text-gray-500 hover:text-slate-800 border border-gray-200 rounded-full px-3 py-1.5">
+      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      Retour
+    </button>
+    <h1 class="text-[15px] font-semibold text-slate-800">Aperçu QR code</h1>
+  </div>
+  <div id="qr-demo-body" class="p-8"></div>
+</div>
+
 <div id="demo-emails-shell" class="shell h-screen w-screen overflow-hidden flex-col bg-white">
   <div class="h-full flex flex-col">
     <div class="h-14 border-b border-gray-200 flex items-center gap-3 px-4 shrink-0 bg-white">
@@ -14485,6 +14500,7 @@ function confirmerRattachement(){
   document.querySelectorAll('.portal-choice').forEach(btn=> btn.addEventListener('click', ()=>{
     appSwitchMenu.classList.add('hidden');
     showShell(btn.dataset.shell);
+    if(btn.dataset.shell === 'demo-qr-shell') Verif.preview('ok');
     if(btn.dataset.shell === 'portal-employes-shell') reglerAccesPortailEmployeSR(false);
     if(btn.dataset.shell === 'portal-shell') reglerAccesPortailCandidatSR(false);
   }));
@@ -22182,21 +22198,43 @@ var Verif = (function(){
   function fh(m){ m = Math.round(m || 0); return Math.floor(m / 60) + 'h' + (m % 60 < 10 ? '0' : '') + (m % 60); }
   function fd(d){ return d ? d.slice(8) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4) : ''; }
   function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function card(o, ok, btn){
+    var logo = document.querySelector('.entity-badge img'), col = ok ? ['#065F46', '#D1FAE5', '#10B981'] : ['#991B1B', '#FEE2E2', '#EF4444'];
+    var row = function(l, v){ return '<div style="display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-top:1px solid #E2E8F0;font-size:14px"><span style="color:#64748B">' + l + '</span><b style="text-align:right">' + v + '</b></div>'; };
+    return '<div style="background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.15);width:560px;max-width:100%;padding:28px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">' + (logo ? '<img src="' + logo.src + '" style="height:40px" alt="">' : '') + '<b style="font-size:20px;letter-spacing:.5px;color:#2E427B">SOFTGRH</b></div><div style="font-size:13px;color:#64748B;margin-bottom:10px">Vérification d’un document</div>' +
+      '<div style="padding:16px;border-radius:12px;background:' + col[1] + ';color:' + col[0] + ';border:1px solid ' + col[2] + ';margin-bottom:16px"><div style="font-size:18px;font-weight:700">' + (ok ? 'Document authentique' : o ? 'Document modifié ou invalide' : 'Lien illisible') + '</div><div style="font-size:13px;margin-top:4px">' + (ok ? 'L’empreinte du document correspond aux données enregistrées.' : 'L’empreinte ne correspond pas : ne pas considérer ce document comme une preuve.') + '</div></div>' +
+      (o ? row('Référence', esc(o.r)) + row('Salarié', esc(o.n)) + row('Période', fd(o.f) + ' au ' + fd(o.t)) + row('Temps saisi', fh(o.s)) + row('Temps pointé', fh(o.p)) + row('Tâches', o.c) + row('État de la feuille', esc(o.st)) + row('Édité le', esc(o.g)) + row('Empreinte', '<span style="font-family:monospace">' + esc(o.h) + '</span>') : '') +
+      '<div style="font-size:11.5px;color:#94A3B8;margin-top:14px">Maquette : la vérification porte sur les données contenues dans le lien du QR code. En production, elle interrogerait le serveur SOFTGRH.</div>' + (btn ? '<div style="text-align:right;margin-top:16px"><button id="verif-x" style="background:#2E427B;color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer">Ouvrir l’application</button></div>' : '') + '</div>';
+  }
   function show(){
     var q = (location.search.match(/[?&]verif=([^&]+)/) || [])[1]; if(!q) return;
     var o = null, ok = false; try { o = unb64(q); ok = hash(core(o)) === o.h; } catch(e){}
     var ov = document.createElement('div'); ov.id = 'verif-ov'; ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#F4F7FE;overflow:auto;font-family:Inter,Arial,sans-serif;color:#1E293B;display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px';
-    var logo = document.querySelector('.entity-badge img'), col = ok ? ['#065F46', '#D1FAE5', '#10B981'] : ['#991B1B', '#FEE2E2', '#EF4444'];
-    var row = function(l, v){ return '<div style="display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-top:1px solid #E2E8F0;font-size:14px"><span style="color:#64748B">' + l + '</span><b style="text-align:right">' + v + '</b></div>'; };
-    ov.innerHTML = '<div style="background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.15);width:560px;max-width:100%;padding:28px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">' + (logo ? '<img src="' + logo.src + '" style="height:40px" alt="">' : '') + '<b style="font-size:20px;letter-spacing:.5px;color:#2E427B">SOFTGRH</b></div><div style="font-size:13px;color:#64748B;margin-bottom:10px">Vérification d’un document</div>' +
-      '<div style="padding:16px;border-radius:12px;background:' + col[1] + ';color:' + col[0] + ';border:1px solid ' + col[2] + ';margin-bottom:16px"><div style="font-size:18px;font-weight:700">' + (ok ? 'Document authentique' : o ? 'Document modifié ou invalide' : 'Lien illisible') + '</div><div style="font-size:13px;margin-top:4px">' + (ok ? 'L’empreinte du document correspond aux données enregistrées.' : 'L’empreinte ne correspond pas : ne pas considérer ce document comme une preuve.') + '</div></div>' +
-      (o ? row('Référence', esc(o.r)) + row('Salarié', esc(o.n)) + row('Période', fd(o.f) + ' au ' + fd(o.t)) + row('Temps saisi', fh(o.s)) + row('Temps pointé', fh(o.p)) + row('Tâches', o.c) + row('État de la feuille', esc(o.st)) + row('Édité le', esc(o.g)) + row('Empreinte', '<span style="font-family:monospace">' + esc(o.h) + '</span>') : '') +
-      '<div style="font-size:11.5px;color:#94A3B8;margin-top:14px">Maquette : la vérification porte sur les données contenues dans le lien du QR code. En production, elle interrogerait le serveur SOFTGRH.</div><div style="text-align:right;margin-top:16px"><button id="verif-x" style="background:#2E427B;color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer">Ouvrir l’application</button></div></div>';
+    ov.innerHTML = card(o, ok, true);
     document.body.appendChild(ov);
     document.getElementById('verif-x').onclick = function(){ ov.remove(); try { history.replaceState(null, '', location.href.split('?')[0]); } catch(e){} };
   }
+  var PV = { mode:'ok', url:'' };
+  function preview(mode){
+    if(mode) PV.mode = mode;
+    var host = document.getElementById('qr-demo-body'); if(!host) return;
+    var d = new Date(), pd = function(v){ return (v < 10 ? '0' : '') + v; }, iso = function(x){ return x.getFullYear() + '-' + pd(x.getMonth() + 1) + '-' + pd(x.getDate()); }, mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    var end = new Date(mon); end.setDate(mon.getDate() + 6);
+    var o = { n:'Camille Bernard', e:'E0142', f:iso(mon), t:iso(end), s:2340, p:2400, c:14, st:'Validée', g:iso(d) + ' ' + pd(d.getHours()) + ':' + pd(d.getMinutes()), k:'s' }, pk = make(o), p = Object.assign({}, o, { h:pk.h, r:pk.ref }), base = location.href.split('#')[0].split('?')[0];
+    if(PV.mode === 'ko') p.s = o.s + 60;
+    PV.url = base + '?verif=' + b64(p);
+    loadQR(function(){
+      var qr = qrSvg(PV.url), ok = hash(core(p)) === p.h, on = function(m){ return PV.mode === m ? 'background:#2E427B;color:#fff;border-color:#2E427B' : 'background:#fff;color:#334155;border-color:#CBD5E1'; };
+      var bt = 'height:40px;padding:0 16px;border:1px solid;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer';
+      host.innerHTML = '<div style="display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;justify-content:center">' +
+        '<div style="background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:24px;width:300px;text-align:center"><div style="width:220px;height:220px;margin:0 auto 12px">' + (qr ? qr.replace('<svg', '<svg style="width:100%;height:100%"') : '<div style="padding:60px 10px;color:#94A3B8;font-size:12px">QR indisponible hors ligne</div>') + '</div><div style="font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.06em">Référence</div><div style="font-weight:700;color:#0B1332;overflow-wrap:anywhere;margin-bottom:16px">' + esc(pk.ref) + '</div>' +
+        '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px"><button type="button" onclick="Verif.preview(\'ok\')" style="' + bt + ';' + on('ok') + '">Authentique</button><button type="button" onclick="Verif.preview(\'ko\')" style="' + bt + ';' + on('ko') + '">Modifié</button></div>' +
+        '<button type="button" onclick="window.open(\'' + PV.url + '\',\'_blank\')" style="' + bt + ';background:#fff;color:#2E427B;border-color:#2E427B;width:100%">Ouvrir le lien</button></div>' +
+        '<div style="flex:1;min-width:320px;max-width:560px">' + card(p, ok, false) + '</div></div>';
+    });
+  }
   window.addEventListener('load', show);
-  return { make:make, hash:hash, loadQR:loadQR, qrSvg:qrSvg, isoWeek:isoWeek, show:show };
+  return { make:make, hash:hash, loadQR:loadQR, qrSvg:qrSvg, isoWeek:isoWeek, show:show, preview:preview };
 })();
 window.Verif = Verif;
 
@@ -24345,7 +24383,7 @@ var TempsPortal = (function(){
     var info = weekInfo(emp), ws = ACT.api.weekState()[emp + '|' + info.mon] || 'brouillon', sa = info.days.reduce(function(a, x){ return a + x.saisi; }, 0), pt = info.days.reduce(function(a, x){ return a + x.pointe; }, 0);
     var bars = info.days.map(function(x){ var p = x.pointe ? Math.min(100, Math.round(100 * x.saisi / x.pointe)) : 0; return '<div class="flex items-center gap-3 py-1"><span class="text-[11.5px] text-gray-500" style="width:64px">' + U.JN[U.dow(x.d) - 1] + ' ' + dsh(x.d) + '</span><div class="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden"><div class="h-full ' + (p >= 95 ? 'bg-emerald-500' : 'bg-blue-400') + '" style="width:' + p + '%"></div></div><span class="text-[11.5px] text-gray-500" style="width:96px;text-align:right">' + fh(x.saisi) + ' / ' + fh(x.pointe) + '</span></div>'; }).join('');
     var st = { brouillon:['Brouillon', 'bg-gray-100 text-gray-600'], soumise:['Soumise', 'bg-amber-100 text-amber-700'], validee:['Validée', 'bg-emerald-100 text-emerald-700'] }[ws];
-    var prev = ''; for(var k = 1; k <= 3; k++){ var w = U.addD(info.mon, -7 * k), s_ = ACT.api.weekState()[emp + '|' + w]; prev += '<div class="flex items-center justify-between py-1.5 border-t border-gray-100 text-[12.5px]"><span class="text-gray-600">Semaine du ' + dsh(w) + '</span><span class="flex items-center gap-3">' + (s_ === 'validee' ? '<span class="text-emerald-600">Validée</span>' : s_ === 'soumise' ? '<span class="text-amber-600">Soumise · en attente</span>' : s_ === 'brouillon' ? '<button onclick="TempsPortal.feuilleAsk(\'' + w + '\')" class="text-blue-600 font-medium">Soumettre</button>' : '<span class="text-gray-300">—</span>') + '<button onclick="TempsPortal.feuilleView(\'' + w + '\')" class="text-gray-400 hover:text-blue-600">Consulter</button></span></div>'; }
+    var prev = ''; for(var k = 1; k <= 3; k++){ var w = U.addD(info.mon, -7 * k), s_ = ACT.api.weekState()[emp + '|' + w]; prev += '<div class="flex items-center justify-between py-1.5 border-t border-gray-100 text-[12.5px]"><span class="text-gray-600">Semaine du ' + dsh(w) + '</span><span class="flex items-center gap-3">' + (s_ === 'validee' ? '<span class="text-emerald-600">Validée</span>' : s_ === 'soumise' ? '<span class="text-amber-600">Soumise · en attente</span>' : s_ === 'brouillon' ? '<button onclick="TempsPortal.feuilleAsk(\'' + w + '\')" class="text-blue-600 font-medium">Soumettre</button>' : '<span class="text-gray-300">—</span>') + '<button onclick="TempsPortal.feuilleView(\'' + w + '\')" class="text-gray-400 hover:text-blue-600">Consulter</button><button onclick="TempsPortal.sheet(\'' + w + '\')" class="text-gray-400 hover:text-blue-600">Exporter</button></span></div>'; }
     return '<div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5 mb-4"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-3"><div class="text-[13px] font-semibold text-slate-800">Ma semaine</div>' + pill(st[0], st[1]) + '</div><span class="text-[12px] text-gray-400">' + fh(sa) + ' saisies sur ' + fh(pt) + ' pointées</span></div>' + (bars || '<div class="text-[12.5px] text-gray-400 py-2">Rien à saisir pour l’instant.</div>') + '<div class="flex justify-end mt-3">' + (ws === 'brouillon' && info.days.length ? '<button onclick="TempsPortal.validerAsk()" class="text-white rounded-md px-4 py-2 text-[13px] font-medium" style="background:#10B981">Valider ma semaine</button>' : ws === 'soumise' ? '<span class="text-[12.5px] text-amber-700">Soumise pour validation</span>' : ws === 'validee' ? '<span class="text-[12.5px] text-emerald-700">Validée</span>' : '') + '</div><div class="mt-2">' + prev + '</div></div>';
   }
   function validerAsk(){
@@ -24459,7 +24497,7 @@ function jwWeek(emp){
   var nav = '<div class="mj-nav"><button class="mj-arr" onclick="TempsPortal.jwNav(-1)" aria-label="Semaine précédente">‹</button><div class="mj-wk"><b>Semaine du ' + dsh(mon) + ' au ' + dsh(U.addD(mon, 6)) + '</b><span>' + (mon === cur ? 'Cette semaine' : 'Semaine passée') + '</span></div><button class="mj-arr" ' + (mon >= cur ? 'disabled' : '') + ' onclick="TempsPortal.jwNav(1)" aria-label="Semaine suivante">›</button></div>';
   var bar = '<div class="mj-sum"><div class="mj-sum-t"><div><b>' + (todo ? todo + ' jour' + (todo > 1 ? 's' : '') + ' à compléter' : 'Tout est à jour') + '</b><span>' + fh(work) + ' pointées · ' + (n - todo) + ' jour' + ((n - todo) > 1 ? 's' : '') + ' sur ' + n + ' complets</span></div><span class="badge ' + st[1] + '">' + st[0] + '</span></div><div class="mj-prog"><i style="width:' + pct + '%"></i></div></div>';
   var foot = locked ? '' : '<div class="mj-foot"><div class="text-[13px] text-gray-500">' + (todo ? 'Complétez les jours signalés pour pouvoir valider votre semaine.' : 'Votre semaine est complète : vous pouvez la valider.') + '</div><button class="pe-btn" ' + (todo || !n ? 'disabled' : '') + ' onclick="TempsPortal.jwSubmit()">Valider ma semaine</button></div>';
-  return nav + bar + '<div class="mj-week">' + (rows || '<div class="mj-empty">Aucun jour de travail cette semaine.</div>') + '</div>' + foot;
+  return '<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="pe-btn" onclick="TempsPortal.sheet()">Exporter ma feuille de temps</button></div>' + nav + bar + '<div class="mj-week">' + (rows || '<div class="mj-empty">Aucun jour de travail cette semaine.</div>') + '</div>' + foot;
 }
 function jwQuick(d, cat){
   var emp = me(), r = RH.day(emp, d), m = Math.max(15, Math.round(r.worked / 15) * 15), res = ACT.api.add(emp, { date:d, projet:null, tache:ACT.api.taskFor(cat, null), min:m, note:'', src:'manuel' });
@@ -24610,7 +24648,8 @@ var t = DEM.absDate || U.today(); DEM.absDate = null;
   [['erhp-journee', renderJournee], ['erhp-demandes', injectDemandes]].forEach(function(x){ var b = document.querySelector('.erh-portal-tab[data-erh-portal="' + x[0] + '"]'); if(b) b.addEventListener('click', function(){ sync(); x[1](); }); });
   (function(){ var ss = window.showShell; if(typeof ss === 'function') window.showShell = function(id){ var r = ss.apply(this, arguments); if(id === 'portal-employes-shell') renderAll(); return r; }; })();
   renderAll();
-  return { jwNav:jwNav, jwQuick:jwQuick, jeOpen:jeOpen, jeAdd:jeAdd, jeDel:jeDel, jeTotal:jeTotal, jeSave:jeSave, jwWorked:jwWorked, jwWorkedGo:jwWorkedGo, jwAbsent:jwAbsent, jwSubmit:jwSubmit, jwSubmitGo:jwSubmitGo, ctx:ctx, me:me, injectDemandes:injectDemandes, view:view, manuelAsk:manuelAsk, manuelProj:manuelProj, manuelGo:manuelGo, delSai:delSai, demAsk:demAsk, demTab:demTab, demGo:demGo, quickAdd:quickAdd, quickStart:quickStart, quickCorr:quickCorr, validerAsk:validerAsk, validerGo:validerGo, setMe:setMe, go:go, chStop:chStop, chSave:chSave, chDiscard:chDiscard, corrAsk:corrAsk, corrType:corrType, corrGo:corrGo, absGo:absGo, hsGo:hsGo, feuilleView:feuilleView, feuilleAsk:feuilleAsk, feuilleGo:feuilleGo, renderAll:renderAll, me:me, chrono:function(){ return CH; } };
+  function sheet(w){ if(typeof TempsActInd === 'undefined') return; TempsActInd.sheet(me(), w || wkMon()); }
+  return { sheet:sheet, jwNav:jwNav,jwQuick:jwQuick, jeOpen:jeOpen, jeAdd:jeAdd, jeDel:jeDel, jeTotal:jeTotal, jeSave:jeSave, jwWorked:jwWorked, jwWorkedGo:jwWorkedGo, jwAbsent:jwAbsent, jwSubmit:jwSubmit, jwSubmitGo:jwSubmitGo, ctx:ctx, me:me, injectDemandes:injectDemandes, view:view, manuelAsk:manuelAsk, manuelProj:manuelProj, manuelGo:manuelGo, delSai:delSai, demAsk:demAsk, demTab:demTab, demGo:demGo, quickAdd:quickAdd, quickStart:quickStart, quickCorr:quickCorr, validerAsk:validerAsk, validerGo:validerGo, setMe:setMe, go:go, chStop:chStop, chSave:chSave, chDiscard:chDiscard, corrAsk:corrAsk, corrType:corrType, corrGo:corrGo, absGo:absGo, hsGo:hsGo, feuilleView:feuilleView, feuilleAsk:feuilleAsk, feuilleGo:feuilleGo, renderAll:renderAll, me:me, chrono:function(){ return CH; } };
 })();
 
 
@@ -26863,7 +26902,7 @@ var TempsActInd = (function(){
       if(has('valid')){
         var sig = '<div class="sig"><div>Le salarié<br><br>Nom, date et signature</div><div>Le responsable hiérarchique<br><br>Nom, date et signature</div></div>';
         var vw = month ? '<table class="fs-t" style="margin-bottom:10px"><colgroup><col style="width:30%"><col style="width:20%"><col style="width:30%"><col style="width:20%"></colgroup><thead><tr><th class="l">Semaine</th><th class="l">État</th><th class="l">Validée par</th><th class="l">Le</th></tr></thead><tbody>' + C.weeks.map(function(w){ return '<tr><td>Du ' + U.dfr(w.a).slice(0, 5) + ' au ' + U.dfr(w.b).slice(0, 5) + '</td><td>' + ({ brouillon:'Brouillon', soumise:'Soumise', validee:'Validée', none:'—' }[w.st] || w.st) + '</td><td>' + (w.val ? e2(w.val.by) : '—') + '</td><td>' + (w.val ? e2(w.val.at) : '—') + '</td></tr>'; }).join('') + '</tbody></table>' : '';
-        out += sec('valid', 'Signatures des parties et éléments permettant de contrôler l’authenticité du document.', '<div class="two"><div style="flex:1">' + vw + sig + '<p style="font-size:9pt;color:#475569;line-height:1.5;margin:0">Ce document a été généré par SOFTGRH le <b>' + e2(C.ident[6][1]) + '</b>. Il peut être vérifié en scannant le QR code ci-contre, ou en saisissant la référence sur la page de vérification. Toute modification du contenu entraîne un écart d’empreinte détecté lors de la vérification.</p></div><div class="box" style="width:230px;text-align:center">' + qrBox(150) + '<div style="margin-top:8px;font-size:8.5pt;color:#475569">Référence<br><b style="overflow-wrap:anywhere">' + e2(C.pack.ref) + '</b></div></div></div>', br());
+        out += sec('valid', 'Signatures des parties et éléments permettant de contrôler l’authenticité du document.', '<div class="two"><div style="flex:1">' + vw + sig + '<p style="font-size:9pt;color:#475569;line-height:1.5;margin:0">Ce document a été généré par SOFTGRH le <b>' + e2(C.ident[6][1]) + '</b>. Il peut être vérifié en scannant le QR code de la première page, ou en saisissant la référence sur la page de vérification. Toute modification du contenu entraîne un écart d’empreinte détecté lors de la vérification.</p></div><div class="box" style="width:230px;text-align:center"><div style="font-size:8.5pt;color:#475569">Référence<br><b style="overflow-wrap:anywhere">' + e2(C.pack.ref) + '</b></div></div></div>', br());
       }
       done({ body:css + '<div class="fs">' + out + '</div>', land:true });
     });
@@ -26906,7 +26945,7 @@ var TempsActInd = (function(){
     var b = ext.rebuild('sem'); Exp.ask(b.lines, b.name, b.title, null, ext);
   }
   (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-act-ind'){ if(ST.keep) ST.keep = false; else ST.emp = null; } var r = sp.apply(this, arguments); if(id === 'tp-act-ind') render(); return r; }; })();
-  return { render:render, q:function(v){ ST.q = v; render(); }, open:function(id){ ST.emp = id; ST.wk = null; render(); }, back:function(){ ST.emp = null; render(); }, span:function(v){ ST.span = v; render(); }, go:function(n){ var d = new Date(ref() + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() + n); ST.ref = U.iso(d); ST.wk = null; var R0 = range(), t0 = U.today(); if(!(t0 >= R0.from && t0 <= R0.to)) ST.wk = U.monday(R0.from); render(); }, wgo:wgo, startOf:startOf, place:place, tg:tg, nuitTg:nuitTg, csv:csv, edit:function(){ AC.openEmpMonth(ST.emp, range().from); }, show:function(id){ ST.emp = id; ST.keep = true; showPanel('tp-act-ind'); } };
+  return { render:render, q:function(v){ ST.q = v; render(); }, open:function(id){ ST.emp = id; ST.wk = null; render(); }, back:function(){ ST.emp = null; render(); }, span:function(v){ ST.span = v; render(); }, go:function(n){ var d = new Date(ref() + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() + n); ST.ref = U.iso(d); ST.wk = null; var R0 = range(), t0 = U.today(); if(!(t0 >= R0.from && t0 <= R0.to)) ST.wk = U.monday(R0.from); render(); }, wgo:wgo, startOf:startOf, place:place, tg:tg, nuitTg:nuitTg, csv:csv, sheet:function(id, w){ ST.emp = id; ST.wk = w || U.monday(U.today()); csv(); }, edit:function(){ AC.openEmpMonth(ST.emp, range().from); }, show:function(id){ ST.emp = id; ST.keep = true; showPanel('tp-act-ind'); } };
 })();
 /* ===== SoftTime Activités : États des activités (filtre sur un écran, puis résultats) ===== */
 var TempsActEt = (function(){
