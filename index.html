@@ -21970,31 +21970,26 @@ var Exp = (function(){
 })();
 window.Exp = Exp;
 
-var Pg = (function(){
-  var ov = null, host = null, MO = null, BC = 'rounded-md px-3 py-1.5 text-[13px] border border-gray-300 bg-white text-gray-700 hover:bg-gray-50';
-  var st = document.createElement('style'); st.textContent = '.pg-ov{position:fixed;inset:0;z-index:40;background:rgba(11,19,50,.5);display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px;overflow:auto}.pg-card{background:#fff;border-radius:10px;width:1100px;max-width:96vw;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.3)}.pg-x{display:block;margin:0 0 12px auto}.pg-card>h1:first-of-type{margin-top:0}'; document.head.appendChild(st);
-  function isDetail(h){ var b = h && h.firstElementChild; return !!(b && b.tagName === 'BUTTON' && /Back\(\)/.test(b.getAttribute('onclick') || '') && /^\s*‹/.test(b.textContent)); }
-  function isHost(h){ return !!(h && h.nodeType === 1 && /^[a-z]{2}-h-/.test(h.id || '') && h.closest('section[id^="tp-"]')); }
-  function close(){ if(ov){ ov.remove(); ov = null; host = null; } }
-  function show(h){
-    var b = h.firstElementChild, back = b.getAttribute('onclick'); b.remove();
-    var html = h.innerHTML;
-    if(!ov){ ov = document.createElement('div'); ov.className = 'pg-ov'; ov.onclick = function(e){ if(e.target === ov){ var x = ov.querySelector('.pg-x'); if(x) x.click(); } }; document.body.appendChild(ov); }
-    host = h; ov.innerHTML = '<div class="pg-card"><button type="button" class="pg-x ' + BC + '" style="display:block;margin:0 0 12px auto" onclick="' + back + '">Fermer</button>' + html + '</div>';
-    h.innerHTML = h._pgList || ''; MO.takeRecords();
+var Dp = (function(){
+  var cur = null;
+  function $(i){ return document.getElementById(i); }
+  function release(){
+    if(!cur) return; var c = cur; cur = null;
+    try { c.par.insertBefore(c.h, c.next && c.next.parentNode === c.par ? c.next : null); } catch(e){ c.par.appendChild(c.h); }
+    c.hid.forEach(function(a){ a[0].style.display = a[1]; });
   }
-  MO = new MutationObserver(function(recs){
-    var hs = [];
-    recs.forEach(function(r){ var t = r.target; if(isHost(t) && hs.indexOf(t) < 0) hs.push(t); });
-    hs.forEach(function(h){
-      if(isDetail(h)) show(h);
-      else { if(h === host) close(); h._pgList = h.innerHTML.replace(/\sid="[^"]*"/g, ''); }
-    });
-  });
-  MO.observe(document.body, { childList:true, subtree:true });
-  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && ov){ var m = document.getElementById('tp-modal'); if(m && m.classList.contains('open')) return; var x = ov.querySelector('.pg-x'); if(x) x.click(); } });
-  return { close:close };
+  function borrow(id){
+    var h = $(id), act = document.querySelector('section.panel.active'); if(!h || !act || act.contains(h)) return;
+    release();
+    var sibs = [].slice.call(act.children);
+    cur = { h:h, par:h.parentNode, next:h.nextSibling, hid:sibs.map(function(s){ return [s, s.style.display]; }) };
+    sibs.forEach(function(s){ s.style.display = 'none'; });
+    act.appendChild(h);
+  }
+  var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(){ release(); return sp.apply(this, arguments); };
+  return { borrow:borrow, release:release, active:function(){ return !!cur; } };
 })();
+window.Dp = Dp;
 
 var Temps = (function(){
   var $ = function(id){ return document.getElementById(id); };
@@ -22988,7 +22983,7 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
   function sH(id, a, b){ var k = id + '|' + a + '|' + b; return VWC[k] || (VWC[k] = sumHs(id, a, b)); }
   function svcOfV(id){ try { var p = A.people().filter(function(x){ return x.id === id; })[0], po = p ? (A.pinfo(p).poste || '') : '', pp = window.Plan ? Plan.postes().filter(function(q){ return q.nom === po; })[0] : null; return pp && pp.unite ? pp.unite : ''; } catch(e){ return ''; } }
   function ratioCol(work, plan){ if(!plan) return '#94A3B8'; var r = work / plan; return r >= 0.95 ? '#10B981' : r >= 0.8 ? '#F59E0B' : '#EF4444'; }
-  function indHome(){ VW.keep = false; VW.emp = null; render('tp-ind'); }
+  function indHome(){ VW.keep = false; VW.emp = null; Dp.release(); render('tp-ind'); }
   function indBack(){ indClose(); }
   function indSpan(v){ VW.span = v; render('tp-ind'); }
   function spark(id){
@@ -23068,14 +23063,12 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     }
     return '<div class="border border-gray-200 rounded-xl bg-white px-4 py-3" style="display:flex;flex-direction:column"><div class="text-[11px] uppercase tracking-wider text-gray-400">Semaine en cours</div><div class="text-[12px] text-gray-500 mb-2">Semaine du ' + dfr(w) + ' au ' + dfr(addD(w, 4)) + '</div><div class="flex items-center gap-3 pb-1 text-[11px] text-gray-400"><span style="width:58px">Jour</span><span style="width:96px">Prévu</span><span style="width:112px">Pointé</span><span style="flex:1">Travaillé</span><span style="width:64px;text-align:right">Écart</span></div>' + rows + '</div>';
   }
-  function indAlive(){ var m = $('ind-mh'), b = $('tp-modal'); return !!(m && b && b.classList.contains('open') && document.body.contains(m)); }
-  function indModal(){ if(!indAlive()) A.modal('<div id="ind-mh"></div>', 1180); renderIndDetail($('ind-mh')); }
-  function indOpen(id, ref){ VW.mode = 'ind'; VW.emp = id; if(ref) VW.ref = ref; indModal(); }
-  function indClose(){ VW.emp = null; A.closeM(); }
+  function indOpen(id, ref){ VW.mode = 'ind'; VW.emp = id; if(ref) VW.ref = ref; Dp.borrow('tr-h-ind'); render('tp-ind'); }
+  function indClose(){ VW.emp = null; render('tp-ind'); Dp.release(); }
   function renderInd(h){
     VW.mode = 'ind'; var L = assigned();
-    if(VW.emp && (!L.some(function(p){ return p.id === VW.emp; }) || !indAlive())) VW.emp = null;
-    renderIndGrid(h); if(VW.emp) renderIndDetail($('ind-mh'));
+    if(VW.emp && !L.some(function(p){ return p.id === VW.emp; })) VW.emp = null;
+    if(VW.emp) renderIndDetail(h); else renderIndGrid(h);
   }
   function renderIndDetail(h){
     var t = today(), id = VW.emp, pr = vwRange('mois'), q = sH(id, pr.from, pr.to > t ? t : pr.to), B = bucketsOf(id);
@@ -23084,7 +23077,7 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     var spanSel = '<select onchange="TempsRH.indSpan(this.value)" class="' + INP + '" style="width:130px;padding:3px 8px;font-size:12.5px">' + [['4s', '4 semaines'], ['12s', '12 semaines'], ['12m', '12 mois']].map(function(o){ return '<option value="' + o[0] + '"' + (VW.span === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
     var ec = q.work - q.plan, rp = repartition(id, pr), rcol = [calendar(id, pr, q), pausesCard(q)];
     if(rp) rcol.push(rp); rcol[rcol.length - 1] = rcol[rcol.length - 1].replace('<div class="border', '<div style="flex:1" class="border'); var wkHtml = semaineHtml(id, pr.to);
-    var icons = icBtn('<path d="M15 6l-6 6 6 6"/>', 'Mois précédent', 'TempsRH.vwGo(-1)') + '<span class="text-[13px] font-medium text-slate-700 text-center" style="min-width:104px">' + pr.label + '</span>' + icBtn('<path d="M9 6l6 6-6 6"/>', 'Mois suivant', 'TempsRH.vwGo(1)') + (linked('tmerh') && window.absSyncBtn ? absSyncBtn() : '') + icBtn('<path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/>', 'Exporter', 'TempsRH.vwCsv()') + icBtn('<path d="M6 6l12 12M18 6L6 18"/>', 'Fermer', 'TempsRH.indClose()');
+    var icons = icBtn('<path d="M15 6l-6 6 6 6"/>', 'Mois précédent', 'TempsRH.vwGo(-1)') + '<span class="text-[13px] font-medium text-slate-700 text-center" style="min-width:104px">' + pr.label + '</span>' + icBtn('<path d="M9 6l6 6-6 6"/>', 'Mois suivant', 'TempsRH.vwGo(1)') + (linked('tmerh') && window.absSyncBtn ? absSyncBtn() : '') + icBtn('<path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/>', 'Exporter', 'TempsRH.vwCsv()') + icBtn('<path d="M10 6l-6 6 6 6M4 12h16"/>', 'Retour', 'TempsRH.indClose()');
     h.innerHTML = '<div class="flex items-start justify-between gap-4 mb-3"><div><h1 class="text-[18px] font-semibold text-slate-800">' + esc(nom(id)) + '</h1><div class="text-[12.5px] text-gray-500">' + ident + '</div></div><div class="flex items-center gap-2">' + icons + '</div></div>' +
       '<div class="grid grid-cols-4 gap-3 mb-3">' + ctile('Présence', att ? Math.round(100 * pres / att) + ' %' : '—', pres + ' jour' + (pres > 1 ? 's' : '') + ' sur ' + att, att && pres / att < 0.85 ? 'text-amber-600' : 'text-emerald-700') + ctile('Heures travaillées', fh1(q.work), 'sur ' + fh1(q.plan) + ' prévues', ec < -60 ? 'text-red-600' : 'text-slate-800') + ctile('Heures supplémentaires', fh1(q.hs), q.hs1 || q.hs2 ? fh1(q.hs1) + ' exo. · ' + fh1(q.hs2) + ' imp.' : 'aucune', 'text-sky-700') + ctile('Retards · absences', rt + ' · ' + ab, rt + ' retard' + (rt > 1 ? 's' : '') + ', ' + ab + ' absence' + (ab > 1 ? 's' : ''), rt || ab ? 'text-amber-600' : 'text-slate-800') + '</div>' +
       '<div style="display:grid;grid-template-columns:1.3fr 1fr;gap:12px;align-items:stretch">' + wkHtml +
@@ -23460,7 +23453,7 @@ function mineAdd(emp, o){ if(!wkEditable(emp, o.date)) return { ok:false, msg:'L
   function mineUpd(emp, id, o){ var q = byId(SAI, id); if(!q || q.emp !== emp) return { ok:false, msg:'Saisie introuvable.' }; if(!wkEditable(emp, q.date) || !wkEditable(emp, o.date)) return { ok:false, msg:'La feuille de cette semaine est soumise ou validée.' }; q.date = o.date; q.projet = o.projet || null; q.tache = o.tache; q.min = o.min; q.note = o.note || ''; return { ok:true }; }
   function mineDel(emp, id){ var q = byId(SAI, id); if(!q || q.emp !== emp) return { ok:false, msg:'Saisie introuvable.' }; if(!wkEditable(emp, q.date)) return { ok:false, msg:'La feuille de cette semaine est soumise ou validée.' }; SAI.splice(SAI.indexOf(q), 1); return { ok:true }; }
   function intAdd(emp, o){ var w = emp + '|' + U.monday(o.date); if(WK[w] === 'validee') return { ok:false }; SAI.push({ id:'s' + (++seq), emp:emp, date:o.date, projet:o.projet || null, tache:o.tache, min:o.min, note:o.note || '', src:'intervention' }); if(!WK[w]) WK[w] = 'brouillon'; return { ok:true }; }
-  function suBack(){ V.su.emp = null; render('tp-suivi'); }
+  function suBack(){ V.su.emp = null; V.su.keep = false; render('tp-suivi'); Dp.release(); }
   function icb(path, title, fn){ return '<button type="button" onclick="' + fn + '" title="' + title + '" aria-label="' + title + '" class="' + B2 + '" style="' + (/^Mois /.test(title) ? 'width:34px;padding:0' : 'padding:0 12px;gap:6px;white-space:nowrap') + ';height:34px;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18" style="flex:none" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>' + (/^Mois /.test(title) ? '' : '<span>' + title.replace(/ (la feuille|une saisie)$/, '').replace('Modifier le filtre', 'Filtrer').replace('Changer de personne', 'Personnes') + '</span>') + '</button>'; }
   function wkReq(emp, week){ try { return TempsVal.data().REQ.filter(function(r){ return r.type === 'feuille' && r.emp === emp && r.p.week === week && r.statut === 'en_attente'; })[0]; } catch(e){ return null; } }
   function suIcons(id){
@@ -23469,8 +23462,8 @@ function mineAdd(emp, o){ if(!wkEditable(emp, o.date)) return { ok:false, msg:'L
   }
   function suValidate(id){ var wk = U.monday(V.su.ref), r = wkReq(id, wk); if(r && window.TempsVal){ TempsVal.approve(r.id, 'Responsable RH'); } else { WK[id + '|' + wk] = 'validee'; A.toast('Feuille validée.'); } render('tp-suivi'); }
   function suRefuse(id){ var r = wkReq(id, U.monday(V.su.ref)); if(r && window.TempsVal) TempsVal.refAsk(r.id); else A.toast('Aucune demande de validation à refuser.'); }
-  function openEmpWeek(emp, week){ A.closeM(); V.su.mode = 'semaine'; V.su.ref = week; V.su.emp = emp; V.su.keep = false; render('tp-suivi'); }
-  function openEmpMonth(emp, ref){ A.closeM(); V.su.mode = 'mois'; V.su.ref = ref; V.su.emp = emp; V.su.keep = false; render('tp-suivi'); }
+  function openEmpWeek(emp, week){ A.closeM(); V.su.mode = 'semaine'; V.su.ref = week; V.su.emp = emp; V.su.keep = false; Dp.borrow('ta-h-suivi'); render('tp-suivi'); }
+  function openEmpMonth(emp, ref){ A.closeM(); V.su.mode = 'mois'; V.su.ref = ref; V.su.emp = emp; V.su.keep = false; Dp.borrow('ta-h-suivi'); render('tp-suivi'); }
   function locked(emp, date){ return WK[emp + '|' + U.monday(date)] === 'validee'; }
   var WKL = { brouillon:['Brouillon', 'bg-gray-100 text-gray-600'], soumise:['Soumise', 'bg-amber-100 text-amber-700'], validee:['Validée', 'bg-emerald-100 text-emerald-700'] };
   function renderSuEmp(h){
@@ -23479,7 +23472,7 @@ function mineAdd(emp, o){ if(!wkEditable(emp, o.date)) return { ok:false, msg:'L
       var tk = byId(TAC, q.tache), ct = tk ? byId(CAT, tk.cat) : null, lk = locked(id, q.date), st = WKL[WK[id + '|' + U.monday(q.date)] || 'brouillon'];
       return '<tr class="border-t border-gray-100"><td class="px-4 py-2 text-[12.5px] text-slate-800">' + U.JN[U.dow(q.date) - 1] + ' ' + dfr(q.date) + '</td><td class="px-3 py-2 text-[12.5px]">' + (ct ? pill(esc(ct.nom), COUL[ct.coul][0]) : '—') + '</td><td class="px-3 py-2 text-[12.5px]">' + (tk ? esc(tk.nom) : '—') + '</td><td class="px-3 py-2 text-[12.5px] font-medium text-slate-800">' + fm(q.min) + '</td><td class="px-3 py-2 text-[12px] text-gray-500">' + (q.motif ? '<span title="' + esc(q.motif) + '">Saisie RH</span>' : q.src === 'chrono' ? 'Chronomètre' : q.src === 'intervention' ? 'Intervention' : q.src === 'prerempli' ? 'Pré-rempli' : 'Saisie') + '</td><td class="px-3 py-2">' + pill(st[0], st[1]) + '</td><td class="px-4 py-2 text-right whitespace-nowrap">' + (lk ? '<span class="text-gray-300 text-[12px]" title="Feuille validée">🔒</span>' : '<button onclick="TempsAct.saiAsk(\'' + id + '\',\'' + q.id + '\')" class="text-blue-600 text-[12px] mr-2">Modifier</button><button onclick="TempsAct.saiDel(\'' + q.id + '\')" class="text-gray-300 hover:text-red-500">✕</button>') + '</td></tr>';
     }).join('');
-    h.innerHTML = A.back('TempsAct.suBack()', 'Réalisation') + head(esc(nom(id)), suIcons(id)) + '<div class="text-[12.5px] text-gray-400 mb-3 -mt-2">' + pe.label + ' · saisi ' + fm(tot) + ' sur ' + fm(pt) + ' pointées</div>' +
+    h.innerHTML = A.back('TempsAct.suBack()', Dp.active() ? 'Retour' : 'Réalisation') + head(esc(nom(id)), suIcons(id)) + '<div class="text-[12.5px] text-gray-400 mb-3 -mt-2">' + pe.label + ' · saisi ' + fm(tot) + ' sur ' + fm(pt) + ' pointées</div>' +
       '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium">Jour</th><th class="px-3 py-2.5 font-medium">Catégorie</th><th class="px-3 py-2.5 font-medium">Tâche</th><th class="px-3 py-2.5 font-medium">Durée</th><th class="px-3 py-2.5 font-medium">Origine</th><th class="px-3 py-2.5 font-medium">Feuille</th><th></th></tr></thead><tbody>' + (rows || '<tr><td colspan="7" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucune saisie sur la période.</td></tr>') + '</tbody></table></div>';
   }
   function taskOpts(pid, cur){ return TAC.filter(function(t){ return t.actif && (pid ? t.projet === pid : !t.projet); }).map(function(t){ return '<option value="' + t.id + '"' + (cur === t.id ? ' selected' : '') + '>' + esc(t.nom) + '</option>'; }).join(''); }
@@ -26191,22 +26184,21 @@ var TempsActInd = (function(){
     var ks = Object.keys(rep).sort(function(a, b){ return rep[b] - rep[a]; }).slice(0, 4);
     var repCard = '<div class="border border-gray-200 rounded-xl bg-white px-4 py-3" style="flex:1"><div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Répartition du temps saisi</div>' + (ks.length ? ks.map(function(k){ var p = Math.round(100 * rep[k] / rt); return '<div class="flex items-center gap-3 py-1"><span class="text-[12px] text-slate-700" style="width:120px;flex-shrink:0">' + esc(k) + '</span><div style="flex:1;height:7px;background:#F1F5F9;border-radius:4px"><div style="height:7px;width:' + p + '%;background:#3B82F6;border-radius:4px"></div></div><span class="text-[12px] text-slate-800" style="width:80px;text-align:right">' + U.fh1(rep[k]) + '</span></div>'; }).join('') : '<div class="text-[12.5px] text-gray-400 py-2">Aucune saisie ce mois-ci.</div>') + '</div>';
     var spanSel = '<select onchange="TempsActInd.span(this.value)" class="' + INP + '" style="width:130px;padding:3px 8px;font-size:12.5px">' + [['4s', '4 semaines'], ['12s', '12 semaines'], ['12m', '12 mois']].map(function(o){ return '<option value="' + o[0] + '"' + (ST.span === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>';
-    var icons = icBtn('<path d="M15 6l-6 6 6 6"/>', 'Mois précédent', 'TempsActInd.go(-1)') + '<span class="text-[13px] font-medium text-slate-700 text-center" style="min-width:104px">' + R.label + '</span>' + icBtn('<path d="M9 6l6 6-6 6"/>', 'Mois suivant', 'TempsActInd.go(1)') + icBtn('<path d="M4 20h4l10-10-4-4L4 16z"/><path d="M13 7l4 4"/>', 'Éditer la feuille', 'TempsActInd.edit()') + icBtn('<path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/>', 'Exporter', 'TempsActInd.csv()') + icBtn('<path d="M6 6l12 12M18 6L6 18"/>', 'Fermer', 'TempsActInd.back()');
+    var icons = icBtn('<path d="M15 6l-6 6 6 6"/>', 'Mois précédent', 'TempsActInd.go(-1)') + '<span class="text-[13px] font-medium text-slate-700 text-center" style="min-width:104px">' + R.label + '</span>' + icBtn('<path d="M9 6l6 6-6 6"/>', 'Mois suivant', 'TempsActInd.go(1)') + icBtn('<path d="M4 20h4l10-10-4-4L4 16z"/><path d="M13 7l4 4"/>', 'Éditer la feuille', 'TempsActInd.edit()') + icBtn('<path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/>', 'Exporter', 'TempsActInd.csv()') + icBtn('<path d="M10 6l-6 6 6 6M4 12h16"/>', 'Retour', 'TempsActInd.back()');
     var pl = 0; try { pl = TempsPlan.mine(id, U.monday(t), U.addD(U.monday(t), 4)).reduce(function(s, z){ return s + z.plan + (z.extra || 0); }, 0); } catch(e){}
     h.innerHTML = '<div class="flex items-start justify-between gap-4 mb-3"><div><h1 class="text-[18px] font-semibold text-slate-800">' + esc(x.nomComplet) + '</h1><div class="text-[12.5px] text-gray-500">' + esc(poste(x)) + ' · ' + esc(svcOf(x)) + '</div></div><div class="flex items-center gap-2">' + icons + '</div></div>' +
       '<div class="grid grid-cols-4 gap-3 mb-3">' + ctile('Temps saisi', U.fh1(tot), 'sur ' + U.fh1(po) + ' pointées', 'text-slate-800') + ctile('Couverture', cv === null ? '—' : cv + ' %', 'saisi sur pointé', cv !== null && cv < SEUIL ? 'text-amber-600' : 'text-emerald-700') + ctile('Catégorie principale', ks.length ? esc(ks[0]) : '—', ks.length ? Math.round(100 * rep[ks[0]] / rt) + ' % du temps saisi' : 'aucune saisie', 'text-sky-700') + ctile('Feuilles', nv + ' / ' + weeks.length, 'validées ce mois-ci · ' + U.fh1(pl) + ' planifiées cette semaine', nv < weeks.length ? 'text-amber-600' : 'text-emerald-700') + '</div>' +
       '<div style="display:grid;grid-template-columns:1.3fr 1fr;gap:12px;align-items:stretch">' + tasksHtml(id, R.to) +
       '<div style="display:flex;flex-direction:column;gap:12px"><div class="border border-gray-200 rounded-xl bg-white px-4 py-3"><div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Feuilles du mois</div>' + (wrows || '<div class="text-[12.5px] text-gray-400 py-2">Aucune semaine.</div>') + '</div>' + repCard + '</div></div>';
   }
-  function alive(){ var m = $('ta-ind-mh'), b = $('tp-modal'); return !!(m && b && b.classList.contains('open') && document.body.contains(m)); }
-  function render(){ var h = $('ta-h-ind'); if(!h) return; if(ST.emp && !alive()) ST.emp = null; grid(h); if(ST.emp) detail($('ta-ind-mh')); }
+  function render(){ var h = $('ta-h-ind'); if(!h) return; if(ST.emp) detail(h); else grid(h); }
   function csv(){
     var id = ST.emp, R = range(), d = D(), L = ['Date;Catégorie;Tâche;Durée (h);Feuille'];
     entries(id, R.from, R.to).sort(function(a, b){ return a.date < b.date ? -1 : 1; }).forEach(function(e){ var tk = d.TAC.filter(function(z){ return z.id === e.tache; })[0], ct = tk ? d.CAT.filter(function(z){ return z.id === tk.cat; })[0] : null; L.push([e.date, ct ? ct.nom : '', tk ? tk.nom : '', (e.min / 60).toString().replace('.', ','), SH[shState(id, U.monday(e.date), 1)][0]].join(';')); });
     Exp.ask(L, 'activites_' + U.nom(id).replace(/\s+/g, '_') + '_' + R.from.slice(0, 7) + '.csv');
   }
   (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-act-ind'){ if(ST.keep) ST.keep = false; else ST.emp = null; } var r = sp.apply(this, arguments); if(id === 'tp-act-ind') render(); return r; }; })();
-  return { render:render, q:function(v){ ST.q = v; render(); }, open:function(id){ ST.emp = id; if(!alive()) A.modal('<div id="ta-ind-mh"></div>', 1180); render(); }, back:function(){ ST.emp = null; A.closeM(); render(); }, span:function(v){ ST.span = v; render(); }, go:function(n){ var d = new Date(ref() + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() + n); ST.ref = U.iso(d); render(); }, csv:csv, edit:function(){ AC.openEmpMonth(ST.emp, range().from); }, show:function(id){ ST.emp = id; ST.keep = true; showPanel('tp-act-ind'); } };
+  return { render:render, q:function(v){ ST.q = v; render(); }, open:function(id){ ST.emp = id; render(); }, back:function(){ ST.emp = null; render(); }, span:function(v){ ST.span = v; render(); }, go:function(n){ var d = new Date(ref() + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() + n); ST.ref = U.iso(d); render(); }, csv:csv, edit:function(){ AC.openEmpMonth(ST.emp, range().from); }, show:function(id){ ST.emp = id; ST.keep = true; showPanel('tp-act-ind'); } };
 })();
 /* ===== SoftTime Activités : États des activités (filtre sur un écran, puis résultats) ===== */
 var TempsActEt = (function(){
