@@ -22525,6 +22525,21 @@ var bad = (d.pauses || []).filter(function(p){ return !p.debut || !p.fin || p.fi
     var d = V.reg.draft, on = onK(d, key, def);
     return '<div class="border border-gray-200 rounded-xl p-5 mb-4"><div class="flex items-center justify-between"><div class="text-[14px] font-semibold text-slate-800">' + title + '</div><div>' + sw(on, 'Temps.regTog(\'' + key + '\')') + '</div></div><div class="mt-4" style="display:' + (on ? 'block' : 'none') + '">' + body + '</div></div>';
   }
+  function g2(a){ return '<div class="grid grid-cols-2 gap-5">' + a + '</div>'; }
+  function arrDir(d, k){ if(k === 'in' && d.arrIn) return d.arrIn; if(k === 'out' && d.arrOut) return d.arrOut; var l = d.arrSens || 'proche'; return l === 'proche' ? 'proche' : l === 'entreprise' ? (k === 'in' ? 'haut' : 'bas') : (k === 'in' ? 'bas' : 'haut'); }
+  function arrBody(d){
+    var P = [['0', 'Aucun'], ['60', 'Heure pleine · xx:00'], ['30', 'Demi-heure · xx:00 / 30'], ['15', 'Quart d’heure · xx:00 / 15 / 30 / 45'], ['10', '10 minutes · xx:00 / 10 / 20 / 30 / 40 / 50'], ['5', '5 minutes · xx:00 / 05 / 10 / 15 … 55']], D = [['proche', 'Au plus proche'], ['haut', 'Vers le haut (repère suivant)'], ['bas', 'Vers le bas (repère précédent)']], on = ' onchange="Temps.regPick()"';
+    return field('Arrondir les pointages aux', sel('tp-r-arr', P, d.arrondi || 0, on)) + (d.arrondi ? '<div class="mt-4">' + g2(field('Pointage d’entrée', sel('tp-r-ai', D, arrDir(d, 'in'))) + field('Pointage de sortie', sel('tp-r-ao', D, arrDir(d, 'out')))) + '</div>' : '');
+  }
+  function pauMode(d){ return d.pausePt ? (d.pauseAuto ? 'pt_fixe' : 'pt') : (d.pauseAuto ? 'fixe' : 'horaire'); }
+  function pauBody(d){
+    var m = pauMode(d), fixe = m === 'fixe' || m === 'pt_fixe', pt = m === 'pt' || m === 'pt_fixe', on = ' onchange="Temps.regPick()"';
+    var TR = [['deduit', 'Déduites du temps travaillé'], ['franchise', 'Déduites au-delà d’une franchise'], ['compte', 'Comptées comme du travail']], TP = [['compte', 'Comptées comme du travail'], ['franchise', 'Déduites au-delà d’une franchise'], ['deduit', 'Déduites du temps travaillé']];
+    var row = function(lbl, id, opts, cur, fid, fv){ return '<div class="mt-4">' + g2(field(lbl, sel(id, opts, cur, on)) + (cur === 'franchise' ? field('Franchise par jour (min)', num(fid, fv || 15)) : '<div></div>')) + '</div>'; };
+    return g2(field('Origine de la pause', sel('tp-r-po', [['pt', 'Pauses pointées par le salarié'], ['pt_fixe', 'Pauses pointées, sinon durée fixe'], ['horaire', 'Pause prévue par l’horaire'], ['fixe', 'Durée fixe déduite automatiquement']], m, on)) + field('Les pauses sont', sel('tp-r-pay', [['deduit', 'Déduites du temps travaillé'], ['compte', 'Comptées comme du travail']], d.pauPay || 'deduit'))) +
+      (fixe ? '<div class="mt-4">' + g2(field('Durée déduite (min)', num('tp-r-pm', d.pauseMin)) + field('À partir de (h travaillées)', num('tp-r-ps', d.pauSeuil || 0, 0, 0.5))) + '</div>' : '') +
+      (pt ? row('Sorties personnelles', 'tp-r-t1p', TR, d.tPerso || 'deduit', 'tp-r-f1', d.fPerso) + row('Sorties professionnelles', 'tp-r-t2p', TP, d.tPro || 'compte', 'tp-r-f2', d.fPro) + row('Repas', 'tp-r-t3p', TR, d.tRepas || 'deduit', 'tp-r-f3', d.fRepas) + '<div class="mt-4">' + g2(field('Télétravail', sel('tp-r-t4p', [['compte', 'Compté comme du travail'], ['non', 'Non compté']], d.tTele || 'compte'))) + '</div>' : '');
+  }
   function trRows(d){
     var T = d.tranches || [];
     return '<div class="border border-gray-200 rounded-lg overflow-hidden mb-2"><div class="grid gap-3 px-3 py-2 bg-gray-50 text-[11.5px] text-gray-500 font-medium" style="grid-template-columns:90px 90px 1fr 120px 28px"><div>De (h)</div><div>À (h)</div><div>Régime</div><div>Majoration (%)</div><div></div></div>' + T.map(function(t, i){
@@ -22542,9 +22557,9 @@ var bad = (d.pauses || []).filter(function(p){ return !p.debut || !p.fin || p.fi
       '<div style="display:' + (tr ? 'none' : 'block') + '" class="mt-3">' + g2(field('Majoration unique (%)', num('tp-r-t1', d.taux1))) + '</div>' +
       '<div class="mt-3"><div id="tp-r-hv">' + row('Validation obligatoire des heures supplémentaires', sw(d.hsValid, 'Temps.regTog(\'hsValid\')')) + '</div></div>';
     var body = blk('Retards et départs anticipés', 'tolOn', true, g2(field('Tolérance de retard (min)', num('tp-r-tr', d.tolRetard)) + field('Tolérance de départ anticipé (min)', num('tp-r-td', d.tolDepart)))) +
-      blk('Arrondi des pointages', 'arrOn', true, g2(field('Pas de l’arrondi', sel('tp-r-arr', [['0', 'Aucun'], ['5', '5 min'], ['10', '10 min'], ['15', '15 min']], d.arrondi)) + field('Sens de l’arrondi', sel('tp-r-as', [['proche', 'Au plus proche'], ['entreprise', 'Au profit de l’entreprise'], ['salarie', 'Au profit du salarié']], d.arrSens || 'proche')))) +
+      blk('Arrondi des pointages', 'arrOn', true, arrBody(d)) +
       blk('Heures hors plage de l’horaire', 'horsOn', false, g2(field('Arrivée avant l’heure d’entrée', sel('tp-r-av', [['compte', 'Comptée comme du temps travaillé'], ['ignore', 'Non comptée']], d.avantMode || 'compte')) + field('Franchise après la sortie (min)', num('tp-r-fr', d.franchiseApres || 0)))) +
-      blk('Pauses', 'pauOn', true, g2('<div>' + lab('Si l’horaire ne définit aucune pause') + row('Déduire automatiquement', sw(d.pauseAuto, 'Temps.regTog(\'pauseAuto\')')) + '</div>' + field('Durée déduite (min)', num('tp-r-pm', d.pauseMin))) + '<div class="mt-4">' + field('Pointage des pauses et autres types', sel('tp-r-pp', [['non', 'Entrée et sortie seulement'], ['oui', 'Entrée, sortie, pauses et autres types']], d.pausePt ? 'oui' : 'non')) + '</div><div class="mt-4">' + g2(field('Sorties personnelles', sel('tp-r-t1p', [['deduit', 'Déduites du temps travaillé'], ['compte', 'Comptées comme du travail']], d.tPerso || 'deduit')) + field('Sorties professionnelles', sel('tp-r-t2p', [['compte', 'Comptées comme du travail'], ['deduit', 'Déduites du temps travaillé']], d.tPro || 'compte')) + field('Repas', sel('tp-r-t3p', [['deduit', 'Déduit du temps travaillé'], ['compte', 'Compté comme du travail']], d.tRepas || 'deduit')) + field('Télétravail', sel('tp-r-t4p', [['compte', 'Compté comme du travail'], ['non', 'Non compté']], d.tTele || 'compte'))) + '</div>') +
+      blk('Pauses', 'pauOn', true, pauBody(d)) +
       blk('Heures supplémentaires', 'hsActive', true, hsBody) +
       '<div style="display:' + (hs ? 'none' : 'block') + '" class="border border-gray-200 rounded-xl p-5 mb-4">' + g2(field('Alerte au-delà de (h) par semaine', num('tp-r-al', d.alerteSem || 0, 0, 0.5))) + '</div>' +
       blk('Nuit, dimanche et jours fériés', 'majOn', true, g2(field('Nuit : début', '<input id="tp-r-nd" type="time" value="' + d.nuitDeb + '" class="' + INP + '">') + field('Nuit : fin', '<input id="tp-r-nf" type="time" value="' + d.nuitFin + '" class="' + INP + '">') + field('Majoration nuit (%)', num('tp-r-nt', d.nuitTaux)) + field('Dimanche (%)', num('tp-r-dt', d.dimTaux)) + field('Jour férié (%)', num('tp-r-ft', d.ferieTaux))));
@@ -22553,12 +22568,13 @@ var bad = (d.pauses || []).filter(function(p){ return !p.debut || !p.fin || p.fi
   }
   function regSync(){
     var d = V.reg.draft; if(!$('tp-r-nom')) return; var g = function(i, def){ return $(i) ? (parseFloat($(i).value) || 0) : def; };
-    d.nom = $('tp-r-nom').value; d.tolRetard = g('tp-r-tr', d.tolRetard); d.tolDepart = g('tp-r-td', d.tolDepart); if($('tp-r-arr')) d.arrondi = parseInt($('tp-r-arr').value, 10); if($('tp-r-as')) d.arrSens = $('tp-r-as').value;
+    d.nom = $('tp-r-nom').value; d.tolRetard = g('tp-r-tr', d.tolRetard); d.tolDepart = g('tp-r-td', d.tolDepart); if($('tp-r-arr')) d.arrondi = parseInt($('tp-r-arr').value, 10); if($('tp-r-ai')){ d.arrIn = $('tp-r-ai').value; d.arrOut = $('tp-r-ao').value; }
     if($('tp-r-av')){ d.avantMode = $('tp-r-av').value; d.franchiseApres = g('tp-r-fr', 0); }
-    d.pauseMin = g('tp-r-pm', d.pauseMin); if($('tp-r-pp')) d.pausePt = $('tp-r-pp').value === 'oui'; if($('tp-r-t1p')){ d.tPerso = $('tp-r-t1p').value; d.tPro = $('tp-r-t2p').value; d.tRepas = $('tp-r-t3p').value; d.tTele = $('tp-r-t4p').value; } d.hsJour = g('tp-r-hj', d.hsJour); d.hsSem = g('tp-r-hs', d.hsSem); d.plafond = g('tp-r-pl', d.plafond); if($('tp-r-t1')) d.taux1 = g('tp-r-t1', d.taux1); if($('tp-r-tb')) d.trBase = $('tp-r-tb').value;
+    d.pauseMin = g('tp-r-pm', d.pauseMin); if($('tp-r-ps')) d.pauSeuil = g('tp-r-ps', d.pauSeuil || 0); if($('tp-r-po')){ var pm = $('tp-r-po').value; d.pausePt = pm === 'pt' || pm === 'pt_fixe'; d.pauseAuto = pm === 'pt_fixe' || pm === 'fixe'; } if($('tp-r-pay')) d.pauPay = $('tp-r-pay').value; if($('tp-r-t1p')){ d.tPerso = $('tp-r-t1p').value; d.tPro = $('tp-r-t2p').value; d.tRepas = $('tp-r-t3p').value; d.tTele = $('tp-r-t4p').value; d.fPerso = g('tp-r-f1', d.fPerso || 15); d.fPro = g('tp-r-f2', d.fPro || 15); d.fRepas = g('tp-r-f3', d.fRepas || 15); } d.hsJour = g('tp-r-hj', d.hsJour); d.hsSem = g('tp-r-hs', d.hsSem); d.plafond = g('tp-r-pl', d.plafond); if($('tp-r-t1')) d.taux1 = g('tp-r-t1', d.taux1); if($('tp-r-tb')) d.trBase = $('tp-r-tb').value;
     d.nuitDeb = $('tp-r-nd') ? $('tp-r-nd').value : d.nuitDeb; d.nuitFin = $('tp-r-nf') ? $('tp-r-nf').value : d.nuitFin; d.nuitTaux = g('tp-r-nt', d.nuitTaux); d.dimTaux = g('tp-r-dt', d.dimTaux); d.ferieTaux = g('tp-r-ft', d.ferieTaux); if($('tp-r-al')) d.alerteSem = g('tp-r-al', 0);
     (d.tranches || []).forEach(function(t, i){ if($('tp-r-tr-' + i + '-de')){ t.de = parseFloat($('tp-r-tr-' + i + '-de').value) || 0; var a = $('tp-r-tr-' + i + '-a').value; t.a = a === '' ? null : parseFloat(a); t.regime = $('tp-r-tr-' + i + '-rg').value; t.taux = parseFloat($('tp-r-tr-' + i + '-tx').value) || 0; } });
   }
+  function regPick(){ regSync(); render('tp-regles'); }
   function regTog(k){ regSync(); var d = V.reg.draft, dt = ['hsActive', 'tolOn', 'arrOn', 'pauOn', 'majOn', 'plOn', 'trOn']; d[k] = dt.indexOf(k) > -1 ? (d[k] === false) : !d[k]; render('tp-regles'); }
   function trAdd(){ regSync(); var d = V.reg.draft; d.tranches = d.tranches || []; var l = d.tranches[d.tranches.length - 1]; if(l && l.a == null) l.a = (l.de || 0) + 20; d.tranches.push({ de:l ? l.a : 0, a:null, regime:'imposable', taux:150 }); render('tp-regles'); }
   function trDel(i){ regSync(); V.reg.draft.tranches.splice(i, 1); render('tp-regles'); }
@@ -22666,7 +22682,7 @@ if(d.hsActive !== false && d.trOn !== false){ var T = d.tranches || [], pa = 0, 
   seedAff();
   return { render:render, closeM:closeM, colOpen:colOpen, colBack:colBack, colF:colF, colSel:colSel, colAll:colAll, colMode:colMode, colAct:colAct, colPres:colPres, colSave:colSave, colRotPrev:colRotPrev, colTrav:colTrav, colBulk:colBulk, colBulkMode:colBulkMode, colBulkGo:colBulkGo,
     horTab:horTab, rotNew:rotNew, rotOpen:rotOpen, rotBack:rotBack, rotSave:rotSave, rotDel:rotDel, rotLen:rotLen, rotDay:rotDay, planNav:planNav, horNew:horNew, horOpen:horOpen, hpAdd:hpAdd, hpDel:hpDel, hpTog:hpTog, horJour:horJour, horTime:horTime, horBack:horBack, horSave:horSave, horDel:horDel,
-    regNew:regNew, regOpen:regOpen, regTog:regTog, trAdd:trAdd, trDel:trDel, regBack:regBack, regSave:regSave, regDel:regDel,
+    regNew:regNew, regOpen:regOpen, regTog:regTog, regPick:regPick, trAdd:trAdd, trDel:trDel, regBack:regBack, regSave:regSave, regDel:regDel,
     devNew:devNew, devOpen:devOpen, devType:devType, devMeth:devMeth, devAct:devAct, devBack:devBack, devSave:devSave, devDel:devDel, devSync:devSync, devSyncAll:devSyncAll,
     cirTab:cirTab, cirTabsHtml:cirTabs, cirNew:cirNew, cirOpen:cirOpen, cirEtape:cirEtape, cirAddEtape:cirAddEtape, cirDelEtape:cirDelEtape, cirTog:cirTog, cirBack:cirBack, cirSave:cirSave, cirDel:cirDel,
     doSync:doSync,
@@ -22711,14 +22727,21 @@ var TempsRH = (function(){
   var PTC = { 'in':'bg-emerald-100 text-emerald-700', 'out':'bg-gray-100 text-gray-600', pd:'bg-amber-100 text-amber-700', pf:'bg-amber-100 text-amber-700', rb:'bg-amber-100 text-amber-700', rf:'bg-amber-100 text-amber-700', ps:'bg-orange-100 text-orange-700', pr:'bg-orange-100 text-orange-700', mb:'bg-sky-100 text-sky-700', mf:'bg-sky-100 text-sky-700', tb:'bg-violet-100 text-violet-700', tf:'bg-violet-100 text-violet-700' };
   var PAIR = { pd:['pf', 'pause'], rb:['rf', 'repas'], ps:['pr', 'perso'], mb:['mf', 'mission'], tb:['tf', 'tele'] }, ENDK = { pf:'pause', rf:'repas', pr:'perso', mf:'mission', tf:'tele' };
   var KNAME = { pause:'Pause', repas:'Repas', perso:'Sortie personnelle', mission:'Sortie professionnelle', tele:'Télétravail' };
-  function dedOf(k, re){ re = re || {}; return k === 'pause' || (k === 'perso' ? re.tPerso !== 'compte' : k === 'repas' ? re.tRepas !== 'compte' : k === 'mission' ? re.tPro === 'deduit' : re.tTele === 'non'); }
+  function dedOf(k, re){ re = re || {}; return k === 'pause' ? re.pauPay !== 'compte' : (k === 'perso' ? re.tPerso !== 'compte' : k === 'repas' ? re.tRepas !== 'compte' : k === 'mission' ? (re.tPro === 'deduit' || re.tPro === 'franchise') : re.tTele === 'non'); }
+  function frOf(k, re){ return k === 'perso' && re.tPerso === 'franchise' ? (re.fPerso || 0) : k === 'repas' && re.tRepas === 'franchise' ? (re.fRepas || 0) : k === 'mission' && re.tPro === 'franchise' ? (re.fPro || 0) : 0; }
   function ptLab(s){ return PTL[s] || 'Sortie'; }
   function pauseWin(h){ if(!h) return null; var l = (h.pauses || []).filter(function(p){ return !p.payee; })[0]; if(l) return { a:tm(l.debut), b:tm(l.fin) }; if(h.pause > 0) return { a:720, b:720 + h.pause }; return null; }
   function realPauses(ps, re){
     var o = [], op = {};
     ps.forEach(function(q){ var m = tm(q.ts.slice(11)); if(PAIR[q.sens]) op[PAIR[q.sens][1]] = { a:m, t:q.sens }; else if(ENDK[q.sens]){ var k = ENDK[q.sens]; if(op[k]){ o.push({ a:op[k].a, b:m, k:k, ded:dedOf(k, re) }); op[k] = null; } } });
     var open = null; Object.keys(op).forEach(function(k){ if(op[k]) open = { t:op[k].t, a:op[k].a, k:k }; });
-    return { list:o, open:open };
+    var left = {}, out = []; o.sort(function(x, y){ return x.a - y.a; }).forEach(function(z){
+      var F = z.ded ? frOf(z.k, re || {}) : 0; if(!F){ out.push(z); return; }
+      var l = left[z.k] == null ? F : left[z.k], dur = z.b - z.a;
+      if(l >= dur){ left[z.k] = l - dur; out.push(Object.assign({}, z, { ded:false })); }
+      else { left[z.k] = 0; if(l > 0) out.push(Object.assign({}, z, { b:z.a + l, ded:false })); out.push(Object.assign({}, z, { a:z.a + l })); }
+    });
+    return { list:out, open:open };
   }
   function addP(id, date, time, sens, dev, imp){ note(id, date, 'Pointage : ' + ptLab(sens).toLowerCase() + ' ' + time + ' ajouté'); PUN.push({ id:'p' + (seq++), empId:id, ts:date + ' ' + time, sens:sens, dev:dev, imp:imp !== false }); }
   function planFor(id, date){
@@ -22782,16 +22805,16 @@ function swapShift(a, b, date){ note(a, date, 'Échange de shift'); note(b, date
     if(pl && pl.pauses && pl.pauses.length){
       var tot = 0;
       pl.pauses.forEach(function(p){
-        if(p.payee) return; var d = tm(p.debut), f = tm(p.fin), ov = overlap(a, b, d, f);
+        if(p.payee || re.pauPay === 'compte') return; var d = tm(p.debut), f = tm(p.fin), ov = overlap(a, b, d, f);
         if(p.mode === 'pointee'){ for(var i = 0; i < ps.length - 1; i++){ if(ps[i].sens === 'out' && ps[i + 1].sens === 'in') tot += overlap(tm(ps[i].ts.slice(11)), tm(ps[i + 1].ts.slice(11)), d, f); } }
         else if(p.mode === 'souple') tot += Math.min(ov, p.duree || (f - d));
         else tot += ov;
       });
       return tot;
     }
-    return re.pauseAuto ? (pl ? pl.pause || 0 : re.pauseMin) : 0;
+    return re.pauseAuto && re.pauPay !== 'compte' && (b - a) >= (re.pauSeuil || 0) * 60 ? (pl ? pl.pause || 0 : re.pauseMin) : 0;
   }
-  function rdv(re, m, k){ var p = re.arrondi; if(!p) return m; var sens = re.arrSens || 'proche'; if(sens === 'proche') return Math.round(m / p) * p; var haut = sens === 'entreprise' ? k === 'in' : k === 'out'; return (haut ? Math.ceil(m / p) : Math.floor(m / p)) * p; }
+  function rdv(re, m, k){ var p = re.arrondi; if(!p) return m; var s = k === 'in' ? re.arrIn : re.arrOut; if(!s){ var l = re.arrSens || 'proche'; s = l === 'proche' ? 'proche' : l === 'entreprise' ? (k === 'in' ? 'haut' : 'bas') : (k === 'in' ? 'bas' : 'haut'); } return (s === 'proche' ? Math.round(m / p) : s === 'haut' ? Math.ceil(m / p) : Math.floor(m / p)) * p; }
   function overlap(a1, a2, b1, b2){ return Math.max(0, Math.min(a2, b2) - Math.max(a1, b1)); }
   function day(id, date){
     var re = regle(id), pl = planFor(id, date), fer = FER.indexOf(date.slice(5)) > -1, ab = absOf(id, date), t = today(), now = nowMin();
@@ -23844,7 +23867,7 @@ function tcBack(){ V.tc.draft = null; render('tp-taches'); }
   function suQ(v){ V.su.q = v; render('tp-suivi'); }
   function suSvc(v){ V.su.svc = v; render('tp-suivi'); }
   function suEtat(v){ V.su.etat = v; render('tp-suivi'); }
-  function suOpen(id){ V.su.emp = id; V.su.ro = false; render('tp-suivi'); }
+  function suOpen(id){ V.su.emp = id; V.su.ro = true; render('tp-suivi'); }
   function wkEditable(emp, date){ var st = WK[emp + '|' + U.monday(date)]; return !st || st === 'brouillon'; }
   function taskFor(catId, pid){
   var T = TAC.filter(function(t){ return t.cat === catId && t.actif !== false; }), t = T.filter(function(x){ return pid ? x.projet === pid : !x.projet; })[0] || T[0];
@@ -26707,7 +26730,7 @@ var TempsActInd = (function(){
   function icBtn(path, title, fn){ return '<button type="button" onclick="' + fn + '" title="' + title + '" aria-label="' + title + '" class="' + B2 + '" style="' + (/^(Mois|Semaine) /.test(title) ? 'width:34px;padding:0' : 'padding:0 12px;gap:6px;white-space:nowrap') + ';height:34px;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18" style="flex:none" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>' + (/^(Mois|Semaine) /.test(title) ? '' : '<span>' + title.replace(/ (la feuille|une saisie)$/, '').replace('Modifier le filtre', 'Filtrer').replace('Changer de personne', 'Personnes') + '</span>') + '</button>'; }
   function spark(id){ var t = U.today(), m = U.monday(t), B = [], mx = 60; for(var j = 7; j >= 0; j--){ var a = U.addD(m, -7 * j), b = U.addD(a, 6), sa = sum(entries(id, a, b)), po = pointe(id, a, b); B.push({ sa:sa, po:po }); if(sa > mx) mx = sa; if(po > mx) mx = po; } return '<svg viewBox="0 0 120 34" style="width:100%;height:34px">' + B.map(function(q, i){ var h = Math.max(2, Math.round(30 * q.sa / mx)); return '<rect x="' + (i * 15 + 1) + '" y="' + (32 - h) + '" width="12" height="' + h + '" rx="2" fill="' + colr(q.sa, q.po) + '"/>'; }).join('') + '</svg>'; }
   function grid(h){
-    var t = U.today(), wk = U.monday(t), last = U.addD(wk, -7), L = people().filter(function(x){ return !ST.q || x.nomComplet.toLowerCase().indexOf(ST.q.toLowerCase()) > -1; });
+    var t = U.today(), wk = U.monday(t), last = U.addD(wk, -7), L = RH.assigned().filter(function(x){ return !ST.q || x.nomComplet.toLowerCase().indexOf(ST.q.toLowerCase()) > -1; });
     var cards = L.map(function(x){
       var cur = entries(x.id, wk, U.addD(wk, 6)), sh = SH[shState(x.id, wk, cur.length)], pl = sum(entries(x.id, last, U.addD(last, 6))), pp = pointe(x.id, last, U.addD(last, 6)), cv = pp ? Math.round(100 * pl / pp) : null, ls = shState(x.id, last, pl);
       var bad = ls === 'none' || ls === 'brouillon' && pp > 0, warn = cv !== null && cv < SEUIL;
