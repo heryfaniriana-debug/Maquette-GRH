@@ -22084,8 +22084,8 @@ var TTL = (function(){
       o.blocks.forEach(function(s){
         if(!vis(s) || HD[s.key]) return; var hg = Math.max(20, Y(s.b) - Y(s.a) - 1), c = s.c, l = s.l;
         st += '<div ' + (s.on && !print ? 'onclick="' + s.on + '" ' : '') + 'title="' + esc(s.t) + '" style="position:absolute;left:22px;right:3px;top:' + Y(s.a) + 'px;height:' + hg + 'px;background:' + c[1] + ';border-left:3px solid ' + c[0] + ';border-radius:5px;padding:2px 6px;overflow:hidden;font-size:11px;line-height:1.3;color:' + c[2] + ';' + (s.on && !print ? 'cursor:pointer' : '') + '">' +
-          (s.pill && hg >= 36 ? '<span style="position:absolute;top:2px;right:4px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;opacity:.8">' + esc(s.pill) + '</span>' : '') +
-          '<b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' + (s.pill && hg >= 36 ? 'padding-right:46px' : '') + '">' + esc(l[0]) + '</b>' +
+          (s.pill && !print && hg >= 36 ? '<span style="position:absolute;top:2px;right:4px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;opacity:.8">' + esc(s.pill) + '</span>' : '') +
+          '<b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' + (s.pill && !print && hg >= 36 ? 'padding-right:46px' : '') + '">' + esc(l[0]) + '</b>' +
           (l[1] && hg >= 34 ? '<span style="display:block;font-size:10px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(l[1]) + '</span>' : '') +
           (l[2] && hg >= 48 ? '<span style="display:block;font-size:10px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(l[2]) + '</span>' : '') +
           (l[3] && hg >= 62 ? '<span style="display:block;font-size:10px;font-style:italic;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(l[3]) + '</span>' : '') + '</div>';
@@ -23327,7 +23327,7 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
       if(r.hs > 0){ hsA = Math.max(inn, end - r.hs); var hv = hsOk(id, d, r.hs), hl = hv.ok ? 'HS validées' : 'HS · ' + hv.label.toLowerCase(); D.blocks.push({ a:hsA, b:end, key:hv.ok ? 'hsv' : 'hsn', c:hv.ok ? TC.hsv : TC.hsn, on:on, t:hl + ' ' + fh(r.hs) + ' · ' + hm(hsA) + '–' + hm(end), l:[hl + ' · ' + fh(r.hs), hm(hsA) + '–' + hm(end)] }); }
       if(r.retard > 0 && pS && inn > pS[0]) D.blocks.push({ a:pS[0], b:inn, key:'retard', c:TC.retard, on:on, t:'Retard ' + r.retard + ' min · ' + hm(pS[0]) + '–' + hm(inn), l:['Retard · ' + r.retard + ' min', hm(pS[0]) + '–' + hm(inn)] });
       var pb = hsA != null ? hsA : end, inc = (k === 'incomplet'), lab = inc ? 'Sortie manquante' : (k === 'en_cours' ? 'En cours' : 'Présent');
-      if(pb > inn) D.blocks.push({ a:inn, b:pb, key:'present', c:inc ? TC.inc : TC.present, on:on, t:lab + ' · ' + hm(inn) + '–' + hm(pb) + (r.worked ? ' · travaillé ' + fh(r.worked) : ''), l:[lab, hm(inn) + '–' + (r.out != null && hsA == null ? hm(out) : hm(pb)), r.worked ? 'Travaillé ' + fh(r.worked) : '', r.nuit ? 'Nuit ' + fh(r.nuit) : ''] });
+      if(pb > inn) TTL.gaps(inn, pb, rp, HD.pause).forEach(function(sg, k){ D.blocks.push({ a:sg[0], b:sg[1], key:'present', c:inc ? TC.inc : TC.present, on:on, t:lab + ' · ' + hm(inn) + '–' + hm(pb) + (r.worked ? ' · travaillé ' + fh(r.worked) : ''), l:[(k ? '(suite) ' : '') + lab, hm(sg[0]) + '–' + hm(sg[1]), !k && r.worked ? 'Travaillé ' + fh(r.worked) : '', !k && r.nuit ? 'Nuit ' + fh(r.nuit) : ''] }); });
     }
     return D;
   }
@@ -26694,13 +26694,23 @@ var TempsActInd = (function(){
   function planPauses(pl){ var o = []; if(!pl) return o; var s = planSpan(pl), add = function(a, b){ if(a < s[0]){ a += 1440; b += 1440; } o.push({ a:a, b:b }); }; if(pl.pauses && pl.pauses.length) pl.pauses.forEach(function(p){ if(p.debut) add(tm(p.debut), tm(p.fin) <= tm(p.debut) ? tm(p.fin) + 1440 : tm(p.fin)); }); else if(pl.pause > 0) add(720, 720 + pl.pause); return o; }
   function realPauses(r){ var o = []; (r.pp || []).concat(r.ext || []).forEach(function(z){ var a = z.a, b = z.b; if(r.in != null && a < r.in){ a += 1440; b += 1440; } if(b > a) o.push({ a:a, b:b }); }); return o.sort(function(x, y){ return x.a - y.a; }); }
   function pausesOf(r){ if(r.ab || r.statut === 'absent' || r.statut === 'non_pointe' || r.fer) return []; var o = r.in != null ? realPauses(r) : []; return o.length ? o : (r.pl ? planPauses(r.pl) : []); }
+  function segsFor(s, min, pw){
+    var out = [], cur = s, left = min, guard = 0, P = pw.slice().sort(function(a, b){ return a.a - b.a; });
+    while(left > 0 && guard++ < 12){
+      var z = P.filter(function(p){ return p.b > cur && p.a < cur + left; })[0];
+      if(!z){ out.push([cur, cur + left]); left = 0; break; }
+      if(z.a <= cur){ cur = z.b; continue; }
+      out.push([cur, z.a]); left -= z.a - cur; cur = z.b;
+    }
+    return out.length ? out : [[s, s + min]];
+  }
   function place(id, d){
-    var L = entries(id, d, d).slice().sort(function(a, b){ return a.id < b.id ? -1 : 1; }), r = RH.day(id, d), cur = r.in != null ? r.in : (r.pl ? tm(r.pl.debut) : 540), fx = [], out = [], pw = pausesOf(r);
-    L.forEach(function(q){ if(q.debut){ var s = tm(q.debut); fx.push({ q:q, s:s, e:s + q.min }); } });
+    var L = entries(id, d, d).slice().sort(function(a, b){ return a.id < b.id ? -1 : 1; }), r = RH.day(id, d), cur = r.in != null ? r.in : (r.pl ? tm(r.pl.debut) : 540), fx = [], out = [], pw = pausesOf(r), mk = function(q, s){ var sg = segsFor(s, q.min, pw); return { q:q, s:sg[0][0], e:sg[sg.length - 1][1], segs:sg }; };
+    L.forEach(function(q){ if(q.debut) fx.push(mk(q, tm(q.debut))); });
     L.forEach(function(q){
       if(q.debut) return; var s = cur, mv = true, n = 0;
       while(mv && n++ < 20){ mv = false; fx.forEach(function(f){ if(s < f.e && s + q.min > f.s){ s = f.e; mv = true; } }); pw.forEach(function(p){ if(s >= p.a && s < p.b){ s = p.b; mv = true; } }); }
-      out.push({ q:q, s:s, e:s + q.min }); cur = s + q.min;
+      var it = mk(q, s); out.push(it); cur = it.e;
     });
     return fx.concat(out).sort(function(a, b){ return a.s - b.s; });
   }
@@ -26723,8 +26733,10 @@ var TempsActInd = (function(){
     }
     pz.forEach(function(p){ X.pauses.push({ a:p.a, b:p.b, t:'Pause ' + (rp.length ? 'réelle ' : 'prévue ') + hm(p.a) + '–' + hm(p.b) }); });
     place(id, d).forEach(function(p){
-      var q = p.q, tk = D().TAC.filter(function(z){ return z.id === q.tache; })[0], ct = tk ? D().CAT.filter(function(z){ return z.id === tk.cat; })[0] : null, s = shState(id, U.monday(q.date), 1), c = STC[s] || STC.brouillon, ttl = tk ? tk.nom : (ct ? ct.nom : 'Activité');
-      X.blocks.push({ a:p.s, b:p.e, key:s, c:c, pill:c[3], t:ttl + (ct ? ' · ' + ct.nom : '') + ' · ' + q.date.slice(8) + '/' + q.date.slice(5, 7) + ' ' + hm(p.s) + '–' + hm(p.e) + ' · ' + c[3] + (q.note ? ' · ' + q.note : ''), l:[(num && num[q.id] ? '#' + num[q.id] + ' · ' : '') + ttl, ct ? ct.nom : '', q.date.slice(8) + '/' + q.date.slice(5, 7) + ' · ' + hm(p.s) + '–' + hm(p.e), q.note || ''] });
+      var q = p.q, tk = D().TAC.filter(function(z){ return z.id === q.tache; })[0], ct = tk ? D().CAT.filter(function(z){ return z.id === tk.cat; })[0] : null, s = shState(id, U.monday(q.date), 1), c = STC[s] || STC.brouillon, ttl = tk ? tk.nom : (ct ? ct.nom : 'Activité'), nn = num && num[q.id] ? '#' + num[q.id] + ' · ' : '', dd = q.date.slice(8) + '/' + q.date.slice(5, 7);
+      p.segs.forEach(function(sg, k){
+        X.blocks.push({ a:sg[0], b:sg[1], key:s, c:c, pill:k ? '' : c[3], t:ttl + (ct ? ' · ' + ct.nom : '') + ' · ' + dd + ' ' + hm(p.s) + '–' + hm(p.e) + (p.segs.length > 1 ? ' (interrompue par une pause)' : '') + ' · ' + c[3] + (q.note ? ' · ' + q.note : ''), l:[nn + (k ? '(suite) ' : '') + ttl, ct ? ct.nom : '', dd + ' · ' + hm(sg[0]) + '–' + hm(sg[1]), k ? '' : (q.note || '')] });
+      });
     });
     return X;
   }
