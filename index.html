@@ -25082,6 +25082,14 @@ var TempsPlan = (function(){
         if(d === t && k === 0 && (h % 2 === 0)){ tk.plan = Math.min(tk.plan, 45); }
         add(tk); }
     }
+    for(var wk = 0; wk <= 20; wk++) for(var j = 0; j < 7; j++){
+      var dp = U.addD(m, -7 * wk + j); if(wk === 0 && (j < 5 || dp >= t)) continue; if(!RH.planFor(emp, dp)){ if(j >= 5 && (h + j + wk) % 3 === 0){ var pw = pick(wk + j), rw = Math.max(30, pw[2]); add({ emp:emp, date:dp, titre:pw[0], cat:pw[1], plan:pw[2], st:'done', real:rw, mv:'ok', mvMin:rw, mvBy:boss(emp) || emp, log:[{ k:'start', at:tsAt(dp, 600) }, { k:'end', at:tsAt(dp, 600 + rw) }] }); } continue; }
+      var np = 2 + ((h + j + wk) % 2), c2 = 510;
+      for(var q2 = 0; q2 < np; q2++){ var pp = pick(wk * 7 + j * 3 + q2); if(DEMO.indexOf(pp) < 0) continue;
+        var rl = Math.max(15, pp[2] + ((h + q2) % 3 - 1) * 15);
+        add({ emp:emp, date:dp, titre:pp[0], cat:pp[1], plan:pp[2], st:'done', real:rl, mv:'ok', mvMin:rl, mvBy:boss(emp) || emp, log:[{ k:'start', at:tsAt(dp, c2) }, { k:'end', at:tsAt(dp, c2 + rl) }] });
+        c2 += rl + 20; }
+    }
     var b = boss(emp);
     if(b){ var d2 = U.addD(t, d0(t) < 4 ? 1 : 0); add({ emp:emp, date:d2 > U.addD(m, 4) ? t : d2, titre:'Préparer la réunion de service', cat:'k2', plan:90, by:b, note:'À présenter à l’équipe.', urg:(h % 3 === 0 ? 'urgente' : 'haute') }); }
   }
@@ -26113,12 +26121,36 @@ var TempsActPlan = (function(){
     var D = mdays(), L = RH.assigned().filter(function(x){ return !ST.q || x.nomComplet.toLowerCase().indexOf(ST.q.toLowerCase()) > -1; });
     var rows = L.map(function(x){
       var o = month(x.id);
-      return '<tr class="border-t border-gray-100"><td class="px-3 py-1.5 text-[12.5px] text-slate-800 whitespace-nowrap sticky left-0 bg-white"><a href="#" onclick="TempsActPlan.open(\'' + x.id + '\');return false" class="hover:text-blue-600">' + esc(x.nomComplet) + '</a></td>' + D.map(function(d){ var c = o.M[d], wkd = U.dow(d) >= 6; return '<td class="p-0.5 text-center ' + (wkd ? 'bg-gray-50' : '') + '"><button onclick="TempsActPlan.open(\'' + x.id + '\')" title="' + (c.plan ? hh(c.plan) + ' planifiées' + (c.prevu ? ' sur ' + hh(c.prevu) + ' prévues' : '') : c.prevu ? 'Rien de planifié' : 'Repos') + '" class="h-6 rounded text-[10.5px] ' + cellCls(c) + '" style="min-width:34px;padding:0 3px">' + (c.plan ? hh(c.plan) : '·') + '</button></td>'; }).join('') + '<td class="px-3 py-1.5 text-[12.5px] text-slate-800 font-medium whitespace-nowrap text-right">' + (o.plan ? hh(o.plan) : '—') + '<div class="text-[10.5px] text-gray-400 font-normal">sur ' + hh(o.prevu) + '</div></td></tr>';
+      return '<tr class="border-t border-gray-100"><td class="px-3 py-1.5 text-[12.5px] text-slate-800 whitespace-nowrap sticky left-0 bg-white"><a href="#" onclick="TempsActPlan.open(\'' + x.id + '\');return false" class="hover:text-blue-600">' + esc(x.nomComplet) + '</a></td>' + D.map(function(d){ var c = o.M[d], wkd = U.dow(d) >= 6; return '<td class="p-0.5 text-center ' + (wkd ? 'bg-gray-50' : '') + '"><button onclick="TempsActPlan.day(\'' + x.id + '\',\'' + d + '\')" title="' + (c.plan ? hh(c.plan) + ' planifiées' + (c.prevu ? ' sur ' + hh(c.prevu) + ' prévues' : '') : c.prevu ? 'Rien de planifié' : 'Repos') + '" class="h-6 rounded text-[10.5px] ' + cellCls(c) + '" style="min-width:34px;padding:0 3px">' + (c.plan ? hh(c.plan) : '·') + '</button></td>'; }).join('') + '<td class="px-3 py-1.5 text-[12.5px] text-slate-800 font-medium whitespace-nowrap text-right">' + (o.plan ? hh(o.plan) : '—') + '<div class="text-[10.5px] text-gray-400 font-normal">sur ' + hh(o.prevu) + '</div></td></tr>';
     }).join('');
     var nav = '<button onclick="TempsActPlan.go(-1)" class="px-2.5 py-1.5 rounded-md border border-gray-200 bg-white">‹</button><div class="text-[13px] font-medium text-slate-800" style="min-width:120px;text-align:center">' + mlabel() + '</div><button onclick="TempsActPlan.go(1)" class="px-2.5 py-1.5 rounded-md border border-gray-200 bg-white">›</button>';
     var leg = '<span><span class="inline-block w-5 h-4 rounded align-middle mr-1 bg-emerald-600"></span>planifié (90 % du prévu ou plus)</span><span><span class="inline-block w-5 h-4 rounded align-middle mr-1 bg-amber-500"></span>partiel</span><span><span class="inline-block w-5 h-4 rounded align-middle mr-1 bg-red-100"></span>rien de planifié</span>';
     h.innerHTML = A.head('Planning', icx()) + '<div class="flex items-center gap-3 mb-3">' + nav + '<input value="' + esc(ST.q) + '" onchange="TempsActPlan.q(this.value)" placeholder="🔍 Collaborateur" class="' + INP + '" style="width:200px"><div class="ml-auto text-[11.5px] text-gray-500 flex items-center gap-3">' + leg + '</div></div>' +
       '<div class="border border-gray-200 rounded-xl bg-white" style="overflow-x:auto"><table data-nokit class="text-left" style="min-width:100%"><thead><tr class="' + TH + '"><th class="px-3 py-2 font-medium sticky left-0" style="background:inherit">Collaborateur</th>' + D.map(function(d){ var w = U.dow(d); return '<th class="px-0.5 py-2 text-center font-medium" style="min-width:36px">' + (+d.slice(8)) + '<div class="text-[9px] font-normal opacity-70">' + ['L', 'M', 'M', 'J', 'V', 'S', 'D'][w - 1] + '</div></th>'; }).join('') + '<th class="px-3 py-2 font-medium text-right">Total</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+  var COLH = { amber:'#F59E0B', blue:'#3B82F6', cyan:'#06B6D4', emerald:'#10B981', gray:'#94A3B8', rose:'#F43F5E', violet:'#8B5CF6' };
+  function dayCard(col, titre, sub, badges, dur, lab){
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #E2E8F0;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(11,19,50,.05)"><span style="width:4px;align-self:stretch;border-radius:4px;background:' + col + '"></span><div style="flex:1;min-width:0"><div style="font-weight:600;color:#0B1332;font-size:14px;line-height:1.3">' + esc(titre) + '</div><div style="font-size:12px;color:#64748B;margin-top:2px">' + sub + '</div>' + (badges ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">' + badges + '</div>' : '') + '</div>' + (dur ? '<div style="text-align:right;flex:none"><div style="font-weight:700;font-size:15px;color:#2E427B">' + dur + '</div><div style="font-size:10.5px;color:#94A3B8">' + lab + '</div></div>' : '') + '</div>';
+  }
+  function chip(t, bg, fg){ return '<span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;background:' + bg + ';color:' + fg + '">' + t + '</span>'; }
+  function day(id, d){
+    var T = TempsPlan.mine(id, d, d), F = forms(id, d, d), E = evals(id, d, d), CAT = TempsAct.data().CAT, r = RH.day(id, d), cards = '', tot = 0;
+    var ST_ = { todo:'À faire', run:'En cours', pause:'En pause', done:'Réalisée' };
+    T.forEach(function(x){
+      var ct = CAT.filter(function(c){ return c.id === x.cat; })[0] || { nom:'Autre', coul:'gray' }, m = x.plan + (x.extra || 0), b = '';
+      tot += m;
+      if(x.urg === 'urgente') b += chip('Urgente', '#FEE2E2', '#B91C1C'); else if(x.urg === 'haute') b += chip('Priorité haute', '#FFEDD5', '#C2410C');
+      if(x.by) b += chip('Attribuée par ' + esc(U.nom(x.by)), '#E0E7FF', '#3730A3');
+      if(x.moved) b += chip('Reportée', '#F1F5F9', '#475569');
+      cards += dayCard(COLH[ct.coul] || '#2E427B', x.titre, esc(ct.nom) + ' · ' + (ST_[x.st] || ''), b, hh(m), 'planifiée');
+    });
+    F.forEach(function(e){ tot += DF; cards += dayCard('#0EA5E9', e.titre, 'Formation' + (e.sub ? ' · ' + esc(e.sub) : ''), chip('Formation', '#E0F2FE', '#075985'), hh(DF), 'estimée'); });
+    E.forEach(function(e){ tot += EV; cards += dayCard('#8B5CF6', e.titre, 'Évaluation' + (e.sub ? ' · ' + esc(e.sub) : ''), chip('Évaluation', '#EDE9FE', '#5B21B6'), hh(EV), 'estimée'); });
+    var jd = U.JN[U.dow(d) - 1] + ' ' + d.slice(8) + '/' + d.slice(5, 7) + '/' + d.slice(0, 4), prevu = r.planned || 0, pct = prevu ? Math.min(100, Math.round(100 * tot / prevu)) : (tot ? 100 : 0);
+    A.modal('<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px"><div><div style="font-size:16px;font-weight:700;color:#0B1332">' + esc(U.nom(id)) + '</div><div style="font-size:12.5px;color:#64748B;margin-top:2px">' + jd + (r.pl ? ' · prévu ' + r.pl.debut + '–' + r.pl.fin : '') + '</div></div><button type="button" onclick="Temps.closeM()" style="font-size:22px;line-height:1;color:#94A3B8;background:none;border:0;cursor:pointer">×</button></div>' +
+      '<div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;background:#F4F7FE;margin-bottom:14px"><div><div style="font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.05em">Planifié</div><div style="font-size:20px;font-weight:700;color:#2E427B">' + (tot ? hh(tot) : '0h') + '</div></div><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11.5px;color:#64748B;margin-bottom:4px"><span>sur ' + hh(prevu) + ' de travail prévu</span><b>' + pct + ' %</b></div><div style="height:8px;border-radius:4px;background:#E3EBFE;overflow:hidden"><div style="height:8px;width:' + pct + '%;background:' + (pct >= 90 ? '#10B981' : '#F59E0B') + '"></div></div></div></div>' +
+      '<div style="display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow-y:auto;padding:2px">' + (cards || '<div style="text-align:center;padding:30px 10px;color:#94A3B8;font-size:13px;border:1px dashed #CBD5E1;border-radius:12px">Aucune tâche planifiée ce jour-là.</div>') + '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px"><button type="button" onclick="Temps.closeM();TempsActPlan.open(\'' + id + '\')" style="color:#2E427B;font-size:13px;font-weight:600;background:none;border:0;cursor:pointer">Voir le mois complet →</button><button type="button" onclick="Temps.closeM()" class="' + B2 + '">Fermer</button></div>', 560);
   }
   function go(n){ var m = mo(), d = new Date(+m.slice(0, 4), +m.slice(5) - 1 + n, 1); ST.m = d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1); render(); }
   function q(v){ ST.q = v; render(); }
@@ -26142,7 +26174,7 @@ var TempsActPlan = (function(){
     Exp.ask(lines, 'planning_activites_' + mo() + '.csv');
   }
   (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-act-plan') ST.emp = null; var r = sp.apply(this, arguments); if(id === 'tp-act-plan') render(); return r; }; })();
-  return { render:render, go:go, q:q, open:open, back:back, csv:csv };
+  return { render:render, go:go, q:q, open:open, back:back, csv:csv, day:day };
 })();
 /* ===== SoftTime Activités : Individuel (situation de chaque collaborateur) ===== */
 var TempsActInd = (function(){
@@ -26209,41 +26241,52 @@ var TempsActInd = (function(){
     return '<div class="border border-gray-200 rounded-xl bg-white px-4 py-3" style="display:flex;flex-direction:column"><div class="text-[11px] uppercase tracking-wider text-gray-400">Tâches de la semaine</div><div class="text-[12px] text-gray-500 mb-2">Semaine du ' + U.dfr(w) + ' au ' + U.dfr(U.addD(w, 4)) + '</div><div class="flex items-center gap-3 pb-1 text-[11px] text-gray-400" style="padding-left:18px"><span style="flex:1">Tâche</span><span style="width:60px;text-align:right">Prévu</span><span style="width:60px;text-align:right">Réalisé</span><span style="width:130px"></span></div>' + (rows || '<div class="text-[12.5px] text-gray-400 py-3">Aucune tâche cette semaine.</div>') + '</div>';
   }
   function tm(s){ s = String(s || '0:00'); return parseInt(s, 10) * 60 + (parseInt(s.slice(s.indexOf(':') + 1), 10) || 0); }
+  function planPauses(pl){ var o = []; if(!pl) return o; if(pl.pauses && pl.pauses.length) pl.pauses.forEach(function(p){ if(p.debut) o.push({ a:tm(p.debut), b:tm(p.fin) }); }); else if(pl.pause > 0) o.push({ a:720, b:720 + pl.pause }); return o; }
+  function realPauses(r){ var o = []; (r.pp || []).concat(r.ext || []).forEach(function(z){ if(z.b > z.a) o.push({ a:z.a, b:z.b }); }); return o.sort(function(x, y){ return x.a - y.a; }); }
+  function pausesOf(r){ var o = r.in != null ? realPauses(r) : []; return o.length ? o : planPauses(r.pl); }
   function place(id, d){
-    var L = entries(id, d, d).slice().sort(function(a, b){ return a.id < b.id ? -1 : 1; }), r = RH.day(id, d), cur = r.in != null ? r.in : (r.pl ? tm(r.pl.debut) : 540), fx = [], out = [], pw = null;
-    if(r.pl){ var p0 = r.pl.pauses && r.pl.pauses[0]; pw = p0 && p0.debut ? [tm(p0.debut), tm(p0.fin)] : [720, 780]; }
+    var L = entries(id, d, d).slice().sort(function(a, b){ return a.id < b.id ? -1 : 1; }), r = RH.day(id, d), cur = r.in != null ? r.in : (r.pl ? tm(r.pl.debut) : 540), fx = [], out = [], pw = pausesOf(r);
     L.forEach(function(q){ if(q.debut){ var s = tm(q.debut); fx.push({ q:q, s:s, e:s + q.min }); } });
     L.forEach(function(q){
       if(q.debut) return; var s = cur, mv = true, n = 0;
-      while(mv && n++ < 20){ mv = false; fx.forEach(function(f){ if(s < f.e && s + q.min > f.s){ s = f.e; mv = true; } }); if(pw && s >= pw[0] && s < pw[1]){ s = pw[1]; mv = true; } }
+      while(mv && n++ < 20){ mv = false; fx.forEach(function(f){ if(s < f.e && s + q.min > f.s){ s = f.e; mv = true; } }); pw.forEach(function(p){ if(s >= p.a && s < p.b){ s = p.b; mv = true; } }); }
       out.push({ q:q, s:s, e:s + q.min }); cur = s + q.min;
     });
     return fx.concat(out).sort(function(a, b){ return a.s - b.s; });
   }
   var STC = { brouillon:['#94A3B8', '#F1F5F9', '#475569', 'Brouillon'], soumise:['#F59E0B', '#FEF3C7', '#92400E', 'Soumise'], validee:['#10B981', '#D1FAE5', '#065F46', 'Validée'] };
+  var LEG = [['prevu', '#CBD5E1', 'Prévu'], ['pointe', '#2E427B', 'Pointé'], ['pause', '#FCD34D', 'Pauses'], ['brouillon', '#94A3B8', 'Brouillon'], ['soumise', '#F59E0B', 'Soumise'], ['validee', '#10B981', 'Validée']];
+  function tg(k){ ST.hide = ST.hide || {}; ST.hide[k] = !ST.hide[k]; render(); }
   function weekHtml(id){
-    var mon = ST.wk || (ST.wk = U.monday(U.today())), t = U.today(), PX = 0.55, D7 = [], i, nowM = new Date().getHours() * 60 + new Date().getMinutes();
+    var mon = ST.wk || (ST.wk = U.monday(U.today())), t = U.today(), PX = 0.75, D7 = [], i, nowM = new Date().getHours() * 60 + new Date().getMinutes(), HD = ST.hide || {};
     for(i = 0; i < 7; i++){ var d = U.addD(mon, i); D7.push({ d:d, r:RH.day(id, d), P:place(id, d) }); }
     var we = [5, 6].some(function(k){ return D7[k].P.length || D7[k].r.worked || D7[k].r.pl; }), N = we ? 7 : 5, lo = 420, hi = 1140;
     D7.slice(0, N).forEach(function(x){ var r = x.r; if(r.pl){ lo = Math.min(lo, tm(r.pl.debut)); hi = Math.max(hi, tm(r.pl.fin)); } if(r.in != null){ lo = Math.min(lo, r.in); hi = Math.max(hi, r.out != null ? r.out : r.in + 60); } x.P.forEach(function(p){ lo = Math.min(lo, p.s); hi = Math.max(hi, p.e); }); });
-    lo = Math.floor(lo / 60) * 60; hi = Math.ceil(hi / 60) * 60; var H = Math.round((hi - lo) * PX), hp = 60 * PX;
-    var grad = 'repeating-linear-gradient(to bottom,transparent 0,transparent ' + (hp - 1) + 'px,#EEF2F7 ' + (hp - 1) + 'px,#EEF2F7 ' + hp + 'px)', axis = '', heads = '', cols = '';
-    for(var hr = lo; hr < hi; hr += 60) axis += '<div style="position:absolute;right:6px;top:' + Math.round((hr - lo) * PX - 6) + 'px;font-size:10px;color:#94A3B8">' + U.hm(hr) + '</div>';
+    lo = Math.floor(lo / 60) * 60; hi = Math.ceil(hi / 60) * 60; var H = Math.round((hi - lo) * PX), hp = 60 * PX, Y = function(m){ return Math.round((m - lo) * PX); };
+    var grad = 'repeating-linear-gradient(to bottom,transparent 0,transparent ' + (hp - 1) + 'px,#EEF2F7 ' + (hp - 1) + 'px,#EEF2F7 ' + hp + 'px)', hatch = 'rgba(253,230,138,.5)', axis = '', heads = '', cols = '';
+    for(var hr = lo; hr < hi; hr += 60) axis += '<div style="position:absolute;right:6px;top:' + (Y(hr) - 6) + 'px;font-size:10px;color:#94A3B8">' + U.hm(hr) + '</div>';
     D7.slice(0, N).forEach(function(x){
-      var r = x.r, d = x.d, pe = r.out != null ? r.out : (r.in != null ? Math.max(r.in + 30, d === t ? nowM : r.in + (r.worked || 30)) : null);
+      var r = x.r, d = x.d, pe = r.out != null ? r.out : (r.in != null ? Math.max(r.in + 30, d === t ? nowM : r.in + (r.worked || 30)) : null), st = '', pp = planPauses(r.pl), rp = r.in != null ? realPauses(r) : [], f2 = function(a){ return a.map(function(z){ return U.hm(z.a) + '–' + U.hm(z.b); }).join(', '); };
       heads += '<div style="padding:6px 4px;text-align:center;border-left:1px solid #E2E8F0;line-height:1.35"><div class="text-[12.5px] text-slate-800"><b>' + U.JN[U.dow(d) - 1].slice(0, 3) + '</b> ' + d.slice(8) + '/' + d.slice(5, 7) + '</div><div style="font-size:10px;color:#64748B">Prévu ' + (r.pl ? r.pl.debut + '–' + r.pl.fin : '—') + '</div><div style="font-size:10px;color:#1E3A8A">Pointé ' + (r.in != null ? U.hm(r.in) + '–' + (r.out != null ? U.hm(r.out) : '…') : '—') + '</div></div>';
-      var st = '';
-      if(r.pl){ var a = tm(r.pl.debut), b = tm(r.pl.fin); st += '<div title="Prévu ' + r.pl.debut + '–' + r.pl.fin + '" style="position:absolute;left:2px;width:7px;top:' + Math.round((a - lo) * PX) + 'px;height:' + Math.round((b - a) * PX) + 'px;background:#CBD5E1;border-radius:3px"></div>'; }
-      if(r.in != null){ st += '<div title="Pointé ' + U.hm(r.in) + '–' + (r.out != null ? U.hm(r.out) : 'en cours') + '" style="position:absolute;left:11px;width:7px;top:' + Math.round((r.in - lo) * PX) + 'px;height:' + Math.max(4, Math.round((pe - r.in) * PX)) + 'px;background:#2E427B;border-radius:3px"></div>'; }
+      if(!HD.pause){ var show = rp.length ? rp : pp; show.forEach(function(p){ st += '<div title="Pause ' + (rp.length ? 'réelle ' : 'prévue ') + U.hm(p.a) + '–' + U.hm(p.b) + '" style="position:absolute;left:22px;right:3px;top:' + Y(p.a) + 'px;height:' + Math.max(8, Y(p.b) - Y(p.a)) + 'px;background:' + hatch + ';border-radius:4px;border:1px dashed #F59E0B;z-index:2;pointer-events:none;font-size:9px;color:#B45309;padding-left:4px;line-height:' + Math.max(8, Y(p.b) - Y(p.a)) + 'px;overflow:hidden;white-space:nowrap">Pause ' + U.hm(p.a) + '–' + U.hm(p.b) + '</div>'; }); }
+      var gaps = function(a, b, list){ var segs = [], c = a; list.slice().sort(function(u, v){ return u.a - v.a; }).forEach(function(z){ if(z.a > c) segs.push([c, Math.min(z.a, b)]); c = Math.max(c, z.b); }); if(c < b) segs.push([c, b]); return HD.pause ? [[a, b]] : segs; };
+      if(r.pl && !HD.prevu){ var a = tm(r.pl.debut), b = tm(r.pl.fin); gaps(a, b, pp).forEach(function(s){ st += '<div title="Prévu ' + r.pl.debut + '–' + r.pl.fin + (pp.length ? ' (pause ' + f2(pp) + ')' : '') + '" style="position:absolute;left:2px;width:7px;top:' + Y(s[0]) + 'px;height:' + Math.max(3, Y(s[1]) - Y(s[0])) + 'px;background:#CBD5E1;border-radius:3px"></div>'; }); }
+      if(r.in != null && !HD.pointe){ gaps(r.in, pe, rp).forEach(function(s){ st += '<div title="Pointé ' + U.hm(r.in) + '–' + (r.out != null ? U.hm(r.out) : 'en cours') + (rp.length ? ' (pause ' + f2(rp) + ')' : '') + '" style="position:absolute;left:11px;width:7px;top:' + Y(s[0]) + 'px;height:' + Math.max(3, Y(s[1]) - Y(s[0])) + 'px;background:#2E427B;border-radius:3px"></div>'; }); }
       x.P.forEach(function(p){
-        var q = p.q, tk = D().TAC.filter(function(z){ return z.id === q.tache; })[0], ct = tk ? D().CAT.filter(function(z){ return z.id === tk.cat; })[0] : null, s = shState(id, U.monday(q.date), 1), c = STC[s] || STC.brouillon, hgt = Math.max(20, Math.round(q.min * PX) - 1);
-        st += '<div ' + (s === 'validee' ? '' : 'onclick="TempsAct.saiAsk(\'' + id + '\',\'' + q.id + '\')" ') + 'title="' + esc((ct ? ct.nom : '') + (tk ? ' · ' + tk.nom : '') + ' · ' + U.hm(p.s) + '–' + U.hm(p.e) + ' · ' + c[3] + (q.note ? ' · ' + q.note : '')) + '" style="position:absolute;left:22px;right:3px;top:' + Math.round((p.s - lo) * PX) + 'px;height:' + hgt + 'px;background:' + c[1] + ';border-left:3px solid ' + c[0] + ';border-radius:5px;padding:2px 5px;overflow:hidden;font-size:11px;line-height:1.25;color:' + c[2] + ';' + (s === 'validee' ? '' : 'cursor:pointer') + '"><b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(ct ? ct.nom : 'Activité') + '</b>' + (hgt >= 30 ? '<span style="font-size:10px;opacity:.85">' + U.hm(p.s) + '–' + U.hm(p.e) + '</span>' : '') + (hgt >= 46 ? '<span style="display:block;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.03em">' + c[3] + '</span>' : '') + '</div>';
+        var q = p.q, tk = D().TAC.filter(function(z){ return z.id === q.tache; })[0], ct = tk ? D().CAT.filter(function(z){ return z.id === tk.cat; })[0] : null, s = shState(id, U.monday(q.date), 1), c = STC[s] || STC.brouillon, hgt = Math.max(20, Math.round(q.min * PX) - 1), ttl = tk ? tk.nom : (ct ? ct.nom : 'Activité');
+        if(HD[s]) return;
+        st += '<div ' + (s === 'validee' ? '' : 'onclick="TempsAct.saiAsk(\'' + id + '\',\'' + q.id + '\')" ') + 'title="' + esc(ttl + (ct ? ' · ' + ct.nom : '') + ' · ' + q.date.slice(8) + '/' + q.date.slice(5, 7) + ' ' + U.hm(p.s) + '–' + U.hm(p.e) + ' · ' + c[3] + (q.note ? ' · ' + q.note : '')) + '" style="position:absolute;left:22px;right:3px;top:' + Y(p.s) + 'px;height:' + hgt + 'px;background:' + c[1] + ';border-left:3px solid ' + c[0] + ';border-radius:5px;padding:2px 5px;overflow:hidden;font-size:11px;line-height:1.3;color:' + c[2] + ';' + (s === 'validee' ? '' : 'cursor:pointer') + '">' +
+          (hgt >= 36 ? '<span style="position:absolute;top:2px;right:4px;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;opacity:.8">' + c[3] + '</span>' : '') +
+          '<b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' + (hgt >= 36 ? 'padding-right:46px' : '') + '">' + esc(ttl) + '</b>' +
+          (hgt >= 34 ? '<span style="display:block;font-size:10px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(ct ? ct.nom : '') + '</span>' : '') +
+          (hgt >= 48 ? '<span style="display:block;font-size:10px;opacity:.85">' + q.date.slice(8) + '/' + q.date.slice(5, 7) + ' · ' + U.hm(p.s) + '–' + U.hm(p.e) + '</span>' : '') +
+          (hgt >= 62 && q.note ? '<span style="display:block;font-size:10px;font-style:italic;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(q.note) + '</span>' : '') + '</div>';
       });
       cols += '<div style="position:relative;height:' + H + 'px;border-left:1px solid #E2E8F0;background-image:' + grad + ';' + (d === t ? 'background-color:#F8FAFF' : '') + '">' + st + '</div>';
     });
-    var lg = function(c, l){ return '<span style="display:inline-flex;align-items:center;gap:4px"><i style="display:inline-block;width:10px;height:12px;border-radius:3px;background:' + c + '"></i>' + l + '</span>'; };
+    var lg = LEG.map(function(z){ var off = !!HD[z[0]]; return '<button type="button" onclick="TempsActInd.tg(\'' + z[0] + '\')" title="' + (off ? 'Afficher' : 'Masquer') + '" style="display:inline-flex;align-items:center;gap:7px;padding:3px 10px;border:1px solid #E2E8F0;border-radius:999px;background:#fff;font-size:11.5px;color:#475569;cursor:pointer;opacity:' + (off ? .45 : 1) + '"><span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border:1.5px solid ' + (off ? '#CBD5E1' : '#2E427B') + ';border-radius:4px;background:' + (off ? '#fff' : '#2E427B') + ';color:#fff;font-size:10px;line-height:1">' + (off ? '' : '&#10003;') + '</span><i style="display:inline-block;width:10px;height:12px;border-radius:3px;background:' + z[1] + '"></i>' + z[2] + '</button>'; }).join('');
     var nav = '<button type="button" onclick="TempsActInd.wgo(-1)" class="' + B2 + '" style="padding:2px 10px">‹</button><span class="text-[12.5px] font-medium text-slate-700 text-center" style="min-width:150px">Semaine du ' + mon.slice(8) + '/' + mon.slice(5, 7) + ' au ' + U.addD(mon, 6).slice(8) + '/' + U.addD(mon, 6).slice(5, 7) + '</span><button type="button" onclick="TempsActInd.wgo(1)" class="' + B2 + '" style="padding:2px 10px">›</button>';
-    return '<div class="border border-gray-200 rounded-xl bg-white px-4 py-3"><div class="flex items-center justify-between mb-1"><div class="text-[11px] uppercase tracking-wider text-gray-400">Emploi du temps</div><div class="flex items-center gap-2">' + nav + '</div></div><div class="flex flex-wrap items-center gap-4 mb-2 text-[11px] text-gray-500">' + lg('#CBD5E1', 'Prévu') + lg('#2E427B', 'Pointé') + lg('#94A3B8', 'Brouillon') + lg('#F59E0B', 'Soumise') + lg('#10B981', 'Validée') + '</div>' +
+    return '<div class="border border-gray-200 rounded-xl bg-white px-4 py-3"><div class="flex items-center justify-between mb-2"><div class="text-[11px] uppercase tracking-wider text-gray-400">Emploi du temps</div><div class="flex items-center gap-2">' + nav + '</div></div><div style="display:flex;justify-content:space-evenly;align-items:center;flex-wrap:wrap;gap:8px;margin:2px 0 10px">' + lg + '</div>' +
       '<div style="display:grid;grid-template-columns:40px repeat(' + N + ',minmax(0,1fr))"><div></div>' + heads + '<div style="position:relative;height:' + H + 'px">' + axis + '</div>' + cols + '</div></div>';
   }
   function wgo(n){ ST.wk = U.addD(ST.wk || U.monday(U.today()), 7 * n); ST.ref = U.addD(ST.wk, 3); render(); }
@@ -26261,8 +26304,7 @@ var TempsActInd = (function(){
     var pl = 0; try { pl = TempsPlan.mine(id, U.monday(t), U.addD(U.monday(t), 4)).reduce(function(s, z){ return s + z.plan + (z.extra || 0); }, 0); } catch(e){}
     h.innerHTML = '<div class="flex items-start justify-between gap-4 mb-3"><div><h1 class="text-[18px] font-semibold text-slate-800">' + esc(x.nomComplet) + '</h1><div class="text-[12.5px] text-gray-500">' + esc(poste(x)) + ' · ' + esc(svcOf(x)) + '</div></div><div class="flex items-center gap-2">' + icons + '</div></div>' +
       '<div class="grid grid-cols-4 gap-3 mb-3">' + ctile('Temps saisi', U.fh1(tot), 'sur ' + U.fh1(po) + ' pointées', 'text-slate-800') + ctile('Couverture', cv === null ? '—' : cv + ' %', 'saisi sur pointé', cv !== null && cv < SEUIL ? 'text-amber-600' : 'text-emerald-700') + ctile('Catégorie principale', ks.length ? esc(ks[0]) : '—', ks.length ? Math.round(100 * rep[ks[0]] / rt) + ' % du temps saisi' : 'aucune saisie', 'text-sky-700') + ctile('Feuilles', nv + ' / ' + weeks.length, 'validées ce mois-ci · ' + U.fh1(pl) + ' planifiées cette semaine', nv < weeks.length ? 'text-amber-600' : 'text-emerald-700') + '</div>' +
-      '<div style="display:flex;flex-direction:column;gap:12px">' + weekHtml(id) +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch"><div class="border border-gray-200 rounded-xl bg-white px-4 py-3"><div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Feuilles du mois</div>' + (wrows || '<div class="text-[12.5px] text-gray-400 py-2">Aucune semaine.</div>') + '</div>' + repCard + '</div></div>';
+      weekHtml(id);
   }
   function render(){ var h = $('ta-h-ind'); if(!h) return; if(ST.emp) detail(h); else grid(h); }
   function csv(){
@@ -26271,7 +26313,7 @@ var TempsActInd = (function(){
     Exp.ask(L, 'activites_' + U.nom(id).replace(/\s+/g, '_') + '_' + R.from.slice(0, 7) + '.csv');
   }
   (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-act-ind'){ if(ST.keep) ST.keep = false; else ST.emp = null; } var r = sp.apply(this, arguments); if(id === 'tp-act-ind') render(); return r; }; })();
-  return { render:render, q:function(v){ ST.q = v; render(); }, open:function(id){ ST.emp = id; ST.wk = null; render(); }, back:function(){ ST.emp = null; render(); }, span:function(v){ ST.span = v; render(); }, go:function(n){ var d = new Date(ref() + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() + n); ST.ref = U.iso(d); ST.wk = null; var R0 = range(), t0 = U.today(); if(!(t0 >= R0.from && t0 <= R0.to)) ST.wk = U.monday(R0.from); render(); }, wgo:wgo, startOf:startOf, place:place, csv:csv, edit:function(){ AC.openEmpMonth(ST.emp, range().from); }, show:function(id){ ST.emp = id; ST.keep = true; showPanel('tp-act-ind'); } };
+  return { render:render, q:function(v){ ST.q = v; render(); }, open:function(id){ ST.emp = id; ST.wk = null; render(); }, back:function(){ ST.emp = null; render(); }, span:function(v){ ST.span = v; render(); }, go:function(n){ var d = new Date(ref() + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() + n); ST.ref = U.iso(d); ST.wk = null; var R0 = range(), t0 = U.today(); if(!(t0 >= R0.from && t0 <= R0.to)) ST.wk = U.monday(R0.from); render(); }, wgo:wgo, startOf:startOf, place:place, tg:tg, csv:csv, edit:function(){ AC.openEmpMonth(ST.emp, range().from); }, show:function(id){ ST.emp = id; ST.keep = true; showPanel('tp-act-ind'); } };
 })();
 /* ===== SoftTime Activités : États des activités (filtre sur un écran, puis résultats) ===== */
 var TempsActEt = (function(){
