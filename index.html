@@ -1028,6 +1028,11 @@ div[style*="border-left"]:not([class*="border-l-4"]):not(.ps-row){ border-left:1
 .pe-sect{ margin:48px 0 20px; } .pe-body #pe-home .pe-sect:first-child{ margin-top:0; }
 .pe-grid{ display:grid; gap:24px; } .pe-grid.g2{ grid-template-columns:repeat(2,minmax(0,1fr)); } .pe-grid.g3{ grid-template-columns:repeat(3,minmax(0,1fr)); } .pe-grid.g4{ grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; } .pe-grid.gm{ grid-template-columns:minmax(0,2fr) minmax(0,1fr); align-items:start; } .pe-grid.gp{ grid-template-columns:320px minmax(0,1fr); align-items:start; }
 .pe-stack{ display:flex; flex-direction:column; gap:24px; }
+#pe-home .pe-top{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; align-items:start; }
+#pe-home .pe-top > div > .pe-sect{ margin-top:0; } #pe-home .pe-top .pe-qa{ grid-template-columns:1fr; gap:16px; margin-bottom:0; } #pe-home .pe-top .pe-qa button{ width:100%; } #pe-home .pe-todo{ display:flex; flex-direction:column; gap:12px; }
+#erhp-dashboard .pe-grid.gm, #erhp-dashboard .pe-grid.g2, #erhp-dashboard .pe-grid.g3, #erhp-dashboard .pe-grid.g4{ align-items:stretch; } #erhp-dashboard .pe-grid > .pe-card{ height:100%; box-sizing:border-box; } #erhp-dashboard .pe-stack{ height:100%; } #erhp-dashboard .pe-stack > .pe-card{ flex:1; }
+#erhp-dashboard .pe-grid.gm > .pe-card:first-child{ display:flex; flex-direction:column; } #erhp-dashboard .pe-grid.gm > .pe-card:first-child > div[style*="280px"]{ flex:1; height:auto !important; min-height:280px; }
+@media (max-width:1023.98px){ #pe-home .pe-top{ grid-template-columns:minmax(0,1fr); } }
 .pe-card{ background:#fff; border:1px solid var(--n-200); border-radius:12px; padding:24px !important; box-shadow:0 1px 2px rgba(11,19,50,.05); }
 .pe-card.pe-flush{ padding:0 !important; overflow:hidden; }
 .pe-card-h{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--n-100); }
@@ -25990,8 +25995,7 @@ var PE = (function(){
     var hint = '<button class="pe-hint" onclick="PE.more()" aria-label="Voir la suite"><span>Voir la suite</span>' + ic('down') + '</button>';
     if(cur === 'accueil'){
       h = '<span class="pe-eyebrow">' + today() + '</span><h1>Bonjour Camille</h1><p>Voici l’essentiel de votre journée : ce qui attend votre action, vos raccourcis et les nouvelles de l’équipe.</p>' +
-        '<div class="pe-stats">' + stat('96 %', 'de présence sur 30 jours') + stat('3 ans', 'dans l’entreprise') + stat('2/2', 'objectifs atteints') + '</div>' +
-        '<div class="pe-cta"><button class="pe-btn gold" onclick="openModal(\'modal-nouvelle-demande-categories\')">Faire une demande</button>' + (c.lic ? '<button class="pe-btn ghost" onclick="PE.open(\'journee\');TempsPortal.view(\'semaine\')">Compléter ma semaine</button>' : '') + '</div>';
+        '<div class="pe-stats">' + stat('96 %', 'de présence sur 30 jours') + stat('3 ans', 'dans l’entreprise') + stat('2/2', 'objectifs atteints') + '</div>';
     } else if(cur === 'journee'){
       h = '<span class="pe-eyebrow">' + today() + '</span><h1>Mon temps</h1><p>Planifiez vos tâches, démarrez-les au fil de la journée, puis complétez vos pointages de la semaine.</p>' +
         '<div class="pe-stats">' + stat(c.nTodo, 'jour' + (c.nTodo > 1 ? 's' : '') + ' à compléter') + stat(c.hPoint, 'pointées cette semaine') + stat(c.nPend, 'demande' + (c.nPend > 1 ? 's' : '') + ' en cours') + '</div>' +
@@ -26021,8 +26025,8 @@ var PE = (function(){
     var el = $('pe-home'); if(!el) return; var c = ctx(); if(!c.lic){ el.innerHTML = ''; return; }
     var q = [['clock', 'Compléter ma semaine', 'Dire ce que j’ai fait chaque jour', "PE.open('journee');TempsPortal.view('semaine')", true]];
     q.push(['mail', 'Faire une demande', 'Absence, correction, heures supp.', 'TempsPortal.demAsk()']);
-    el.innerHTML = '<div class="pe-sect">À faire maintenant' + (c.nAlert ? ' · ' + c.nAlert : '') + '</div><div style="margin-bottom:40px">' + (c.alerts || '<div class="bg-white border border-gray-200 rounded-xl px-5 py-4 text-[14px] text-gray-500">Rien à faire pour le moment.</div>') + '</div>' +
-      '<div class="pe-sect">Actions rapides</div><div class="pe-qa">' + q.map(row).join('') + '</div><div class="pe-sect">Mon essentiel</div>';
+    el.innerHTML = '<div class="pe-top"><div><div class="pe-sect">À faire maintenant' + (c.nAlert ? ' · ' + c.nAlert : '') + '</div><div class="pe-todo">' + (c.alerts || '<div class="bg-white border border-gray-200 rounded-xl px-5 py-4 text-[14px] text-gray-500">Rien à faire pour le moment.</div>') + '</div></div>' +
+      '<div><div class="pe-sect">Actions rapides</div><div class="pe-qa">' + q.map(row).join('') + '</div></div></div><div class="pe-sect">Mon essentiel</div>';
   }
   function feries(){
     var el = $('pe-feries'); if(!el) return; var U = TempsRH.util, t = U.today(), y = +t.slice(0, 4), L = [];
