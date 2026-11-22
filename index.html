@@ -25669,7 +25669,7 @@ var TempsPlan = (function(){
   /* ---------- Ma journée > Mon planning ---------- */
   function taskRow(x, emp, n){
     var c = catOf(x.cat), left = planned(x) * 60 - spentS(x), run = x.st === 'run', mgr = (x.by ? '<span class="badge b-in">Attribuée par ' + esc(nom(x.by)) + '</span>' : '') + urgBadge(x) + movedBadge(x, true);
-    var meta = '<span class="pl-dot pl-' + c.coul + '"></span>' + esc(c.nom) + ' · prévu ' + fmin(planned(x)) + (x.note ? ' · ' + esc(x.note) : '');
+    var meta = '<span class="pl-dot pl-' + c.coul + '"></span>' + esc(c.nom) + ' · prévu ' + fmin(planned(x)) + (x.rec ? ' · récurrente' : '') + (x.note ? ' · ' + esc(x.note) : '');
     var mvb = x.mv === 'ok' && x.st === 'done' ? '<span class="badge b-ok">' + mvLabel(x) + '</span>' : (x.mv === 'refused' && x.st !== 'done' ? '<span class="badge b-wn">À corriger : ' + esc(x.mvMotif || '') + '</span>' : '');
     var right, extra = '';
     if(x.st === 'done') right = '<span class="badge b-ok">Terminée · ' + fmin(x.real) + '</span>';
@@ -25710,14 +25710,51 @@ var TempsPlan = (function(){
     return h;
   }
   function nav(n){ WKP = U.addD(mon(WKP), 7 * n); TempsPortal.renderAll(); }
-  function del(id){ var x = byId(id); if(!x || x.by || x.st !== 'todo') return; TASKS.splice(TASKS.indexOf(x), 1); refresh(); A.toast('Tâche retirée du planning.'); }
+  function del(id){
+    var x = byId(id); if(!x || x.by || x.st !== 'todo') return;
+    if(x.rec){ A.modal('<div class="flex items-center justify-between mb-4"><h3 class="text-[15px] font-semibold text-slate-800">Tâche récurrente</h3><button onclick="Temps.closeM()" class="text-gray-400 text-xl leading-none">×</button></div><div class="grid grid-cols-2 gap-3">' + choice('Cette tâche seulement', 'TempsPlan.delGo(\'' + id + '\',0)') + choice('Toute la série à venir', 'TempsPlan.delGo(\'' + id + '\',1)') + '</div>', 440); return; }
+    TASKS.splice(TASKS.indexOf(x), 1); refresh(); A.toast('Tâche retirée du planning.');
+  }
 
   /* ---------- ajout d'une tâche (soi-même ou, pour un manager, à son équipe) ---------- */
+  /* ---------- tâches récurrentes et modèles enregistrés ---------- */
+  var TPL = [], REP = { none:'Une seule fois', daily:'Chaque jour ouvré', weekly:'Chaque semaine', monthly:'Chaque mois' };
+  function recurHtml(){
+    return '<div class="grid grid-cols-2 gap-4 mt-3"><div>' + A.lab('Répéter') + '<select id="pl-f-r" class="' + INP + '" onchange="TempsPlan.recToggle()">' + Object.keys(REP).map(function(k){ return '<option value="' + k + '">' + REP[k] + '</option>'; }).join('') + '</select></div><div>' + A.lab('Jusqu’au') + '<input id="pl-f-until" type="date" value="' + U.addD(U.today(), 28) + '" disabled class="' + INP + '"></div></div>' +
+      '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:#334155"><input id="pl-f-save" type="checkbox"> Enregistrer comme modèle</label>';
+  }
+  function recToggle(){ var r = $('pl-f-r'), u = $('pl-f-until'); if(r && u) u.disabled = r.value === 'none'; }
+  function tplSelect(){
+    var L = TPL.filter(function(x){ return x.emp === me(); }); if(!L.length) return '';
+    return '<div class="mb-3">' + A.lab('Utiliser une tâche enregistrée') + '<div style="display:flex;gap:8px"><select id="pl-f-tpl" class="' + INP + '" onchange="TempsPlan.tplPick(this.value)"><option value="">—</option>' + L.map(function(x){ return '<option value="' + x.id + '">' + esc(x.titre) + ' · ' + fmin(x.plan) + (x.rep !== 'none' ? ' · ' + REP[x.rep] : '') + '</option>'; }).join('') + '</select><button type="button" class="' + A.B2 + '" onclick="TempsPlan.tplDel()">Supprimer</button></div></div>';
+  }
+  function tplPick(id){
+    var x = TPL.filter(function(z){ return z.id === id; })[0]; if(!x) return;
+    $('pl-f-t').value = x.titre; $('pl-f-c').value = x.cat; $('pl-f-h').value = x.plan / 60; if($('pl-f-r')){ $('pl-f-r').value = x.rep; recToggle(); } capLine();
+  }
+  function tplDel(){
+    var s = $('pl-f-tpl'); if(!s || !s.value) return; var i = TPL.map(function(z){ return z.id; }).indexOf(s.value); if(i > -1) TPL.splice(i, 1);
+    s.remove(s.selectedIndex); s.value = ''; A.toast('Tâche enregistrée supprimée.');
+  }
+  function datesFor(f){
+    var t = U.today(), out = [], seen = {}, one = function(d){ if(d < t || seen[d] || out.length >= 120) return; seen[d] = 1; out.push(d); }, days = f.days.slice().sort();
+    if(f.rep === 'none'){ days.forEach(one); return out; }
+    if(f.rep === 'daily'){ for(var d = days[0]; d <= f.until; d = U.addD(d, 1)){ if(U.dow(d) <= 5) one(d); } return out; }
+    if(f.rep === 'weekly'){ days.forEach(function(d0){ for(var d = d0; d <= f.until; d = U.addD(d, 7)) one(d); }); return out.sort(); }
+    days.forEach(function(d0){ var y = +d0.slice(0, 4), m = +d0.slice(5, 7), dd = +d0.slice(8); for(var k = 0; k < 24; k++){ var x = new Date(y, m - 1 + k, dd, 12); if(x.getDate() !== dd) continue; var iso = U.iso(x); if(iso > f.until) break; var w = U.dow(iso); if(w === 6) iso = U.addD(iso, 2); else if(w === 7) iso = U.addD(iso, 1); if(iso <= f.until) one(iso); } });
+    return out.sort();
+  }
+  function delGo(id, all){
+    var x = byId(id); A.closeM(); if(!x) return;
+    var L = all ? TASKS.filter(function(y){ return y.rec === x.rec && y.emp === x.emp && y.st === 'todo' && y.date >= x.date; }) : [x];
+    L.forEach(function(y){ TASKS.splice(TASKS.indexOf(y), 1); }); refresh(); A.toast(L.length > 1 ? L.length + ' tâches retirées du planning.' : 'Tâche retirée du planning.');
+  }
+
   function dayChips(m, sel){ var t = U.today(); return '<div class="pl-days">' + JOURS.map(function(j, i){ var d = U.addD(m, i), off = d < t; return '<button type="button" class="pl-dchip" aria-pressed="' + (sel.indexOf(d) > -1) + '" ' + (off ? 'disabled' : '') + ' data-d="' + d + '" onclick="TempsPlan.togDay(this)">' + j + ' ' + d.slice(8) + '</button>'; }).join('') + '</div>'; }
   function fields(m, sel, urg){
-    return A.lab('Intitulé') + '<input id="pl-f-t" class="' + INP + '" placeholder="Ex. : préparer le dossier du client" maxlength="80">' +
+    return (urg ? '' : tplSelect()) + A.lab('Intitulé') + '<input id="pl-f-t" class="' + INP + '" placeholder="Ex. : préparer le dossier du client" maxlength="80">' +
       '<div class="grid ' + (urg ? 'grid-cols-3' : 'grid-cols-2') + ' gap-4 mt-3"><div>' + A.lab('Catégorie') + '<select id="pl-f-c" class="' + INP + '">' + cats().map(function(c){ return '<option value="' + c.id + '">' + esc(c.nom) + '</option>'; }).join('') + '</select></div><div>' + A.lab('Durée prévue (heures)') + '<input id="pl-f-h" type="number" min="0.25" step="0.25" value="1" oninput="TempsPlan.capLine()" class="' + INP + '"></div>' + (urg ? '<div>' + A.lab('Urgence') + '<select id="pl-f-u" class="' + INP + '"><option value="normale">Normale</option><option value="haute">Haute</option><option value="urgente">Urgente</option></select></div>' : '') + '</div>' +
-      '<div class="mt-3">' + A.lab('Jour(s)') + dayChips(m, sel) + '<div id="pl-f-cap" class="mt-2"></div></div>';
+      '<div class="mt-3">' + A.lab('Jour(s)') + dayChips(m, sel) + '<div id="pl-f-cap" class="mt-2"></div></div>' + (urg ? '' : recurHtml());
   }
   function addAsk(d){
     var m = U.monday(d || U.today()); ADD = { mode:'me', m:m };
@@ -25727,9 +25764,17 @@ var TempsPlan = (function(){
   function readForm(){
     var t = ($('pl-f-t').value || '').trim(), hh = parseFloat($('pl-f-h').value), days = [].slice.call(document.querySelectorAll('.pl-dchip[aria-pressed="true"]')).map(function(b){ return b.dataset.d; }), err = $('pl-f-err');
     if(!t){ err.textContent = 'Donnez un intitulé à la tâche.'; return null; } if(!hh || hh < 0.25){ err.textContent = 'Indiquez une durée d’au moins 0,25 h.'; return null; } if(!days.length){ err.textContent = 'Choisissez au moins un jour.'; return null; }
-    return { titre:t, cat:$('pl-f-c').value, plan:Math.round(hh * 60), days:days, urg:($('pl-f-u') || {}).value || 'normale' };
+    var rep = ($('pl-f-r') || {}).value || 'none', until = ($('pl-f-until') || {}).value || '';
+    if(rep !== 'none'){ if(!until){ err.textContent = 'Indiquez la date de fin de la répétition.'; return null; } if(until < days.slice().sort()[0]){ err.textContent = 'La date de fin doit être après le premier jour.'; return null; } }
+    return { titre:t, cat:$('pl-f-c').value, plan:Math.round(hh * 60), days:days, urg:($('pl-f-u') || {}).value || 'normale', rep:rep, until:until, save:!!($('pl-f-save') && $('pl-f-save').checked) };
   }
-  function addGo(){ var f = readForm(); if(!f) return; f.days.forEach(function(d){ add({ emp:me(), date:d, titre:f.titre, cat:f.cat, plan:f.plan }); }); A.closeM(); refresh(); A.toast(f.days.length > 1 ? 'Tâche ajoutée sur ' + f.days.length + ' jours.' : 'Tâche ajoutée au planning.'); }
+  function addGo(){
+    var f = readForm(); if(!f) return; var emp = me(), L = datesFor(f), g = f.rep !== 'none' ? 'rc' + (seq++) : null;
+    if(!L.length){ $('pl-f-err').textContent = 'Aucune date à planifier.'; return; }
+    L.forEach(function(d){ add({ emp:emp, date:d, titre:f.titre, cat:f.cat, plan:f.plan, rec:g }); });
+    if(f.save) TPL.push({ id:'tp' + (seq++), emp:emp, titre:f.titre, cat:f.cat, plan:f.plan, rep:f.rep });
+    A.closeM(); refresh(); A.toast((L.length > 1 ? 'Tâche ajoutée sur ' + L.length + ' jours.' : 'Tâche ajoutée au planning.') + (f.save ? ' Modèle enregistré.' : ''));
+  }
 
   /* ---------- Équipe > Tâches (managers) ---------- */
   function teamHtml(){
@@ -25876,7 +25921,7 @@ var TempsPlan = (function(){
   function refresh(){ try { TempsPortal.renderAll(); } catch(e){} renderTeam(); drawPill(); }
   [].slice.call(document.querySelectorAll('.erh-portal-tab[data-erh-portal="erhp-taches"]')).forEach(function(b){ b.addEventListener('click', renderTeam); });
   var sh = $('portal-employes-shell'); if(sh && window.MutationObserver) new MutationObserver(drawPill).observe(sh, { attributes:true, attributeFilter:['class', 'style'] });
-  return { mvShow:mvShow, mvSave:mvSave, mvAllSet:mvAllSet, moveT:moveT, reprAsk:reprAsk, reprGo:reprGo, dayOpen:dayOpen, dayBack:dayBack, mvOk:mvOk, mvAll:mvAll, mvRefAsk:mvRefAsk, mvRefGo:mvRefGo, mine:mine, myHtml:myHtml, validateDay:validateDay, weekHtml:weekHtml, nToday:nToday, isMgr:isMgr, team:team, begin:begin, pause:pause, finishAsk:finishAsk, finish:finish, more:more, simulate:simulate, nav:nav, navT:navT, del:del, delT:delT, addAsk:addAsk, addGo:addGo, togDay:togDay, assignAsk:assignAsk, assignGo:assignGo, togAll:togAll, syncAll:syncAll, renderTeam:renderTeam, refresh:refresh, mineP:mineP, capOf:capOf, capLine:capLine, pauseAsk:pauseAsk, pauseGo:pauseGo, endPause:endPause, otherAsk:otherAsk, otherGo:otherGo, nextAsk:nextAsk, nextGo:nextGo, tasks:function(){ return TASKS; } };
+  return { mvShow:mvShow, mvSave:mvSave, mvAllSet:mvAllSet, moveT:moveT, reprAsk:reprAsk, reprGo:reprGo, dayOpen:dayOpen, dayBack:dayBack, mvOk:mvOk, mvAll:mvAll, mvRefAsk:mvRefAsk, mvRefGo:mvRefGo, mine:mine, myHtml:myHtml, validateDay:validateDay, weekHtml:weekHtml, nToday:nToday, isMgr:isMgr, team:team, begin:begin, pause:pause, finishAsk:finishAsk, finish:finish, more:more, simulate:simulate, nav:nav, navT:navT, del:del, delT:delT, addAsk:addAsk, addGo:addGo, togDay:togDay, assignAsk:assignAsk, assignGo:assignGo, togAll:togAll, syncAll:syncAll, renderTeam:renderTeam, refresh:refresh, mineP:mineP, recToggle:recToggle, tplPick:tplPick, tplDel:tplDel, delGo:delGo, capOf:capOf, capLine:capLine, pauseAsk:pauseAsk, pauseGo:pauseGo, endPause:endPause, otherAsk:otherAsk, otherGo:otherGo, nextAsk:nextAsk, nextGo:nextGo, tasks:function(){ return TASKS; } };
 })();
 try { TempsPortal.view('planning'); TempsPlan.refresh(); } catch(e){}
 
@@ -25893,7 +25938,7 @@ var PE = (function(){
     { id:'journee', l:'Ma journée', i:'clock', p:'erhp-journee', lic:true },
     { id:'demandes', l:'Mes demandes', i:'inbox', p:'erhp-demandes' },
     { id:'dossier', l:'Mon dossier', i:'folder', subs:[['Informations', 'erhp-dossier'], ['Documents', 'erhp-coffre']] },
-    { id:'equipe', l:'Équipe', i:'users', subs:[['Annuaire', 'erhp-annuaire'], ['Plannings', 'erhp-plannings'], ['Tâches', 'erhp-taches']] }
+    { id:'equipe', l:'Équipe', i:'users', subs:[['Annuaire', 'erhp-annuaire'], ['Plannings', 'erhp-plannings'], ['Planning de l’équipe', 'erhp-taches']] }
   ];
   var cur = 'accueil', sub = null;
   function ctx(){ try { return TempsPortal.ctx(); } catch(e){ return { lic:false, act:false, alerts:'', nAlert:0, nInt:0, nPend:0 }; } }
