@@ -22210,8 +22210,15 @@ var Verif = (function(){
     var q = (location.search.match(/[?&]verif=([^&]+)/) || [])[1]; if(!q) return;
     var o = null, ok = false; try { o = unb64(q); ok = hash(core(o)) === o.h; } catch(e){}
     var ov = document.createElement('div'); ov.id = 'verif-ov'; ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#F4F7FE;overflow:auto;font-family:Inter,Arial,sans-serif;color:#1E293B;display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px';
-    ov.innerHTML = card(o, ok, true);
+    ov.style.flexDirection = 'column'; ov.style.alignItems = 'center'; ov.style.gap = '20px';
+    ov.innerHTML = card(o, ok, true) + (o && o.e ? '<div id="verif-doc" style="width:1120px;max-width:100%;background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.15);padding:20px"><div style="font-size:15px;font-weight:700;color:#0B1332;margin-bottom:10px">Document complet</div><div id="verif-doc-st" style="font-size:13px;color:#64748B">Reconstitution du document…</div></div>' : '');
     document.body.appendChild(ov);
+    if(o && o.e) setTimeout(function(){ try { TempsActInd.rebuild(o, function(b, C){
+      var st = document.getElementById('verif-doc-st'); if(!st) return;
+      var same = C.pack.h === o.h;
+      st.outerHTML = '<div style="font-size:12.5px;margin-bottom:10px;color:' + (same ? '#065F46' : '#92400E') + '">' + (same ? 'Le détail ci-dessous correspond exactement aux données enregistrées à l’édition du document.' : 'Les données ont changé depuis l’édition : le détail ci-dessous reflète l’état actuel, il peut différer du document remis.') + '</div><iframe id="verif-fr" style="width:100%;height:78vh;border:1px solid #E2E8F0;border-radius:10px;background:#fff"></iframe>';
+      document.getElementById('verif-fr').srcdoc = '<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:14px;font-family:Inter,Arial,sans-serif}</style></head><body>' + b.body + '</body></html>';
+    }); } catch(e){ var s2 = document.getElementById('verif-doc-st'); if(s2) s2.textContent = 'Détail indisponible dans cette maquette.'; } }, 50);
     document.getElementById('verif-x').onclick = function(){ ov.remove(); try { history.replaceState(null, '', location.href.split('?')[0]); } catch(e){} };
   }
   var PV = { mode:'ok', url:'' };
@@ -22220,8 +22227,8 @@ var Verif = (function(){
     var host = document.getElementById('qr-demo-body'); if(!host) return;
     var d = new Date(), pd = function(v){ return (v < 10 ? '0' : '') + v; }, iso = function(x){ return x.getFullYear() + '-' + pd(x.getMonth() + 1) + '-' + pd(x.getDate()); }, mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
     var end = new Date(mon); end.setDate(mon.getDate() + 6);
-    var o = { n:'Camille Bernard', e:'E0142', f:iso(mon), t:iso(end), s:2340, p:2400, c:14, st:'Validée', g:iso(d) + ' ' + pd(d.getHours()) + ':' + pd(d.getMinutes()), k:'s' }, pk = make(o), p = Object.assign({}, o, { h:pk.h, r:pk.ref }), base = location.href.split('#')[0].split('?')[0];
-    if(PV.mode === 'ko') p.s = o.s + 60;
+    var em = TempsRH.assigned().filter(function(x){ return Temps.api().aff(x.id).act; })[0], o = { e:em.id, f:iso(mon), t:iso(end), k:'s', g:iso(d) + ' ' + pd(d.getHours()) + ':' + pd(d.getMinutes()) }, p = unb64(TempsActInd.pack(o).url.split('verif=')[1]), pk = { ref:p.r }, base = location.href.split('#')[0].split('?')[0];
+    if(PV.mode === 'ko') p.s += 60;
     PV.url = base + '?verif=' + b64(p);
     loadQR(function(){
       var qr = qrSvg(PV.url), ok = hash(core(p)) === p.h, on = function(m){ return PV.mode === m ? 'background:#2E427B;color:#fff;border-color:#2E427B' : 'background:#fff;color:#334155;border-color:#CBD5E1'; };
@@ -26823,7 +26830,7 @@ var TempsActInd = (function(){
     var cons = WKS.filter(function(z){ return z.n || z.po; }), nv = cons.filter(function(z){ return z.st === 'validee'; }).length, ok = cons.length > 0 && nv === cons.length, ws, stText;
     if(R.kind === 's'){ ws = WKS[0].st; stText = (SL[ws] || ws) + (WKS[0].val ? ' · validée par ' + WKS[0].val.by + ' le ' + WKS[0].val.at : ''); }
     else { ws = ok ? 'validee' : (cons.some(function(z){ return z.st === 'soumise'; }) ? 'soumise' : 'brouillon'); stText = nv + ' semaine' + (nv > 1 ? 's' : '') + ' sur ' + cons.length + ' validée' + (nv > 1 ? 's' : ''); }
-    var dn = new Date(), p2 = function(v){ return (v < 10 ? '0' : '') + v; }, g = dn.getFullYear() + '-' + p2(dn.getMonth() + 1) + '-' + p2(dn.getDate()) + ' ' + p2(dn.getHours()) + ':' + p2(dn.getMinutes());
+    var dn = new Date(), p2 = function(v){ return (v < 10 ? '0' : '') + v; }, g = R.g || (dn.getFullYear() + '-' + p2(dn.getMonth() + 1) + '-' + p2(dn.getDate()) + ' ' + p2(dn.getHours()) + ':' + p2(dn.getMinutes()));
     var pack = Verif.make({ n:x.nomComplet, e:id, f:R.from, t:R.to, s:tot, p:po, c:n, st:R.kind === 's' ? (SL[ws] || ws) : stText, g:g, k:R.kind });
     var per = R.kind === 's' ? U.dfr(R.from) + ' au ' + U.dfr(R.to) + ' (semaine ' + Verif.isoWeek(R.from).w + ')' : R.label + ' (du ' + U.dfr(R.from) + ' au ' + U.dfr(R.to) + ')';
     var ident = [['Salarié', x.nomComplet], ['Matricule', info.matricule || info.mat || x.matricule || id], ['Poste', poste(x) || '—'], ['Service', svcOf(x)], ['Période', per], ['État de la feuille', stText], ['Document édité le', g.slice(8, 10) + '/' + g.slice(5, 7) + '/' + g.slice(0, 4) + ' à ' + g.slice(11)], ['Référence', pack.ref]];
@@ -26931,6 +26938,7 @@ var TempsActInd = (function(){
     }
     return null;
   }
+  function rctx(o){ var m = +o.f.slice(5, 7); return fsCtx(o.e, { from:o.f, to:o.t, kind:o.k === 'm' ? 'm' : 's', g:o.g, label:o.k === 'm' ? MOIS[m - 1].charAt(0).toUpperCase() + MOIS[m - 1].slice(1) + ' ' + o.f.slice(0, 4) : '' }); }
   function csv(){
     var id = ST.emp, R0 = prange('sem'), C0 = fsCtx(id, R0), cache = {};
     var ctx = function(per){ return cache[per] || (cache[per] = fsCtx(id, prange(per))); };
@@ -26945,7 +26953,7 @@ var TempsActInd = (function(){
     var b = ext.rebuild('sem'); Exp.ask(b.lines, b.name, b.title, null, ext);
   }
   (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-act-ind'){ if(ST.keep) ST.keep = false; else ST.emp = null; } var r = sp.apply(this, arguments); if(id === 'tp-act-ind') render(); return r; }; })();
-  return { render:render, q:function(v){ ST.q = v; render(); }, open:function(id){ ST.emp = id; ST.wk = null; render(); }, back:function(){ ST.emp = null; render(); }, span:function(v){ ST.span = v; render(); }, go:function(n){ var d = new Date(ref() + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() + n); ST.ref = U.iso(d); ST.wk = null; var R0 = range(), t0 = U.today(); if(!(t0 >= R0.from && t0 <= R0.to)) ST.wk = U.monday(R0.from); render(); }, wgo:wgo, startOf:startOf, place:place, tg:tg, nuitTg:nuitTg, csv:csv, sheet:function(id, w){ ST.emp = id; ST.wk = w || U.monday(U.today()); csv(); }, edit:function(){ AC.openEmpMonth(ST.emp, range().from); }, show:function(id){ ST.emp = id; ST.keep = true; showPanel('tp-act-ind'); } };
+  return { render:render, q:function(v){ ST.q = v; render(); }, open:function(id){ ST.emp = id; ST.wk = null; render(); }, back:function(){ ST.emp = null; render(); }, span:function(v){ ST.span = v; render(); }, go:function(n){ var d = new Date(ref() + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() + n); ST.ref = U.iso(d); ST.wk = null; var R0 = range(), t0 = U.today(); if(!(t0 >= R0.from && t0 <= R0.to)) ST.wk = U.monday(R0.from); render(); }, wgo:wgo, startOf:startOf, place:place, tg:tg, nuitTg:nuitTg, csv:csv, pack:function(o){ return rctx(o).pack; }, rebuild:function(o, cb){ var C = rctx(o); fsDoc(C, ['cover', 'synth', 'detail', 'edt', 'gra', 'valid'], function(b){ cb(b, C); }); }, sheet:function(id, w){ ST.emp = id; ST.wk = w || U.monday(U.today()); csv(); }, edit:function(){ AC.openEmpMonth(ST.emp, range().from); }, show:function(id){ ST.emp = id; ST.keep = true; showPanel('tp-act-ind'); } };
 })();
 /* ===== SoftTime Activités : États des activités (filtre sur un écran, puis résultats) ===== */
 var TempsActEt = (function(){
