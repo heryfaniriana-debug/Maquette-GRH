@@ -2986,6 +2986,7 @@ renderAppLauncher();
         <button class="submenu-toggle w-full flex items-center justify-between gap-2.5 px-4 py-2 text-[13px] hover:bg-white/5" data-target="sub-tp-fin"><span class="flex items-center gap-2 whitespace-nowrap text-left"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="5" width="16" height="15" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/></svg> Fin de période</span><svg class="w-3.5 h-3.5 chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg></button>
         <div class="submenu pl-11 pr-2" id="sub-tp-fin">
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-sanctions">Sanctions</button>
+          <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-hs">Heures supplémentaires</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-ind-etat">Indemnités</button>
           <button class="nav-item w-full text-left py-1.5 text-[12.5px] hover:text-white" data-panel="tp-cloture">Clôture de période</button>
         </div>
@@ -5418,6 +5419,7 @@ renderAppLauncher();
         <section class="panel" id="tp-san-regles"><div id="ts-h-reg"></div></section>
         <section class="panel" id="tp-sync"><div id="sy-h-sync"></div></section>
         <section class="panel" id="tp-cloture"><div id="cl-h-clot"></div></section>
+        <section class="panel" id="tp-hs"><div id="hs-h-hs"></div></section>
         <section class="panel" id="tp-int-types"><div id="ti-h-types"></div></section>
         <section class="panel" id="tp-ind-etat"><div id="tn-h-etat"></div></section>
         <section class="panel" id="tp-ind-regles"><div id="tn-h-regles"></div></section>
@@ -8765,7 +8767,7 @@ Fait à Antananarivo, le ${dateDuJour}.</textarea>
       rows:['Questionnaire technique','Test technique','Disponibilités & prétentions salariales']}
   };
 
-  const breadcrumbLabels = { 't-competences-poste':['Compétences','Compétences par poste'], 't-competences-situation':['Compétences','Situation individuelle'], 't-evaluations-camp':['Évaluation','Campagne'], 't-evaluations-saisie':['Évaluation','Saisie des résultats'], 'r-eb-candidats':['Embauche','Candidats retenus'], 'r-eb-generer':['Embauche','Plan et dossiers e-RH'], 'r-eb-candidat':['Embauche','Fiche candidat'], 'r-eb-params':['Paramétrages','Embauche : dossier à remplir'], 'e-rapports':['softerh','Rapports'], 'u-recrutement':['Paramétrages','Gestion des utilisateurs'], 'u-formation':['Paramétrages','Gestion des utilisateurs'], 'u-talent':['Paramètres','Gestion des utilisateurs'], 'u-erh':['Paramétrages','Gestion des utilisateurs'], 'u-temps':['Paramétrage','Profils d’accès'], 'tp-collaborateurs':['Paramétrage','Salariés'], 'tp-horaires':['Paramétrage','Horaires et plannings'], 'tp-regles':['Paramétrage','Règles de calcul'], 'tp-pointeuses':['Paramétrage','Pointeuses'], 'tp-circuits':['Paramétrage','Circuits de validation'], 'tp-dashboard':['SoftTime','Tableau de bord'], 'tp-pointages':['Temps de travail','Pointages'], 'tp-presences':['Temps de travail','Présences'], 'tp-heures':['Temps de travail','Heures'], 'tp-ind':['Suivi du temps','Individuel'], 'tp-jour':['Suivi du temps','Journée'], 'tp-sem':['Suivi du temps','Semaine'], 'tp-mois':['Suivi du temps','Mois'], 'tp-etats':['Suivi du temps','États du temps'], 'tp-taches':['Paramétrage','Catégories'], 'tp-recherche':['SoftTime','Recherche'], 'tp-int-types':['Paramétrage','Types d’intervention'], 'tp-ind-etat':['Temps de travail','Indemnités'], 'tp-ind-regles':['Paramétrage','Indemnités'], 'tp-ind-groupes':['Paramétrage','Groupes'], 'tp-traiter':['SoftTime','Validations'], 'tp-sanctions':['Temps de travail','Sanctions'], 'tp-san-regles':['Paramétrage','Règles de sanction'], 'tp-sync':['Paramétrage','Synchronisations'], 'tp-cloture':['Temps de travail','Clôture de période'], 'tp-suivi':['Activités','Réalisation'], 'tp-act-plan':['Activités','Planning'], 'tp-act-ind':['Activités','Individuel'], 'tp-act-etats':['Activités','États des activités'], 'tp-analyse':['Activités','Répartition'], 'tp-rap-pres':['Rapports','Présences'], 'tp-rap-heures':['Rapports','Heures'], 'tp-rap-hs':['Rapports','Heures supplémentaires'], 'tp-rap-act':['Activités','Détail des activités'], 'tp-rap-analyse':['Activités','Analyse croisée'], 'e-mouvements':['Parcours du salarié','Mouvements'], 'r-eb-offres':['Embauche',"Offres d'embauche"], 'r-eb-verif':['Embauche','Vérifications'], 'r-eb-integ':['Embauche','Intégration'],
+  const breadcrumbLabels = { 't-competences-poste':['Compétences','Compétences par poste'], 't-competences-situation':['Compétences','Situation individuelle'], 't-evaluations-camp':['Évaluation','Campagne'], 't-evaluations-saisie':['Évaluation','Saisie des résultats'], 'r-eb-candidats':['Embauche','Candidats retenus'], 'r-eb-generer':['Embauche','Plan et dossiers e-RH'], 'r-eb-candidat':['Embauche','Fiche candidat'], 'r-eb-params':['Paramétrages','Embauche : dossier à remplir'], 'e-rapports':['softerh','Rapports'], 'u-recrutement':['Paramétrages','Gestion des utilisateurs'], 'u-formation':['Paramétrages','Gestion des utilisateurs'], 'u-talent':['Paramètres','Gestion des utilisateurs'], 'u-erh':['Paramétrages','Gestion des utilisateurs'], 'u-temps':['Paramétrage','Profils d’accès'], 'tp-collaborateurs':['Paramétrage','Salariés'], 'tp-horaires':['Paramétrage','Horaires et plannings'], 'tp-regles':['Paramétrage','Règles de calcul'], 'tp-pointeuses':['Paramétrage','Pointeuses'], 'tp-circuits':['Paramétrage','Circuits de validation'], 'tp-dashboard':['SoftTime','Tableau de bord'], 'tp-pointages':['Temps de travail','Pointages'], 'tp-presences':['Temps de travail','Présences'], 'tp-heures':['Temps de travail','Heures'], 'tp-ind':['Suivi du temps','Individuel'], 'tp-jour':['Suivi du temps','Journée'], 'tp-sem':['Suivi du temps','Semaine'], 'tp-mois':['Suivi du temps','Mois'], 'tp-etats':['Suivi du temps','États du temps'], 'tp-taches':['Paramétrage','Catégories'], 'tp-recherche':['SoftTime','Recherche'], 'tp-int-types':['Paramétrage','Types d’intervention'], 'tp-ind-etat':['Temps de travail','Indemnités'], 'tp-ind-regles':['Paramétrage','Indemnités'], 'tp-ind-groupes':['Paramétrage','Groupes'], 'tp-traiter':['SoftTime','Validations'], 'tp-sanctions':['Temps de travail','Sanctions'], 'tp-san-regles':['Paramétrage','Règles de sanction'], 'tp-sync':['Paramétrage','Synchronisations'], 'tp-hs':['Temps de travail','Heures supplémentaires'], 'tp-cloture':['Temps de travail','Clôture de période'], 'tp-suivi':['Activités','Réalisation'], 'tp-act-plan':['Activités','Planning'], 'tp-act-ind':['Activités','Individuel'], 'tp-act-etats':['Activités','États des activités'], 'tp-analyse':['Activités','Répartition'], 'tp-rap-pres':['Rapports','Présences'], 'tp-rap-heures':['Rapports','Heures'], 'tp-rap-hs':['Rapports','Heures supplémentaires'], 'tp-rap-act':['Activités','Détail des activités'], 'tp-rap-analyse':['Activités','Analyse croisée'], 'e-mouvements':['Parcours du salarié','Mouvements'], 'r-eb-offres':['Embauche',"Offres d'embauche"], 'r-eb-verif':['Embauche','Vérifications'], 'r-eb-integ':['Embauche','Intégration'],
     'p-generaux':['Paramètres','Paramètres généraux'], 'p-sites':['Paramètres','Sites'], 'p-etablissements':['Paramètres','Établissements'], 'p-niveaux':['Paramètres','Niveaux de l\'organisation'], 'p-organisation':['Paramètres','Organisation'], 'p-plan-salaries':['Paramètres','Plan des salariés'], 'p-plan-comptes':['Paramètres','Plan des comptes'], 'p-rh':['Paramètres','Ressources humaines'], 'p-logistique':['Paramètres','Logistique'],
     'f-dashboard':['softformation','Tableau de bord'],
     'f-themes':['Catalogue','Thèmes de formation'], 'f-formateurs':['Catalogue','Organismes de formation'], 'f-employes':['Catalogue','Fiches formation des collaborateurs'],
@@ -21909,7 +21911,7 @@ var FSuivi = (function(){
 
 /* ===== SoftTime : pointage, temps & activités — espace RH (Paramétrage) ===== */
 var Exp = (function(){
-  var TITRES = { heures:'Heures travaillées', individuel:'Situation individuelle', activites:'Activités saisies', indemnites:'Indemnités', planning_activites:'Planning des activités', etats_temps:'États du temps', etats_activites:'États des activités', rapport:'Rapport', validations:'Validations', cloture:'Clôture de période', synthese:'Synthèse' };
+  var TITRES = { heures_supplementaires:'Heures supplémentaires', heures:'Heures travaillées', individuel:'Situation individuelle', activites:'Activités saisies', indemnites:'Indemnités', planning_activites:'Planning des activités', etats_temps:'États du temps', etats_activites:'États des activités', rapport:'Rapport', validations:'Validations', cloture:'Clôture de période', synthese:'Synthèse' };
   var ST = null;
   function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function parseLine(l){
@@ -23146,6 +23148,14 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     return TTL.html({ days:days, before:ttDay(id, addD(mon, -1), t, HD), hide:HD, leg:TLEG, tg:'TempsRH.ttTg', today:t });
   }
   function hsOk(id, d, hs){ var s = hsState(id, monday(d), hs); return { ok:(s[1] === 'green' || s[1] === 'sky' || s[1] === 'gray'), label:s[0] }; }
+  function hsStat(emp, w){ var k = emp + '|' + w; return SENT[k] ? 'transmise' : HSV[k] === 'validee' ? 'validee' : HSV[k] === 'refusee' ? 'refusee' : 'avalider'; }
+  var HSAPI = {
+    list:function(from, to){ var o = []; assigned().forEach(function(x){ if((regle(x.id) || {}).hsActive === false) return; for(var w = monday(from); w <= to; w = addD(w, 7)){ var a0 = w < from ? from : w, b0 = addD(w, 6) > to ? to : addD(w, 6); if(sumHs(x.id, a0, b0).hs <= 0) continue; var q = sumHs(x.id, w, addD(w, 6)); if(q.hs > 0) o.push({ emp:x.id, nom:x.nomComplet, w:w, st:hsStat(x.id, w), q:q }); } }); return o; },
+    days:function(emp, w){ return sumHs(emp, w, addD(w, 6)).days.filter(function(r){ return r.hs > 0; }); },
+    many:function(L, val, motif){ L.forEach(function(x){ var k = x.emp + '|' + x.w; if(SENT[k]) return; note(x.emp, x.w, 'Heures supplémentaires ' + (val === 'validee' ? 'validées' : 'refusées') + (motif ? ' : ' + motif : '')); HSV[k] = val; }); refresh(); },
+    send:function(L){ L.forEach(function(x){ SENT[x.emp + '|' + x.w] = true; }); PAIE.unshift({ at:A.nowStr(), n:L.length, hs:L.reduce(function(a, x){ return a + (x.q.hs1 || 0) + (x.q.hs2 || 0); }, 0) }); refresh(); },
+    rule:function(id){ return regle(id) || {}; }
+  };
   function hsState(id, w, hs){
     if(!hs) return ['Aucune', 'gray']; var k = id + '|' + w, re = regle(id) || {};
     if(re.hsActive === false) return ['Non applicable (forfait)', 'gray']; if(SENT[k]) return ['Transmises à la paie', 'sky']; if(HSV[k] === 'validee') return ['Validées', 'green']; if(HSV[k] === 'refusee') return ['Refusées', 'red'];
@@ -23366,7 +23376,7 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
   seedAll();
   return { render:render, importPending:importPending, pending:pending, sync:sync, syncAll:syncAll, devAsk:devAsk, ptDetail:ptDetail, ptDay:ptDay, ptQ:ptQ, manualAsk:manualAsk, manualGo:manualGo, prWeek:prWeek, prQ:prQ, dayOpen:dayOpen, absAsk:absAsk, absGo:absGo, prMode:prMode, plAsk:plAsk, plGo:plGo,
     hrMode:hrMode, hrNav:hrNav, hrQ:hrQ, hrOpen:hrOpen, hrBack:hrBack, hrCsv:hrCsv, fixAsk:fixAsk, fixHow:fixHow, fixGo:fixGo,
-    setInt:setInt, proposeOut:proposeOut, clearDay:clearDay, dashF:dashF, drawerOpen:drawerOpen, drawerNav:drawerNav, drawerClose:drawerClose, drawerWeek:drawerWeek, dropPunch:dropPunch, paieAsk:paieAsk, paieGo:paieGo, applyCorr:applyCorr, replaceP:replaceP, addAbs:addAbs, setHsv:setHsv, refresh:refresh, day:day, sumHs:sumHs, anomalies:anomalyList, punches:punches, planFor:planFor, absOf:absOf, assigned:assigned, util:{ iso:iso, today:today, addD:addD, monday:monday, dow:dow, dfr:dfr, fh:fh, fh1:fh1, tm:tm, hm:hmStr, nom:nom, nowMin:nowMin, FER:FER, JN:JN }, addP:addP, et:ET_API, vwGo:vwGo, indHome:indHome, ttTg:ttTg, ttGo:ttGo, hsOk:hsOk, indBack:indBack, indOpen:indOpen, indClose:indClose, indSpan:indSpan, vwQ:vwQ, vwEmp:vwEmp, vwOpen:vwOpen, vwCsv:vwCsv, ptLab:ptLab, pausePt:function(id){ var q = regle(id); return !!(q && q.pausePt); }, swapShift:swapShift, weeksWithHs:weeksWithHs, paieCount:function(){ var pe = periodOf(); return linked('tmpaie') ? paieItems(pe.from, pe.to).length : 0; }, data:function(){ return { PUN:PUN, CORR:CORR, ABS:ABS, EXC:EXC, HSV:HSV, IMPH:IMPH, ERH:ERH, ABSC:ABSC, PAIE:PAIE, SENT:SENT }; } };
+    setInt:setInt, proposeOut:proposeOut, clearDay:clearDay, dashF:dashF, drawerOpen:drawerOpen, drawerNav:drawerNav, drawerClose:drawerClose, drawerWeek:drawerWeek, dropPunch:dropPunch, paieAsk:paieAsk, paieGo:paieGo, applyCorr:applyCorr, replaceP:replaceP, addAbs:addAbs, setHsv:setHsv, refresh:refresh, day:day, sumHs:sumHs, anomalies:anomalyList, punches:punches, planFor:planFor, absOf:absOf, assigned:assigned, util:{ iso:iso, today:today, addD:addD, monday:monday, dow:dow, dfr:dfr, fh:fh, fh1:fh1, tm:tm, hm:hmStr, nom:nom, nowMin:nowMin, FER:FER, JN:JN }, addP:addP, et:ET_API, vwGo:vwGo, indHome:indHome, ttTg:ttTg, ttGo:ttGo, hs:HSAPI, hsOk:hsOk, indBack:indBack, indOpen:indOpen, indClose:indClose, indSpan:indSpan, vwQ:vwQ, vwEmp:vwEmp, vwOpen:vwOpen, vwCsv:vwCsv, ptLab:ptLab, pausePt:function(id){ var q = regle(id); return !!(q && q.pausePt); }, swapShift:swapShift, weeksWithHs:weeksWithHs, paieCount:function(){ var pe = periodOf(); return linked('tmpaie') ? paieItems(pe.from, pe.to).length : 0; }, data:function(){ return { PUN:PUN, CORR:CORR, ABS:ABS, EXC:EXC, HSV:HSV, IMPH:IMPH, ERH:ERH, ABSC:ABSC, PAIE:PAIE, SENT:SENT }; } };
 })();
 
 
@@ -26196,6 +26206,90 @@ window.absSyncBtn = function(){
   if(!(window.Liens && Liens.on('tmerh'))) return '';
   return '<button type="button" onclick="absSync()" title="Synchroniser les absences depuis Soft e-RH" aria-label="Synchroniser les absences depuis Soft e-RH" class="' + Temps.api().B2 + '" style="padding:0 12px;gap:6px;white-space:nowrap;height:34px;display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18" style="flex:none" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 00-14-4M4 4v4h4M4 13a8 8 0 0014 4M20 20v-4h-4"/></svg><span>Synchroniser</span></button>';
 };
+/* ===== SoftTime Fin de période : Heures supplémentaires ===== */
+var TempsHS = (function(){
+  var A = Temps.api(), RH = TempsRH, U = RH.util, HS = RH.hs, esc = A.esc, INP = A.INP, TH = A.TH, B2 = A.B2, $ = function(id){ return document.getElementById(id); };
+  var MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  var ST = { m:null, etat:'', svc:'', sel:{}, cur:null };
+  var SM = { avalider:['À valider', '#FCE7F3', '#9D174D'], validee:['Validées', '#CCFBF1', '#115E59'], refusee:['Refusées', '#FEE2E2', '#991B1B'], transmise:['Transmises à la paie', '#E0F2FE', '#075985'] };
+  function mo(){ return ST.m || (ST.m = U.today().slice(0, 7)); }
+  function rng(){ var m = mo(), n = new Date(+m.slice(0, 4), +m.slice(5), 0).getDate(); return { from:m + '-01', to:m + '-' + (n < 10 ? '0' : '') + n }; }
+  function svcOf(x){ var p = A.pinfo(x) || {}; return p.service || p.departement || 'Non renseigné'; }
+  function dsh(d){ return d.slice(8) + '/' + d.slice(5, 7); }
+  function key(x){ return x.emp + '|' + x.w; }
+  function badge(st){ var s = SM[st]; return '<span style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:11.5px;font-weight:600;background:' + s[1] + ';color:' + s[2] + '">' + s[0] + '</span>'; }
+  function people(){ var o = {}; RH.assigned().forEach(function(x){ o[x.id] = x; }); return o; }
+  function list(){
+    var R = rng(), P = people(), out = HS.list(R.from, R.to).filter(function(x){ return (!ST.etat || x.st === ST.etat) && (!ST.svc || svcOf(P[x.emp]) === ST.svc); });
+    return out.sort(function(a, b){ return a.nom < b.nom ? -1 : a.nom > b.nom ? 1 : (a.w < b.w ? -1 : 1); });
+  }
+  function btn(path, label, fn, dis){ return '<button type="button" onclick="' + fn + '" title="' + label + '" class="' + B2 + '" style="padding:0 12px;gap:6px;white-space:nowrap;height:34px;display:inline-flex;align-items:center;justify-content:center' + (dis ? ';opacity:.45' : '') + '"><svg viewBox="0 0 24 24" width="18" height="18" style="flex:none" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg><span>' + label + '</span></button>'; }
+  var IC = { ok:'<path d="M5 12l5 5 9-10"/>', ko:'<path d="M6 6l12 12M18 6L6 18"/>', send:'<path d="M4 12l16-8-6 16-3-7z"/>', exp:'<path d="M12 4v10m0 0l-4-4m4 4l4-4M5 19h14"/>' };
+  function opts(arr, cur){ return arr.map(function(o){ return '<option value="' + esc(o[0]) + '"' + (cur === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join(''); }
+  function render(){
+    var h = $('hs-h-hs'); if(!h) return; if(ST.cur) return detail(h);
+    var L = list(), P = people(), t = U.today(), ms = [], svcs = {}, i;
+    for(i = 0; i < 12; i++){ var d = new Date(+t.slice(0, 4), +t.slice(5, 7) - 1 - i, 1), v = d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1); ms.push([v, MOIS[d.getMonth()].charAt(0).toUpperCase() + MOIS[d.getMonth()].slice(1) + ' ' + d.getFullYear()]); }
+    Object.keys(P).forEach(function(k){ svcs[svcOf(P[k])] = 1; });
+    var all = L.length && L.every(function(x){ return ST.sel[key(x)]; }), nSel = L.filter(function(x){ return ST.sel[key(x)]; }).length, nVal = L.filter(function(x){ return x.st === 'validee'; }).length, paie = window.Liens && Liens.on('tmpaie');
+    var rows = L.map(function(x){
+      var k = key(x), q = x.q;
+      return '<tr class="border-t border-gray-100 cursor-pointer hover:bg-blue-50/30" onclick="TempsHS.open(\'' + x.emp + '\',\'' + x.w + '\')"><td class="px-4 py-2.5"><label onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:10px"><input type="checkbox" ' + (ST.sel[k] ? 'checked ' : '') + (x.st === 'transmise' ? 'disabled ' : '') + 'onchange="TempsHS.tog(\'' + k + '\',this.checked)"><span class="text-[13px] text-slate-800 font-medium">' + esc(x.nom) + '</span></label></td><td class="px-3 py-2.5 text-[12.5px] text-slate-700">' + dsh(x.w) + ' au ' + dsh(U.addD(x.w, 6)) + '</td><td class="px-3 py-2.5 text-[12.5px]"><b class="text-slate-800">' + U.fh(q.hs) + '</b> <span class="text-gray-400">· ' + U.fh(q.hs1 || 0) + ' exo. · ' + U.fh(q.hs2 || 0) + ' imp.</span></td><td class="px-3 py-2.5">' + badge(x.st) + '</td></tr>';
+    }).join('');
+    h.innerHTML = A.head('Heures supplémentaires', btn(IC.ok, 'Valider', 'TempsHS.valider()') + btn(IC.ko, 'Refuser', 'TempsHS.refuser()') + (paie ? btn(IC.send, 'Transmettre à la paie', 'TempsHS.send()', !nVal) : '') + btn(IC.exp, 'Exporter', 'TempsHS.csv()')) +
+      '<div class="flex items-center gap-3 mb-4 flex-wrap"><select onchange="TempsHS.setM(this.value)" class="' + INP + '" style="width:190px">' + opts(ms, mo()) + '</select><select onchange="TempsHS.setE(this.value)" class="' + INP + '" style="width:200px">' + opts([['', 'Tous les états'], ['avalider', 'À valider'], ['validee', 'Validées'], ['refusee', 'Refusées'], ['transmise', 'Transmises à la paie']], ST.etat) + '</select><select onchange="TempsHS.setS(this.value)" class="' + INP + '" style="width:200px">' + opts([['', 'Tous les services']].concat(Object.keys(svcs).sort().map(function(s){ return [s, s]; })), ST.svc) + '</select></div>' +
+      '<div class="border border-gray-200 rounded-xl bg-white overflow-hidden"><table data-nokit class="w-full text-left"><thead><tr class="' + TH + '"><th class="px-4 py-2.5 font-medium"><label style="display:inline-flex;align-items:center;gap:10px"><input type="checkbox" ' + (all ? 'checked ' : '') + 'onchange="TempsHS.all(this.checked)">Collaborateur</label></th><th class="px-3 py-2.5 font-medium">Semaine</th><th class="px-3 py-2.5 font-medium">Heures sup.</th><th class="px-3 py-2.5 font-medium">État</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4" class="px-4 py-8 text-center text-[12px] text-gray-400">Aucune heure supplémentaire sur cette sélection.</td></tr>') + '</tbody></table></div>';
+  }
+  function setM(v){ ST.m = v; ST.sel = {}; render(); }
+  function setE(v){ ST.etat = v; render(); }
+  function setS(v){ ST.svc = v; render(); }
+  function tog(k, on){ if(on) ST.sel[k] = true; else delete ST.sel[k]; render(); }
+  function all(on){ list().forEach(function(x){ if(x.st === 'transmise') return; if(on) ST.sel[key(x)] = true; else delete ST.sel[key(x)]; }); render(); }
+  function picked(){ if(ST.cur) return [{ emp:ST.cur.emp, w:ST.cur.w, q:{ hs1:0, hs2:0 } }]; return list().filter(function(x){ return ST.sel[key(x)] && x.st !== 'transmise'; }); }
+  function valider(){
+    var L = picked(); if(!L.length){ A.toast('Cochez au moins une ligne.'); return; }
+    HS.many(L, 'validee'); ST.sel = {}; render(); A.toast(L.length + ' semaine' + (L.length > 1 ? 's' : '') + ' validée' + (L.length > 1 ? 's' : '') + '.');
+  }
+  function refuser(){
+    var L = picked(); if(!L.length){ A.toast('Cochez au moins une ligne.'); return; }
+    A.modal('<h3 class="text-[15px] font-semibold text-slate-800 mb-1">Refuser les heures supplémentaires</h3><div class="text-[12px] text-gray-400 mb-4">' + L.length + ' semaine' + (L.length > 1 ? 's' : '') + '</div><label class="block text-[12px] text-gray-500 mb-1">Motif du refus</label><input id="hs-motif" maxlength="120" class="' + INP + '"><div id="hs-err" class="text-[12px] text-red-600 mt-2"></div><div class="flex justify-end gap-2 mt-5"><button onclick="Temps.closeM()" class="' + B2 + '">Annuler</button><button onclick="TempsHS.refGo()" class="' + A.B1 + '">Refuser</button></div>', 460);
+  }
+  function refGo(){
+    var m = ($('hs-motif').value || '').trim(); if(!m){ $('hs-err').textContent = 'Le motif est obligatoire.'; return; }
+    var L = picked(); HS.many(L, 'refusee', m); ST.sel = {}; A.closeM(); render(); A.toast(L.length + ' semaine' + (L.length > 1 ? 's' : '') + ' refusée' + (L.length > 1 ? 's' : '') + '.');
+  }
+  function send(){
+    var L = list().filter(function(x){ return x.st === 'validee'; }); if(!L.length) return;
+    var tot = L.reduce(function(a, x){ return a + x.q.hs1 + x.q.hs2; }, 0);
+    A.modal('<h3 class="text-[15px] font-semibold text-slate-800 mb-1">Transmettre à SoftPayroll</h3><div class="text-[12px] text-gray-400 mb-4">' + L.length + ' semaine' + (L.length > 1 ? 's' : '') + ' · ' + U.fh(tot) + ' d’heures supplémentaires validées</div><div class="flex justify-end gap-2 mt-5"><button onclick="Temps.closeM()" class="' + B2 + '">Annuler</button><button onclick="TempsHS.sendGo()" class="' + A.B1 + '">Transmettre</button></div>', 460);
+  }
+  function sendGo(){ var L = list().filter(function(x){ return x.st === 'validee'; }); HS.send(L); A.closeM(); render(); A.toast(L.length + ' semaine' + (L.length > 1 ? 's' : '') + ' transmise' + (L.length > 1 ? 's' : '') + ' à SoftPayroll.'); }
+  function open(emp, w){ ST.cur = { emp:emp, w:w }; render(); }
+  function back(){ ST.cur = null; render(); }
+  function detail(h){
+    var c = ST.cur, P = people(), x = P[c.emp], w = c.w, e = U.addD(w, 6), it = HS.list(w, w).filter(function(z){ return z.emp === c.emp && z.w === w; })[0];
+    if(!it){ ST.cur = null; return render(); }
+    var q = it.q, re = HS.rule(c.emp), D = HS.days(c.emp, w), ok = it.st === 'validee' || it.st === 'transmise', col = ok ? ['#14B8A6', '#CCFBF1', '#115E59'] : ['#EC4899', '#FCE7F3', '#9D174D'], rows = '';
+    D.forEach(function(r){
+      var chips = '<span class="mj-did" style="background:' + col[1] + ';border-color:' + col[0] + ';color:' + col[2] + '">HS ' + U.fh(r.hs) + '</span>' + (r.nuit ? '<span class="mj-did">Nuit ' + U.fh(r.nuit) + '</span>' : '') + (r.fer ? '<span class="mj-did">Férié</span>' : U.dow(r.date) === 7 ? '<span class="mj-did">Dimanche</span>' : '');
+      rows += '<div class="mj-day"><div class="mj-date"><b>' + U.JN[U.dow(r.date) - 1].slice(0, 3) + '</b><span>' + dsh(r.date) + '</span></div><div class="mj-main"><div class="mj-pt"><b>' + (r.in != null ? U.hm(r.in) : '—') + '</b> → ' + (r.out != null ? '<b>' + U.hm(r.out) + '</b>' : '…') + '</div><div class="mj-sub">' + (r.pl ? 'Prévu ' + r.pl.debut + '–' + r.pl.fin : 'Hors planning') + ' · ' + U.fh(r.worked) + ' travaillées</div><div class="mj-act">' + chips + '</div></div><div class="mj-side">' + badge(it.st) + '</div></div>';
+    });
+    var ro = it.st === 'transmise', pct = Math.min(100, Math.round(100 * q.hs / Math.max(1, (re.plafond || 20) * 60)));
+    h.innerHTML = A.back('TempsHS.back()', 'Retour') + A.head(esc(x ? x.nomComplet : c.emp), ro ? '' : btn(IC.ok, 'Valider', 'TempsHS.valider()') + btn(IC.ko, 'Refuser', 'TempsHS.refuser()')) +
+      '<div class="mj-sum" style="margin-bottom:12px"><div class="mj-sum-t"><div><b>Semaine du ' + dsh(w) + ' au ' + dsh(e) + '</b><span>' + U.fh(q.hs) + ' d’heures supplémentaires · ' + U.fh(q.hs1 || 0) + ' exonérées · ' + U.fh(q.hs2 || 0) + ' imposables</span></div>' + badge(it.st) + '</div><div class="mj-prog"><i style="width:' + pct + '%"></i></div></div>' +
+      '<div class="mj-week" style="margin-bottom:12px">' + (rows || '<div class="mj-empty">Aucun jour.</div>') + '</div>' +
+      '<div class="border border-gray-200 rounded-xl bg-white px-4 py-3"><div class="text-[11px] uppercase tracking-wider text-gray-400 mb-1">Règle appliquée · ' + esc(re.nom || '—') + '</div>' +
+      [['Seuils', (re.hsJour != null ? re.hsJour + ' h/jour · ' + re.hsSem + ' h/semaine' : '—')], ['Majoration', re.taux1 + ' %, puis ' + re.taux2 + ' % après ' + re.palier + ' h'], ['Plafond', (re.plafond || '—') + ' h/semaine'], ['Nuit · dimanche · férié', re.nuitTaux + ' % · ' + re.dimTaux + ' % · ' + re.ferieTaux + ' %'], ['Validation', re.hsValid === false ? 'Non requise' : 'Requise']].map(function(r){ return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #F1F5F9;font-size:12.5px"><span style="color:#475569">' + r[0] + '</span><b style="color:#0B1332;font-weight:600">' + r[1] + '</b></div>'; }).join('') + '</div>';
+  }
+  function csv(){
+    var R = rng(), L = ['Collaborateur;Semaine;HS exonérées (h);HS imposables (h);Total (h);État'], f = function(m){ return (Math.round(m / 6) / 10).toString().replace('.', ','); };
+    list().forEach(function(x){ L.push([x.nom, dsh(x.w) + ' au ' + dsh(U.addD(x.w, 6)), f(x.q.hs1 || 0), f(x.q.hs2 || 0), f(x.q.hs), SM[x.st][0]].join(';')); });
+    Exp.ask(L, 'heures_supplementaires_' + R.from + '_' + R.to + '.csv');
+  }
+  (function(){ var sp = window.showPanel; if(typeof sp === 'function') window.showPanel = function(id){ if(id === 'tp-hs'){ ST.cur = null; ST.sel = {}; } var r = sp.apply(this, arguments); if(id === 'tp-hs') render(); return r; }; })();
+  return { render:render, setM:setM, setE:setE, setS:setS, tog:tog, all:all, valider:valider, refuser:refuser, refGo:refGo, send:send, sendGo:sendGo, open:open, back:back, csv:csv };
+})();
+
 var TempsActPlan = (function(){
   var A = Temps.api(), RH = TempsRH, U = RH.util, esc = A.esc, pill = A.pill, INP = A.INP, TH = A.TH, B1 = A.B1, B2 = A.B2, $ = function(id){ return document.getElementById(id); };
   var ST = { week:null, q:'', m:null, emp:null };
