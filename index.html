@@ -23113,8 +23113,8 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
   function planSpan(pl){ var a = tm(pl.debut), b = tm(pl.fin); if(b <= a) b += 1440; return [a, b]; }
   function planPz(pl){ var o = []; if(!pl) return o; var s = planSpan(pl), add = function(a, b){ if(a < s[0]) { a += 1440; b += 1440; } o.push({ a:a, b:b }); }; if(pl.pauses && pl.pauses.length) pl.pauses.forEach(function(p){ if(p.debut) add(tm(p.debut), tm(p.fin) <= tm(p.debut) ? tm(p.fin) + 1440 : tm(p.fin)); }); else if(pl.pause > 0) add(720, 720 + pl.pause); return o; }
   function realPz(r, inn){ var o = []; (r.pp || []).concat(r.ext || []).forEach(function(z){ var a = z.a, b = z.b; if(inn != null && a < inn){ a += 1440; b += 1440; } if(b > a) o.push({ a:a, b:b }); }); return o.sort(function(x, y){ return x.a - y.a; }); }
-  var TLEG = [['prevu', '#CBD5E1', 'Prévu'], ['pointe', '#2E427B', 'Pointé'], ['pause', '#FCD34D', 'Pauses'], ['present', '#10B981', 'Présent'], ['retard', '#F59E0B', 'Retard'], ['hs', '#6366F1', 'Heures sup.'], ['absent', '#EF4444', 'Absent'], ['absence', '#8B5CF6', 'Absence']];
-  var TC = { present:['#10B981', '#D1FAE5', '#065F46'], retard:['#F59E0B', '#FEF3C7', '#92400E'], hs:['#6366F1', '#E0E7FF', '#3730A3'], inc:['#F97316', '#FFEDD5', '#9A3412'], absent:['#EF4444', '#FEE2E2', '#991B1B'], absence:['#8B5CF6', '#EDE9FE', '#5B21B6'] };
+  var TLEG = [['prevu', '#CBD5E1', 'Prévu'], ['pointe', '#2E427B', 'Pointé'], ['pause', '#FCD34D', 'Pauses'], ['present', '#10B981', 'Présent'], ['retard', '#F59E0B', 'Retard'], ['hsv', '#14B8A6', 'HS validées'], ['hsn', '#EC4899', 'HS à valider'], ['absent', '#EF4444', 'Absent'], ['absence', '#8B5CF6', 'Absence']];
+  var TC = { present:['#10B981', '#D1FAE5', '#065F46'], retard:['#F59E0B', '#FEF3C7', '#92400E'], hsv:['#14B8A6', '#CCFBF1', '#115E59'], hsn:['#EC4899', '#FCE7F3', '#9D174D'], inc:['#F97316', '#FFEDD5', '#9A3412'], absent:['#EF4444', '#FEE2E2', '#991B1B'], absence:['#8B5CF6', '#EDE9FE', '#5B21B6'] };
   function wkDef(){ return monday(today()); }
   function ttTg(k){ VW.hide = VW.hide || {}; VW.hide[k] = !VW.hide[k]; render('tp-ind'); }
   function ttGo(n){ VW.wk = addD(VW.wk || wkDef(), 7 * n); VW.ref = addD(VW.wk, 3); render('tp-ind'); }
@@ -23132,7 +23132,7 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     else if(absU){ if(pS) D.blocks.push({ a:pS[0], b:pS[1], key:'absent', c:TC.absent, on:on, t:(k === 'absent' ? 'Absent' : 'Non pointé') + ' · ' + pl.debut + '–' + pl.fin, l:[k === 'absent' ? 'Absent' : 'Non pointé', pl.debut + '–' + pl.fin] }); }
     else if(inn != null){
       var end = pe, hsA = null;
-      if(r.hs > 0){ hsA = Math.max(inn, end - r.hs); D.blocks.push({ a:hsA, b:end, key:'hs', c:TC.hs, on:on, t:'Heures sup. ' + fh(r.hs) + ' · ' + hm(hsA) + '–' + hm(end), l:['Heures sup. · ' + fh(r.hs), hm(hsA) + '–' + hm(end)] }); }
+      if(r.hs > 0){ hsA = Math.max(inn, end - r.hs); var hv = hsOk(id, d, r.hs), hl = hv.ok ? 'HS validées' : 'HS · ' + hv.label.toLowerCase(); D.blocks.push({ a:hsA, b:end, key:hv.ok ? 'hsv' : 'hsn', c:hv.ok ? TC.hsv : TC.hsn, on:on, t:hl + ' ' + fh(r.hs) + ' · ' + hm(hsA) + '–' + hm(end), l:[hl + ' · ' + fh(r.hs), hm(hsA) + '–' + hm(end)] }); }
       if(r.retard > 0 && pS && inn > pS[0]) D.blocks.push({ a:pS[0], b:inn, key:'retard', c:TC.retard, on:on, t:'Retard ' + r.retard + ' min · ' + hm(pS[0]) + '–' + hm(inn), l:['Retard · ' + r.retard + ' min', hm(pS[0]) + '–' + hm(inn)] });
       var pb = hsA != null ? hsA : end, inc = (k === 'incomplet'), lab = inc ? 'Sortie manquante' : (k === 'en_cours' ? 'En cours' : 'Présent');
       if(pb > inn) D.blocks.push({ a:inn, b:pb, key:'present', c:inc ? TC.inc : TC.present, on:on, t:lab + ' · ' + hm(inn) + '–' + hm(pb) + (r.worked ? ' · travaillé ' + fh(r.worked) : ''), l:[lab, hm(inn) + '–' + (r.out != null && hsA == null ? hm(out) : hm(pb)), r.worked ? 'Travaillé ' + fh(r.worked) : '', r.nuit ? 'Nuit ' + fh(r.nuit) : ''] });
@@ -23145,6 +23145,7 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
     var we = [5, 6].some(function(k){ var x = D7[k]; return x.blocks.length || x.prevu.length || x.pointe.length; }), days = we ? D7 : D7.slice(0, 5);
     return TTL.html({ days:days, before:ttDay(id, addD(mon, -1), t, HD), hide:HD, leg:TLEG, tg:'TempsRH.ttTg', today:t });
   }
+  function hsOk(id, d, hs){ var s = hsState(id, monday(d), hs); return { ok:(s[1] === 'green' || s[1] === 'sky' || s[1] === 'gray'), label:s[0] }; }
   function hsState(id, w, hs){
     if(!hs) return ['Aucune', 'gray']; var k = id + '|' + w, re = regle(id) || {};
     if(re.hsActive === false) return ['Non applicable (forfait)', 'gray']; if(SENT[k]) return ['Transmises à la paie', 'sky']; if(HSV[k] === 'validee') return ['Validées', 'green']; if(HSV[k] === 'refusee') return ['Refusées', 'red'];
@@ -23365,7 +23366,7 @@ function ptDay(n){ V.pt.date = addD(V.pt.date, n); render('tp-pointages'); }
   seedAll();
   return { render:render, importPending:importPending, pending:pending, sync:sync, syncAll:syncAll, devAsk:devAsk, ptDetail:ptDetail, ptDay:ptDay, ptQ:ptQ, manualAsk:manualAsk, manualGo:manualGo, prWeek:prWeek, prQ:prQ, dayOpen:dayOpen, absAsk:absAsk, absGo:absGo, prMode:prMode, plAsk:plAsk, plGo:plGo,
     hrMode:hrMode, hrNav:hrNav, hrQ:hrQ, hrOpen:hrOpen, hrBack:hrBack, hrCsv:hrCsv, fixAsk:fixAsk, fixHow:fixHow, fixGo:fixGo,
-    setInt:setInt, proposeOut:proposeOut, clearDay:clearDay, dashF:dashF, drawerOpen:drawerOpen, drawerNav:drawerNav, drawerClose:drawerClose, drawerWeek:drawerWeek, dropPunch:dropPunch, paieAsk:paieAsk, paieGo:paieGo, applyCorr:applyCorr, replaceP:replaceP, addAbs:addAbs, setHsv:setHsv, refresh:refresh, day:day, sumHs:sumHs, anomalies:anomalyList, punches:punches, planFor:planFor, absOf:absOf, assigned:assigned, util:{ iso:iso, today:today, addD:addD, monday:monday, dow:dow, dfr:dfr, fh:fh, fh1:fh1, tm:tm, hm:hmStr, nom:nom, nowMin:nowMin, FER:FER, JN:JN }, addP:addP, et:ET_API, vwGo:vwGo, indHome:indHome, ttTg:ttTg, ttGo:ttGo, indBack:indBack, indOpen:indOpen, indClose:indClose, indSpan:indSpan, vwQ:vwQ, vwEmp:vwEmp, vwOpen:vwOpen, vwCsv:vwCsv, ptLab:ptLab, pausePt:function(id){ var q = regle(id); return !!(q && q.pausePt); }, swapShift:swapShift, weeksWithHs:weeksWithHs, paieCount:function(){ var pe = periodOf(); return linked('tmpaie') ? paieItems(pe.from, pe.to).length : 0; }, data:function(){ return { PUN:PUN, CORR:CORR, ABS:ABS, EXC:EXC, HSV:HSV, IMPH:IMPH, ERH:ERH, ABSC:ABSC, PAIE:PAIE, SENT:SENT }; } };
+    setInt:setInt, proposeOut:proposeOut, clearDay:clearDay, dashF:dashF, drawerOpen:drawerOpen, drawerNav:drawerNav, drawerClose:drawerClose, drawerWeek:drawerWeek, dropPunch:dropPunch, paieAsk:paieAsk, paieGo:paieGo, applyCorr:applyCorr, replaceP:replaceP, addAbs:addAbs, setHsv:setHsv, refresh:refresh, day:day, sumHs:sumHs, anomalies:anomalyList, punches:punches, planFor:planFor, absOf:absOf, assigned:assigned, util:{ iso:iso, today:today, addD:addD, monday:monday, dow:dow, dfr:dfr, fh:fh, fh1:fh1, tm:tm, hm:hmStr, nom:nom, nowMin:nowMin, FER:FER, JN:JN }, addP:addP, et:ET_API, vwGo:vwGo, indHome:indHome, ttTg:ttTg, ttGo:ttGo, hsOk:hsOk, indBack:indBack, indOpen:indOpen, indClose:indClose, indSpan:indSpan, vwQ:vwQ, vwEmp:vwEmp, vwOpen:vwOpen, vwCsv:vwCsv, ptLab:ptLab, pausePt:function(id){ var q = regle(id); return !!(q && q.pausePt); }, swapShift:swapShift, weeksWithHs:weeksWithHs, paieCount:function(){ var pe = periodOf(); return linked('tmpaie') ? paieItems(pe.from, pe.to).length : 0; }, data:function(){ return { PUN:PUN, CORR:CORR, ABS:ABS, EXC:EXC, HSV:HSV, IMPH:IMPH, ERH:ERH, ABSC:ABSC, PAIE:PAIE, SENT:SENT }; } };
 })();
 
 
@@ -26371,7 +26372,7 @@ var TempsActInd = (function(){
     return fx.concat(out).sort(function(a, b){ return a.s - b.s; });
   }
   var STC = { brouillon:['#94A3B8', '#F1F5F9', '#475569', 'Brouillon'], soumise:['#F59E0B', '#FEF3C7', '#92400E', 'Soumise'], validee:['#10B981', '#D1FAE5', '#065F46', 'Validée'] };
-  var LEG = [['prevu', '#CBD5E1', 'Prévu'], ['pointe', '#2E427B', 'Pointé'], ['pause', '#FCD34D', 'Pauses'], ['retard', '#F59E0B', 'Retard'], ['hs', '#6366F1', 'Heures sup.'], ['brouillon', '#94A3B8', 'Brouillon'], ['soumise', '#F59E0B', 'Soumise'], ['validee', '#10B981', 'Validée']];
+  var LEG = [['prevu', '#CBD5E1', 'Prévu'], ['pointe', '#2E427B', 'Pointé'], ['pause', '#FCD34D', 'Pauses'], ['retard', '#F59E0B', 'Retard'], ['hsv', '#14B8A6', 'HS validées'], ['hsn', '#EC4899', 'HS à valider'], ['brouillon', '#94A3B8', 'Brouillon'], ['soumise', '#F59E0B', 'Soumise'], ['validee', '#10B981', 'Validée']];
   function tg(k){ ST.hide = ST.hide || {}; ST.hide[k] = !ST.hide[k]; render(); }
   function wDay(id, d, t, HD){
     var r = RH.day(id, d), pl = r.pl, ab = !!r.ab, k = r.statut, absU = (k === 'absent' || k === 'non_pointe'), pS = pl ? planSpan(pl) : null, nowM = new Date().getHours() * 60 + new Date().getMinutes(), inn = r.in, out = r.out, hm = TTL.hm;
@@ -26383,7 +26384,7 @@ var TempsActInd = (function(){
     if(inn != null){
       var hsA = r.hs > 0 ? Math.max(inn, pe - r.hs) : null, mainEnd = hsA != null ? hsA : pe;
       TTL.gaps(inn, mainEnd, rp, HD.pause).forEach(function(s){ X.pointe.push({ a:s[0], b:s[1], t:'Pointé ' + hm(inn) + '–' + (r.out != null ? hm(out) : 'en cours') + (rp.length ? ' (pause ' + f2(rp) + ')' : '') }); });
-      if(hsA != null) X.pointe.push({ a:hsA, b:pe, c:'#6366F1', key:'hs', t:'Heures sup. ' + U.fh(r.hs) + ' · ' + hm(hsA) + '–' + hm(pe) });
+      if(hsA != null){ var hv = RH.hsOk(id, d, r.hs); X.pointe.push({ a:hsA, b:pe, c:hv.ok ? '#14B8A6' : '#EC4899', key:hv.ok ? 'hsv' : 'hsn', t:(hv.ok ? 'HS validées ' : 'HS ' + hv.label.toLowerCase() + ' ') + U.fh(r.hs) + ' · ' + hm(hsA) + '–' + hm(pe) }); }
       if(r.retard > 0 && pS && inn > pS[0]) X.pointe.push({ a:pS[0], b:inn, c:'#F59E0B', key:'retard', t:'Retard ' + r.retard + ' min · ' + hm(pS[0]) + '–' + hm(inn) });
     }
     pz.forEach(function(p){ X.pauses.push({ a:p.a, b:p.b, t:'Pause ' + (rp.length ? 'réelle ' : 'prévue ') + hm(p.a) + '–' + hm(p.b) }); });
